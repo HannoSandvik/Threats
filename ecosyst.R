@@ -23,11 +23,11 @@ re.create <- TRUE
 
 # Decides whether Data Deficient systems are excluded (if FALSE)
 # or randomly assigned to other Red List categories (if TRUE)
-DD.included <- TRUE
+includeDD <- TRUE
 
 # Decides whether (if TRUE) or not (if FALSE) unknown threat factors
 # should be inferred from the distribution of the known threat factors 
-infer.threats <- FALSE
+inferThreats <- FALSE
 
 # Decides whether ecosystem major types should be disintegrated 
 # into their minor types
@@ -212,7 +212,7 @@ if (disintegrate) { # disintegrate major types into minor types
 RL$Loss <- LoS(RL$Category)
 RL$W <- RLW(RL$Category)
 
-if (DD.included) { # extrapolation to DD systems
+if (includeDD) { # extrapolation to DD systems
   RL$Loss[which(RL$Category == "DD")] <- weighted.mean(
     LoS(c("CR","EN","LC","NT","VU")),
     table(RL$Category[which(RL$Category %in% c("CR","EN","LC","NT","VU"))]))
@@ -266,7 +266,7 @@ for (y in 18) {
     } # j
   } # i
   L <- length(which(RL$Category %in% LC.CR))
-  if (DD.included) {
+  if (includeDD) {
     L <- length(which(RL$Category %in% c(LC.CR, "DD")))
   }
   for (p in threats) {
@@ -279,8 +279,7 @@ for (y in 18) {
   } # p
 } # y
 
-# ¤¤¤¤¤ remove!
-if (infer.threats) {
+if (inferThreats) {
   w <- which(names(LOSS) == "unknownf")
   LOSS  <-  LOSS * (1 +  LOSS[w] / sum( LOSS[-w]))
   dRLI <- dRLI * (1 + dRLI[w] / sum(dRLI[-w]))
@@ -464,7 +463,7 @@ X1[which(W == 3)] <- X2[which(W == 2)] <- ExtProb[4]
 X1[which(W == 4)] <- X2[which(W == 3)] <- ExtProb[5]
 X1[which(W == 5)] <- X2[which(W == 4)] <- X2[which(W == 5)] <- ExtProb[6]
 
-if (DD.included) { # Determine weights for the simulation of DD species
+if (includeDD) { # Determine weights for the simulation of DD species
   DD <- numeric()
   for (k in c(LC.CR, "CO")) {
     DD <- c(DD, length(which(RL$Category == k)))
@@ -478,7 +477,7 @@ if (DD.included) { # Determine weights for the simulation of DD species
   }
 }
 
-if (infer.threats) {
+if (inferThreats) {
   # Count the occurrences of threats in order to extrapolate to unknown threats
   number <- antP <- antM <- rep(0, length(threats))
   husk <- 0
@@ -509,7 +508,7 @@ if (re.create) {
 # Start simulations
 LSS <- DDW <- 0
 rlcat <- c("CO","CR","EN","VU","NT","LC")
-if (DD.included) {
+if (includeDD) {
   rlcat <- c("CO","CR","EN","VU","NT","LC","DD")
 }
 for (i in which(RL$Category %in% rlcat)) {
@@ -581,7 +580,7 @@ for (i in which(RL$Category %in% rlcat)) {
         Z <- nsim
         Q <- P[j]
         w <- list(1:Z)
-        if (infer.threats) { # extrapolation to unknown threats
+        if (inferThreats) { # extrapolation to unknown threats
           if (P[j] %contains% "unknownf") {
             for (k in 1:(length(threats) - 1)) {
               # assigning a number of iterations to each threat factor,
@@ -604,7 +603,7 @@ for (i in which(RL$Category %in% rlcat)) {
             if (Q[k] %contains% "slowdecl") sever[w[[k]]] <- runif(Z[k], SEV[2], SEV[3])
             if (Q[k] %contains% "negldecl") sever[w[[k]]] <- rIncr(Z[k], SEV[2])
             if (Q[k] %contains% "unknownd") sever[w[[k]]] <- rbeta(Z[k],     2,    beta)
-            # shuffle the values (needed when infer.threats == T)
+            # shuffle the values (needed when inferThreats == T)
             sever <- sever[o]
             # Severity scores are summed for each system
             pop                    <- pop                    + sever
