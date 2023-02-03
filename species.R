@@ -239,6 +239,30 @@ years <- identifyYears(RL)
 
 # define threats!!! ¤¤¤
 
+uplist <- function(RL) {
+  # "Uplists" species that have been downlisted
+  years <- identifyYears(RL)
+  for (y in years) {
+    RL[, "Categ" %+% y] <- n0(RL[, "Categ" %+% y])
+  }
+  return(RL)
+}
+
+RL <- uplist(RL)
+
+backCast <- function(RL) {
+  # "Back-casts" the most recent knowledge to earlier Red Lists
+  years <- sort(identifyYears(RL), decreasing = TRUE)
+  if (length(years) > 1) {
+    for (y1 in years[-1]) {
+      for (y2 in (years[years > y1])) {
+        # ..... ¤¤¤
+      }
+    }
+  }
+}
+
+
 # Undo downlisting for 2021
 RL$cat21 <- n0(RL$Categ21)
 
