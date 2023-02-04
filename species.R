@@ -164,17 +164,19 @@ RLW <- function(x, w=RLweights) {
                                             NA)))
 }
 
-n0 <- function(x) {
+n0 <- function(x, symbol="<") {
   # "Uplisting" of downlisted species
-  as.vector(sapply(x, function(x)
-    switch(x, "LC°"="NT", "NT°"="VU", "VU°"="EN", "EN°"="CR", x)))
+  ifelse(substr(x, 3, 3) == symbol,
+         as.vector(sapply(substr(x, 1, 2), function(a)
+           switch(a, LC="NT", NT="VU", VU="EN", EN="CR", a))),
+         x)
 }
 
-uplist <- function(RL) {
+uplist <- function(RL, symbol="<") {
   # "Uplists" species that have been downlisted
   years <- identifyYears(RL)
   for (y in years) {
-    RL[, "Categ" %+% y] <- n0(RL[, "Categ" %+% y])
+    RL[, "Categ" %+% y] <- n0(RL[, "Categ" %+% y], symbol=symbol)
   }
   return(RL)
 }
@@ -202,7 +204,7 @@ identifyYears <- function(RL) {
   return(years)
 }
 
-identifyThreats <- function(RL, unknown="unknownf") {
+identifyThreats <- function(RL, unknown="unknownf") { #¤¤¤ define unknownf!!!
   # Threats reported in a Red List are identified
   # from the column names which start with "Threat"
   thr <- character()
@@ -214,6 +216,43 @@ identifyThreats <- function(RL, unknown="unknownf") {
   }
   return(thr)
 }
+
+backCast <- function(RL, real="realpopu") { #¤¤¤ define realpopu
+  # "Back-casts" the most recent knowledge to earlier Red Lists
+  years <- sort(identifyYears(RL), decreasing = TRUE)
+  if (length(years) > 1) {
+    for (y1 in years) { # copy category columns
+      RL[, "Categ" %+% y1 %+% "." %+% y1] <- RL[, "Categ" %+% y1]
+    }
+    for (y1 in years[-1]) {
+      # y1 is the year _to_ which knowledge is back-cast
+      y1f <- min(years[years > y1])
+      # y1f is the year of the Red List following y1
+      for (y2 in rev(years[years > y1])) {
+        # y2 is the year _from_ which knowledge is back-cast
+        RL[  , "Categ" %+% y1  %+% "." %+% y2] <-
+          RL[, "Categ" %+% y1f %+% "." %+% y2]
+        for (i in 1:nrow(RL)) {
+          if (RL[i, "Change" %+% y1f]  %=%  real &&
+              RL[i, "Categ"  %+% y1 ] %in% LC.EX &&
+              RL[i, "Categ"  %+% y2 ] %in% LC.EX) {
+            RL[i, "Categ" %+% y1 %+% "." %+% y2] <- RL[i, "Categ" %+% y1]
+          } # if change
+        } # i (rows)
+      } # y2
+    } # y1
+    #    for (y1 in years) { # remove the original category columns #¤¤¤ or not?!
+    #      RL <- RL[, -which(names(RL) == "Categ" %+% y1)]
+    #    }
+  } else { # if > 1 year
+    if (length(years)) { # only 1 Red List
+      cat("NB: There was no earlier Red List to back-cast to!\n")
+    } else { # no Red List - or wrong column names!
+      cat("NB: The dataset did not contain identifiable Red List Categories!\n")
+    }
+  }
+  return(RL)
+} # backCast
 
 LoS <- function(k, t, ¤¤¤ p=Eprob, tau=Etime) {
   # Loss of species, given Red List categori k and generation time t
@@ -256,9 +295,6 @@ m <- function(x) matrix(rep(x, each=length(threats)), length(threats), length(x)
 # Read the dataset "Norwegian Red List for species 2021"
 RL <- read.csv2(file, as.is=T, dec=".", na.strings="n/a")
 
-years <- identifyYears(RL)
-
-
 # Create a list to summarise the Red Lists for 2010, 2015 and 2021.
 # Data for Red Lists 2010 and 2015 (prior to back-casting) have to be added
 # manually, because they cannot be re-created fully from the 2021 Red List data.
@@ -266,8 +302,8 @@ years <- identifyYears(RL)
 # * http://www.artsportalen.artsdatabanken.no/
 # * https://www.artsdatabanken.no/Rodlista2015 
 Table3 <- matrix(as.numeric(NA), 9, length(RedListCat) + 3, dimnames=list(
-  "RL" %+% c("2010o", "2010", "2010(15)", "2010(21)",
-             "2015o", "2015", "2015(21)", "2021o", "2021"),
+  "RL" %+% c("2010<", "2010", "2010(15)", "2010(21)",
+             "2015<", "2015", "2015(21)", "2021<", "2021"),
   c("N", RedListCat, "RLI", "Cum.ELS50")
 ))
 alphabetic <- c("CR", "DD", "EN", "LC", "NA", "NE", "NT", "RE", "VU")
@@ -283,54 +319,12 @@ tb <- table(substr(RL$Categ21, 1, 2))
 Table3[8, match(names(tb), colnames(Table3))] <- tb
 rm(alphabetic, tb)
 
+
+years <- identifyYears(RL)
 threats <- identifyThreats(RL)
-
-RL <- uplist(RL)
-
-backCast <- function(RL) {
-  # "Back-casts" the most recent knowledge to earlier Red Lists
-  years <- sort(identifyYears(RL), decreasing = TRUE)
-  if (length(years) > 1) {
-    for (y1 in years[-1]) {
-      for (y2 in (years[years > y1])) {
-        # ..... ¤¤¤
-      }
-    }
-  }
-}
-
+RL <- uplist(RL, "<")
 RL <- backCast(RL)
 
-# Undo downlisting for 2021
-RL$cat21 <- n0(RL$Categ21)
-
-# Undo downlisting for 2015
-RL$cat15 <- n0(RL$Categ15)
-
-# Back-cast knowledge from 2021 to 2015
-RL$cat15.21 <- RL$cat15
-for (i in 1:nrow(RL)) {
-  if (RL$Change21[i] != "realpopu" | !(RL$cat15[i] %in% LC.EX)) {
-    RL$cat15.21[i] <- RL$cat21[i]
-  }
-}
-
-# Undo downlisting for 2010
-RL$cat10 <- n0(RL$Categ10)
-
-# Back-cast knowledge from 2015 and 2021 to 2010
-RL$cat10.15 <- RL$cat15
-RL$cat10.21 <- RL$cat15.21
-for (i in 1:nrow(RL)) {
-  if (RL$Change15[i] %=% "realpopu" & RL$cat10[i] %in% LC.EX) {
-    if (RL$cat15[i] %in% LC.EX) {
-      RL$cat10.15[i] <- RL$cat10[i]
-    }
-    if (RL$cat21[i] %in% LC.EX) {
-      RL$cat10.21[i] <- RL$cat10[i]
-    }
-  }
-}
 
 # Add columns containing the probability of loss of each species
 RL$loss21 <- LoS(RL$cat21,    RL$GenTime)
