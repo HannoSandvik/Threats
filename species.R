@@ -170,6 +170,51 @@ n0 <- function(x) {
     switch(x, "LC°"="NT", "NT°"="VU", "VU°"="EN", "EN°"="CR", x)))
 }
 
+uplist <- function(RL) {
+  # "Uplists" species that have been downlisted
+  years <- identifyYears(RL)
+  for (y in years) {
+    RL[, "Categ" %+% y] <- n0(RL[, "Categ" %+% y])
+  }
+  return(RL)
+}
+
+identifyYears <- function(RL) {
+  # Years for which Red List are available are identified
+  # from the column names which start with "Categ"
+  w <- which(substr(names(RL), 1, 5) == "Categ")
+  years <- numeric(0)
+  if (length(w)) {
+    for (i in w) {
+      y <- substr(names(RL)[i], 6, nchar(names(RL)[i]))
+      if (all(unlist(strsplit(y, "")) %in% as.character(0:9))) {
+        years <- c(years, as.numeric(y))
+      } else {
+        years <- NA
+      }
+    }
+  } else {
+    year <- NA
+  }
+  if (any(is.na(years))) {
+    cat("ERROR: Years could not be identified!\n")
+  }
+  return(years)
+}
+
+identifyThreats <- function(RL, unknown="unknownf") {
+  # Threats reported in a Red List are identified
+  # from the column names which start with "Threat"
+  thr <- character()
+  w <- which(substr(names(RL), 1, 6) == "Threat")
+  if (length(w)) {
+    thr <- unique(unlist(strsplit(unlist(RL[,w]), ",")))
+    thr <- unique(unlist(as.data.frame(strsplit(thr, ":"))[1,]))
+    thr <- c(sort(thr) %-% unknown, unknown)
+  }
+  return(thr)
+}
+
 LoS <- function(k, t, ¤¤¤ p=Eprob, tau=Etime) {
   # Loss of species, given Red List categori k and generation time t
   # (this is the cumulative loss of species, not threat-wise!)
@@ -211,42 +256,34 @@ m <- function(x) matrix(rep(x, each=length(threats)), length(threats), length(x)
 # Read the dataset "Norwegian Red List for species 2021"
 RL <- read.csv2(file, as.is=T, dec=".", na.strings="n/a")
 
-identifyYears <- function(RL) {
-  # Years for which Red List are available are identified
-  # from the column names which start with "Categ"
-  w <- which(substr(names(RL), 1, 5) == "Categ")
-  years <- numeric(0)
-  if (length(w)) {
-    for (i in w) {
-      y <- substr(names(RL)[i], 6, nchar(names(RL)[i]))
-      if (all(unlist(strsplit(y, "")) %in% as.character(0:9))) {
-        years <- c(years, as.numeric(y))
-      } else {
-        years <- NA
-      }
-    }
-  } else {
-    year <- NA
-  }
-  if (any(is.na(years))) {
-    cat("ERROR: Years could not be identified!\n")
-  }
-  return(years)
-}
-
 years <- identifyYears(RL)
 
 
-# define threats!!! ¤¤¤
+# Create a list to summarise the Red Lists for 2010, 2015 and 2021.
+# Data for Red Lists 2010 and 2015 (prior to back-casting) have to be added
+# manually, because they cannot be re-created fully from the 2021 Red List data.
+# Source for these data: Artsdatabanken (2010, 2015), i.e.:
+# * http://www.artsportalen.artsdatabanken.no/
+# * https://www.artsdatabanken.no/Rodlista2015 
+Table3 <- matrix(as.numeric(NA), 9, length(RedListCat) + 3, dimnames=list(
+  "RL" %+% c("2010o", "2010", "2010(15)", "2010(21)",
+             "2015o", "2015", "2015(21)", "2021o", "2021"),
+  c("N", RedListCat, "RLI", "Cum.ELS50")
+))
+alphabetic <- c("CR", "DD", "EN", "LC", "NA", "NE", "NT", "RE", "VU")
+Table3[1, match(alphabetic, colnames(Table3))] <-
+  c(284, 809, 890, 16762, 2580, 6528, 1310, 127, 1265)
+Table3[2, match(alphabetic, colnames(Table3))] <-
+  c(290, 809, 908, 16745, 2580, 6528, 1302, 127, 1266)
+Table3[5, match(alphabetic, colnames(Table3))] <-
+  c(247, 755, 901, 17594, 3018, 6095, 1302, 119, 1294)
+Table3[6, match(alphabetic, colnames(Table3))] <- 
+  c(252, 755, 916, 17579, 3018, 6095, 1297, 119, 1294)
+tb <- table(substr(RL$Categ21, 1, 2))
+Table3[8, match(names(tb), colnames(Table3))] <- tb
+rm(alphabetic, tb)
 
-uplist <- function(RL) {
-  # "Uplists" species that have been downlisted
-  years <- identifyYears(RL)
-  for (y in years) {
-    RL[, "Categ" %+% y] <- n0(RL[, "Categ" %+% y])
-  }
-  return(RL)
-}
+threats <- identifyThreats(RL)
 
 RL <- uplist(RL)
 
@@ -262,6 +299,7 @@ backCast <- function(RL) {
   }
 }
 
+RL <- backCast(RL)
 
 # Undo downlisting for 2021
 RL$cat21 <- n0(RL$Categ21)
