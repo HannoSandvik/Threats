@@ -3,6 +3,8 @@
 # Red Lists for species described in the paper
 # "Metrics for quantifying threats to red-listed species and ecosystems"
 
+
+
 # ========================
 # Variables
 # ========================
@@ -40,6 +42,7 @@ fig3  <- ""
 figS1 <- ""
 figS2 <- ""
 figS3 <- ""
+
 
 
 # ========================
@@ -92,6 +95,7 @@ negldecl <- 0.015
 unknownd <- 0.091
 
 
+
 # ========================
 # Auxiliary functions 
 # ========================
@@ -111,10 +115,10 @@ unknownd <- 0.091
 "%+%" <- function(string1, string2) paste0(string1, string2)
 
 # Removes an element of a set
-"%-%" <- function(arg1, arg2) sort(unique(arg1[which(!(arg1 %in% na.omit(arg2)))]))
+"%-%" <- function(arg1, arg2) arg1[which(!(arg1 %in% na.omit(arg2)))]
 
 # I just find this more intuitive...
-"%contains%" <- function (textstring, searchtext) grepl(searchtext, textstring)
+"%contains%" <- function (vector, search) grepl(search, vector, fixed=TRUE)
 
 # Decadal logarithm should be abbreviated "lg"!
 lg <- function(x) log10(x)
@@ -126,6 +130,7 @@ c100 <- function(x) ceiling(x * 100) / 100
 f100 <- function(x)   floor(x * 100) / 100
 
 
+
 # ========================
 # RLI functions
 # ========================
@@ -133,15 +138,19 @@ f100 <- function(x)   floor(x * 100) / 100
 # Tests for data deficiency
 isDD <- function(x) x == DD
 
+
 # Tests for Red-List evaluation
 # (i.e. FALSE for NA and NE species)
 isEvaluated <- function(x) x %in% c(LC.EX) | isDD(x)
 
+
 # Tests whether a species/ecosystem is (near) threatened
 isConcern <- function(x) x %in% (LC.EX %-% LC)
 
+
 # Tests whether a species/ecosystem is extinct/collapsed
 isExtinct <- function(x) x %in% extinct
+
 
 RLI <- function(x, w=RLweights) {
   # Red List Index
@@ -151,6 +160,7 @@ RLI <- function(x, w=RLweights) {
   attr(rli, "N") <- length(rlw)
   return(rli)
 }
+
 
 RLW <- function(x, w=RLweights) {
   # Red List Weights
@@ -164,16 +174,20 @@ RLW <- function(x, w=RLweights) {
                                             NA)))
 }
 
+
 n0 <- function(x, symbol="<") {
   # "Uplisting" of downlisted species
-  ifelse(substr(x, 3, 3) == symbol,
+  ifelse(x %contains% symbol,
          as.vector(sapply(substr(x, 1, 2), function(a)
            switch(a, LC="NT", NT="VU", VU="EN", EN="CR", a))),
          x)
 }
 
+
 uplist <- function(RL, symbol="<") {
-  # "Uplists" species that have been downlisted
+  # "Uplists" species that have been downlisted.
+  # This function works only for IUCN Red List Categories (specifically, 
+  # LC, NT, VU and EN). Other are returned unmodified.
   years <- identifyYears(RL)
   for (y in years) {
     RL[, "Categ" %+% y] <- n0(RL[, "Categ" %+% y], symbol=symbol)
@@ -181,10 +195,11 @@ uplist <- function(RL, symbol="<") {
   return(RL)
 }
 
+
 identifyYears <- function(RL) {
   # Years for which Red List are available are identified
   # from the column names which start with "Categ"
-  w <- which(substr(names(RL), 1, 5) == "Categ")
+  w <- which(substr(names(RL), 1, 5) == "Categ" & !(names(RL) %contains% "."))
   years <- numeric(0)
   if (length(w)) {
     for (i in w) {
@@ -204,6 +219,7 @@ identifyYears <- function(RL) {
   return(years)
 }
 
+
 identifyThreats <- function(RL, unknown="unknownf") { #¤¤¤ define unknownf!!!
   # Threats reported in a Red List are identified
   # from the column names which start with "Threat"
@@ -216,6 +232,7 @@ identifyThreats <- function(RL, unknown="unknownf") { #¤¤¤ define unknownf!!!
   }
   return(thr)
 }
+
 
 backCast <- function(RL, real="realpopu") { #¤¤¤ define realpopu
   # "Back-casts" the most recent knowledge to earlier Red Lists
@@ -235,7 +252,7 @@ backCast <- function(RL, real="realpopu") { #¤¤¤ define realpopu
         for (i in 1:nrow(RL)) {
           if (RL[i, "Change" %+% y1f]  %=%  real &&
               RL[i, "Categ"  %+% y1 ] %in% LC.EX &&
-              RL[i, "Categ"  %+% y2 ] %in% LC.EX) {
+              RL[i, "Categ"  %+% y2 ] %in% LC.EX)  {
             RL[i, "Categ" %+% y1 %+% "." %+% y2] <- RL[i, "Categ" %+% y1]
           } # if change
         } # i (rows)
@@ -254,7 +271,52 @@ backCast <- function(RL, real="realpopu") { #¤¤¤ define realpopu
   return(RL)
 } # backCast
 
-LoS <- function(k, t, ¤¤¤ p=Eprob, tau=Etime) {
+
+summariseRL <- function(RL, exclude=c("NA", "NE")) {
+  years <- sort(identifyYears(RL))
+  categ <- RedListCat %-% exclude
+  rows  <- ""
+  i <- 0
+  if (length(years) > 1) {
+    tab  <- matrix(as.numeric(NA),
+                   length(years) * (length(years) + 1) / 2,
+                   length(categ) + 3)
+    colnames(tab) <- c("N", categ, "RLI", "Cum.ELS50")
+    wt <- rep(NA, length(categ))
+    wt[1:length(LC.EX)] <- max(RLweights)
+    wt[1:length(RLweights)] <- RLweights
+    for (y1 in years) {
+      for (y2 in years[years >= y1]) {
+        i <- i + 1
+        tb <- table(RL[, "Categ" %+% y1 %+% "." %+% y2])
+        tab[i, categ] <- tb[categ]
+        tab[i, "N"]   <-     sum(tab[i, categ]     , na.rm=T)
+        tab[i, "RLI"] <- 1 - sum(tab[i, categ] * wt, na.rm=T) /
+          sum(tab[i, LC.EX], na.rm=T) / max(wt, na.rm=T)
+        tab[i, "Cum.ELS50"] <- pi #¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+        # <- LoS(RL[, "Categ" %+% y1 %+% "." %+% y2], RL$GenTime)
+        if (y1 %=% y2) {
+          rows[i] <- "RL" %+% y1
+        } else {
+          rows[i] <- "RL" %+% y1 %+% "." %+% y2
+        }
+      }
+    }
+    rownames(tab) <- rows
+    w <- which(is.na(apply(tab > 0, 2, any)))
+    if (length(w)) {
+      tab <- tab[, -w]
+    }
+    print(tab)
+  } else {
+    cat("NB: There were no Red List data to summarise!\n")
+    tab <- NA
+  }
+  invisible(tab)
+}
+
+
+LoS <- function(k, t, p=Eprob, tau=Etime) { # ¤¤¤ still a building lot!!!
   # Loss of species, given Red List categori k and generation time t
   # (this is the cumulative loss of species, not threat-wise!)
   k <- substr(k, 1, 2)
@@ -280,12 +342,15 @@ LoS <- function(k, t, ¤¤¤ p=Eprob, tau=Etime) {
   return(L)
 }
 
+
 # Generation of random numbers using Equations 13 and 14
 rIncr <- function(n, x) 0 + rbeta(n, 3, 1) *      x
 rDecr <- function(n, x) x + rbeta(n, 1, 3) * (1 - x)
 
+
 # Transforms a vector into a matrix of the dimensions needed
 m <- function(x) matrix(rep(x, each=length(threats)), length(threats), length(x))
+
 
 
 # ========================
@@ -296,11 +361,6 @@ m <- function(x) matrix(rep(x, each=length(threats)), length(threats), length(x)
 RL <- read.csv2(file, as.is=T, dec=".", na.strings="n/a")
 
 # Create a list to summarise the Red Lists for 2010, 2015 and 2021.
-# Data for Red Lists 2010 and 2015 (prior to back-casting) have to be added
-# manually, because they cannot be re-created fully from the 2021 Red List data.
-# Source for these data: Artsdatabanken (2010, 2015), i.e.:
-# * http://www.artsportalen.artsdatabanken.no/
-# * https://www.artsdatabanken.no/Rodlista2015 
 Table3 <- matrix(as.numeric(NA), 9, length(RedListCat) + 3, dimnames=list(
   "RL" %+% c("2010<", "2010", "2010(15)", "2010(21)",
              "2015<", "2015", "2015(21)", "2021<", "2021"),
@@ -310,20 +370,44 @@ alphabetic <- c("CR", "DD", "EN", "LC", "NA", "NE", "NT", "RE", "VU")
 Table3[1, match(alphabetic, colnames(Table3))] <-
   c(284, 809, 890, 16762, 2580, 6528, 1310, 127, 1265)
 Table3[2, match(alphabetic, colnames(Table3))] <-
-  c(290, 809, 908, 16745, 2580, 6528, 1302, 127, 1266)
+  c(290, 809, 908, 16745,   NA,   NA, 1302, 127, 1266)
 Table3[5, match(alphabetic, colnames(Table3))] <-
   c(247, 755, 901, 17594, 3018, 6095, 1302, 119, 1294)
 Table3[6, match(alphabetic, colnames(Table3))] <- 
-  c(252, 755, 916, 17579, 3018, 6095, 1297, 119, 1294)
+  c(252, 755, 916, 17579,   NA,   NA, 1297, 119, 1294)
 tb <- table(substr(RL$Categ21, 1, 2))
 Table3[8, match(names(tb), colnames(Table3))] <- tb
 rm(alphabetic, tb)
 
-
+# Prepare the data frame for analyses
 years <- identifyYears(RL)
 threats <- identifyThreats(RL)
 RL <- uplist(RL, "<")
 RL <- backCast(RL)
+
+# RLIs for the three Red Lists, corrected for knowledge in the most recent one
+RLI21 <- RLI(RL$Categ21.21)
+RLI15 <- RLI(RL$Categ15.21)
+RLI10 <- RLI(RL$Categ10.21)
+
+# Summarise the Red Lists
+# Data for Red Lists 2010 and 2015 (prior to back-casting) have to be added
+# manually, because they cannot be re-created fully from the 2021 Red List data.
+# Source for these data: Artsdatabanken (2010, 2015), i.e.:
+# * http://www.artsportalen.artsdatabanken.no/
+# * https://www.artsdatabanken.no/Rodlista2015 
+tab <- summariseRL(RL)
+Table3[c(4, 7, 9), colnames(tab)] <- tab[c(3, 5, 6), ]
+Table3[3, ] <- Table3[4, ] - Table3[7, ] + Table3[6, ]
+Table3[, "N"] <- apply(Table3[, RedListCat], 1, sum, na.rm=T)
+Table3[, "RLI"] <- 1 - apply(t(Table3[,LC.EX]) * c(0:5,5,5,5), 2, sum, na.rm=T) / 
+  apply(Table3[, LC.EX], 1, sum, na.rm=T) / max(RLweights)
+
+Table3 <- Table3[, -which(is.na(apply(Table3 > 0, 2, any)))]
+print(Table3)
+
+
+# ¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤ (more or less) OK up to here
 
 
 # Add columns containing the probability of loss of each species
@@ -350,26 +434,9 @@ if (includeDD) { # assign probabilities of loss to DD species
 
 
 # Create a list to summarise the Red Lists for 2010, 2015 and 2021
-# Data for Red Lists 2010 and 2015 (prior to back-casting) have to be added manually,
-# because they cannot be re-created fully from the 2021 Red List data.
-# Source for these data: Artsdatabanken (2010, 2015), i.e.:
-# * http://www.artsportalen.artsdatabanken.no/
-# * https://www.artsdatabanken.no/Rodlista2015 
-tp <- list()
-tp[["x10o"]]<- as.table(c(284, 809, 890, 16762, 2580, 6528, 1310, 127, 1265))
-tp[["x10"]] <- as.table(c(290, 809, 908, 16745, 2580, 6528, 1302, 127, 1266))
-tp[["x15o"]]<- as.table(c(247, 755, 901, 17594, 3018, 6095, 1302, 119, 1294))
-tp[["x15"]] <- as.table(c(252, 755, 916, 17579, 3018, 6095, 1297, 119, 1294))
-tp[["x21"]] <-    table(RL$cat21)
-tp[["x10.21"]] <- table(RL$cat10.21)
-tp[["x15.21"]] <- table(RL$cat15.21)
-tp[["x10.15"]] <- tp$x10.21 - tp$x15.21 + tp$x15
-for (i in 1:length(tp)) { 
-  tp[[i]] <- tp[[i]][rank(RedListCat)]
-  names(tp[[i]]) <- RedListCat
-}
 ls21o <- LoS(substr(RL$Categ21, 1, 2), RL$GenTime)
 ls21o[which(isDD(RL$cat21))] <- RL$loss21[which(isDD(RL$cat21))]
+
 # Means per Red List Category
 # (needed to approximate species loss for data that are not based on the 2021 Red List)
 mn10 <- mn15 <- mn21 <- rep(0, length(RedListCat))
@@ -380,59 +447,29 @@ for (i in RedListCat) {
   mn21[i] <- mean(RL$loss21[which(RL$cat21 == i)])
 }
 
-# RLIs for the three Red Lists, corrected for knowledge in the most recent one
-RLI21 <- RLI(RL$cat21)
-RLI15 <- RLI(RL$cat15.21)
-RLI10 <- RLI(RL$cat10.21)
 
 {# Summary (Table 3)
   wt <- seq(1, 0, -0.2)
   cat("\n\nRed List of species 2010 (uncorrected)\n")
-  print(tp[["x10o"]])
-  cat("N =", sum(tp[["x10o"]]), "\n")
-  cat("RLI: ", (sum(tp[["x10o"]][LC.EX] * wt, na.rm=T) / sum(tp[["x10o"]][LC.EX])), "\n")
   cat("Total loss of species:",  sum(mn10 * tp$x10o, na.rm=T), "\n")
   cat("\n\nRed List of species 2010\n")
-  print(tp[["x10"]])
-  cat("N =", sum(tp[["x10"]][1:7]), "\n")
-  cat("RLI: ", (sum(tp[["x10"]][LC.EX] * wt, na.rm=T) / sum(tp[["x10"]][LC.EX])), "\n")
   cat("Total loss of species:",  sum(mn10 * tp$x10, na.rm=T), "\n")
   cat("\n\nRed List of species 2010(15)\n")
-  print(tp[["x10.15"]])
-  cat("N =", sum(tp[["x10.15"]][1:7]), "\n")
-  cat("RLI: ", (sum(tp[["x10.15"]][LC.EX] * wt, na.rm=T) / sum(tp[["x10.15"]][LC.EX])), "\n")
   cat("Total loss of species:",  sum(mn15 * tp$x10.15, na.rm=T), "\n")
   cat("\n\nRed List of species 2010(21)\n")
-  print(tp[["x10.21"]])
-  cat("N =", sum(tp[["x10.21"]][1:7]), "\n")
-  cat("RLI: ", (sum(tp[["x10.21"]][LC.EX] * wt, na.rm=T) / sum(tp[["x10.21"]][LC.EX])), "\n")
   cat("Total loss of species:",  sum(RL$loss10, na.rm=T), "\n")
   cat("\n\nRed List of species 2015 (uncorrected)\n")
-  print(tp[["x15o"]])
-  cat("N =", sum(tp[["x15o"]]), "\n")
-  cat("RLI: ", (sum(tp[["x15o"]][LC.EX] * wt, na.rm=T) / sum(tp[["x15o"]][LC.EX])), "\n")
   cat("Total loss of species:",  sum(mn15 * tp$x15o, na.rm=T), "\n")
   cat("\n\nRed List of species 2015\n")
-  print(tp[["x15"]])
-  cat("N =", sum(tp[["x15"]][1:7]), "\n")
-  cat("RLI: ", (sum(tp[["x15"]][LC.EX] * wt, na.rm=T) / sum(tp[["x15"]][LC.EX])), "\n")
   cat("Total loss of species:",  sum(mn15 * tp$x15, na.rm=T), "\n")
   cat("\n\nRed List of species 2015(21)\n")
-  print(tp[["x15.21"]])
-  cat("N =", sum(tp[["x15.21"]][1:7]), "\n")
-  cat("RLI: ", (sum(tp[["x15.21"]][LC.EX] * wt, na.rm=T) / sum(tp[["x15.21"]][LC.EX])), "\n")
   cat("Total loss of species:",  sum(RL$loss15, na.rm=T), "\n")
   cat("\n\nRed List of species 2021 (uncorrected)\n")
-  print(table(substr(RL$Categ21, 1, 2))[RedListCat])
-  cat("N =", sum(table(substr(RL$Categ21, 1, 2))), "\n")
-  cat("RLI: ", RLI(substr(RL$Categ21, 1, 2)), "\n")
   cat("Total loss of species:",  sum(ls21o, na.rm=T), "\n")
   cat("\n\nRed List of species 2021\n")
-  print(tp[["x21"]])
-  cat("N =", sum(tp[["x21"]][1:7]), "\n")
-  cat("RLI: ", (sum(tp[["x21"]][LC.EX] * wt, na.rm=T) / sum(tp[["x21"]][LC.EX])), "\n")
   cat("Total loss of species:",  sum(RL$loss21, na.rm=T), "\n")
 }
+
 
 
 # ========================
@@ -492,6 +529,7 @@ for (y in c(21, 15, 10)) {
     } # j
   } # i
 } # y
+
 
 
 # ========================
@@ -629,6 +667,7 @@ for (i in 2:7) {
 if (nchar(figS1)) {
   dev.off()
 }
+
 
 
 # ========================
@@ -870,6 +909,7 @@ for (i in 1:6) {
 if (nchar(figS3)) {
   dev.off()
 }
+
 
 
 # ========================
