@@ -56,7 +56,7 @@ figS3 <- ""
 # follow up!!!!!!!!!!!!!! ¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
 DD         <- "DD"
 LC         <- "LC"
-extinct    <- c("RE", "EW", "EX", "CO")
+extinct    <- "RE" # in other contexts possibly "EW", "EX", "CO"
 LC.EX      <- c(LC,   "NT", "VU", "EN", "CR", extinct)
 RedListCat <- c(LC.EX, DD,  "NA", "NE")
 
@@ -272,6 +272,29 @@ backCast <- function(RL, real="realpopu") { #¤¤¤ define realpopu
 } # backCast
 
 
+calcLoss <- function(RL, tau, includeDD) {
+  # Adds columns to the Red List data frame which contain the species loss
+  # (or ecosystem loss), i.e. the extinction probabilities within 50 years
+  # for each species (or ecosystem)
+  years <- sort(identifyYears(RL))
+  for (y1 in years) {
+    for (y2 in years[years >= y1]) {
+      RL[, "Loss" %+% y1 %+% "." %+% y2] <-
+        LoS(RL[, "Categ" %+% y1 %+% "." %+% y2], tau)
+      if (includeDD) { # assign probabilities of loss to DD species
+        for (i in which(RL[, "Categ" %+% y1 %+% "." %+% y2] == "DD")) {
+          RL[i, "Loss" %+% y1 %+% "." %+% y2] <- round(weighted.mean(
+            LoS(sort(LC.EX), rep(tau[i], length(LC.EX))),
+            table(RL[which(RL[, "Categ" %+% y1 %+% "." %+% y2] %in% LC.EX),
+                     "Categ" %+% y1 %+% "." %+% y2])), 3)
+        } # i
+      } # if DD
+    } # y2
+  } # y1
+  return(RL)
+}
+
+
 summariseRL <- function(RL, exclude=c("NA", "NE")) {
   years <- sort(identifyYears(RL))
   categ <- RedListCat %-% exclude
@@ -290,11 +313,10 @@ summariseRL <- function(RL, exclude=c("NA", "NE")) {
         i <- i + 1
         tb <- table(RL[, "Categ" %+% y1 %+% "." %+% y2])
         tab[i, categ] <- tb[categ]
-        tab[i, "N"]   <-     sum(tab[i, categ]     , na.rm=T)
-        tab[i, "RLI"] <- 1 - sum(tab[i, categ] * wt, na.rm=T) /
-          sum(tab[i, LC.EX], na.rm=T) / max(wt, na.rm=T)
-        tab[i, "Cum.ELS50"] <- pi #¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
-        # <- LoS(RL[, "Categ" %+% y1 %+% "." %+% y2], RL$GenTime)
+        tab[i, "N"]   <-     sum(tab[i, categ]     , na.rm=TRUE)
+        tab[i, "RLI"] <- 1 - sum(tab[i, categ] * wt, na.rm=TRUE) /
+          sum(tab[i, LC.EX], na.rm=TRUE) / max(wt, na.rm=TRUE)
+        tab[i, "Cum.ELS50"] <- sum(RL[, "Loss" %+% y1 %+% "." %+% y2], na.rm=TRUE)
         if (y1 %=% y2) {
           rows[i] <- "RL" %+% y1
         } else {
@@ -303,10 +325,10 @@ summariseRL <- function(RL, exclude=c("NA", "NE")) {
       }
     }
     rownames(tab) <- rows
-    w <- which(is.na(apply(tab > 0, 2, any)))
-    if (length(w)) {
-      tab <- tab[, -w]
-    }
+#    w <- which(is.na(apply(tab > 0, 2, any)))
+#    if (length(w)) {
+#      tab <- tab[, -w]
+#    }
     print(tab)
   } else {
     cat("NB: There were no Red List data to summarise!\n")
@@ -316,29 +338,26 @@ summariseRL <- function(RL, exclude=c("NA", "NE")) {
 }
 
 
-LoS <- function(k, t, p=Eprob, tau=Etime) { # ¤¤¤ still a building lot!!!
+LoS <- function(k, t, p=Eprob, tau=Etime) {
   # Loss of species, given Red List categori k and generation time t
   # (this is the cumulative loss of species, not threat-wise!)
   k <- substr(k, 1, 2)
-  # lower and upper bounds of extinction probability:
-  pl   <- as.vector(sapply(k, function(x)
-    switch(x, RE=1, CR=0.5, EN=0.2, VU=0.1, NT=0.05, LC=0, NA)))
-  pu   <- as.vector(sapply(k, function(x) 
-    switch(x, RE=1, CR=1,   EN=0.5, VU=0.2, NT=0.1,  LC=0, NA)))
-  # lower and upper bound of the extinction time frame tau:
-  taul <- tauu <- rep(100, length(k))
-  taul <- ifelse(k == "CR", sapply(sapply(t, min, 100/3) * 3, max, 10), taul)
-  tauu <- ifelse(k == "EN", sapply(sapply(t, min, 100/3) * 3, max, 10), tauu)
-  taul <- ifelse(k == "EN", sapply(sapply(t, min,  20)   * 5, max, 20), taul)
-  tauu <- ifelse(k == "VU", sapply(sapply(t, min,  20)   * 5, max, 20), tauu)
+  W1 <- RLW(k) + 1
+  W2 <- W1 + (W1 > 1 & W1 < 6)
+  tauL <- ifelse(k == "CR", sapply(sapply(t, min, 100/3) * 3, max, 10), tau[W1])
+  tauL <- ifelse(k == "EN", sapply(sapply(t, min,  20)   * 5, max, 20), tauL)
+  tauU <- ifelse(k == "EN", sapply(sapply(t, min, 100/3) * 3, max, 10), tau[W2])
+  tauU <- ifelse(k == "VU", sapply(sapply(t, min,  20)   * 5, max, 20), tauU)
+  # weighting according to Equation 14:
+  weight <- ifelse(k == "CR", 3, 1)
   # applying Equation 8:
-  Rl <- 1 - (1 - pl)^(50/taul)
-  Ru <- 1 - (1 - pu)^(50/tauu)
+  R50L <- 1 - (1 - p[W1])^(50 / tauL)
+  R50U <- 1 - (1 - p[W2])^(50 / tauU)
   # rounding downwards for tau > 50 a and upwards for tau < 50 a:
-  Rl <- ifelse(taul > 50, f100(Rl), c100(Rl))
-  Ru <- ifelse(tauu > 50, f100(Ru), c100(Ru))
+  R50L <- ifelse(tauL > 50, f100(R50L), c100(R50L))
+  R50U <- ifelse(tauU > 50, f100(R50U), c100(R50U))
   # applying Equation 9:
-  L <- ifelse(k == "CR", Ru / 4 + 3 * Rl / 4, Ru / 2 + Rl / 2)
+  L <- (R50L * weight + R50U) / (weight + 1)
   return(L)
 }
 
@@ -358,7 +377,7 @@ m <- function(x) matrix(rep(x, each=length(threats)), length(threats), length(x)
 # ========================
 
 # Read the dataset "Norwegian Red List for species 2021"
-RL <- read.csv2(file, as.is=T, dec=".", na.strings="n/a")
+RL <- read.csv2(file, as.is=TRUE, dec=".", na.strings="n/a")
 
 # Create a list to summarise the Red Lists for 2010, 2015 and 2021.
 Table3 <- matrix(as.numeric(NA), 9, length(RedListCat) + 3, dimnames=list(
@@ -384,6 +403,7 @@ years <- identifyYears(RL)
 threats <- identifyThreats(RL)
 RL <- uplist(RL, "<")
 RL <- backCast(RL)
+RL <- calcLoss(RL, tau=RL$GenTime, includeDD=includeDD)
 
 # RLIs for the three Red Lists, corrected for knowledge in the most recent one
 RLI21 <- RLI(RL$Categ21.21)
@@ -400,51 +420,30 @@ tab <- summariseRL(RL)
 Table3[c(4, 7, 9), colnames(tab)] <- tab[c(3, 5, 6), ]
 Table3[3, ] <- Table3[4, ] - Table3[7, ] + Table3[6, ]
 Table3[, "N"] <- apply(Table3[, RedListCat], 1, sum, na.rm=T)
-Table3[, "RLI"] <- 1 - apply(t(Table3[,LC.EX]) * c(0:5,5,5,5), 2, sum, na.rm=T) / 
+Table3[, "RLI"] <- 1 - apply(t(Table3[,LC.EX]) * 0:5, 2, sum, na.rm=T) / 
   apply(Table3[, LC.EX], 1, sum, na.rm=T) / max(RLweights)
 
-Table3 <- Table3[, -which(is.na(apply(Table3 > 0, 2, any)))]
+Table3 <- Table3[, !is.na(apply(Table3 > 0, 2, any))]
 print(Table3)
+
 
 
 # ¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤ (more or less) OK up to here
 
 
-# Add columns containing the probability of loss of each species
-RL$loss21 <- LoS(RL$cat21,    RL$GenTime)
-RL$loss15 <- LoS(RL$cat15.21, RL$GenTime)
-RL$loss10 <- LoS(RL$cat10.21, RL$GenTime)
-if (includeDD) { # assign probabilities of loss to DD species
-  for (i in which(RL$cat10.21 == "DD")) {
-    RL$loss10[i] <- round(weighted.mean(
-      LoS(sort(LC.EX), rep(RL$GenTime[i],6)),
-      table(RL$cat10.21[which(RL$cat10.21 %in% LC.EX)])), 3)
-  }
-  for (i in which(RL$cat15.21 == "DD")) {
-    RL$loss15[i] <- round(weighted.mean(
-      LoS(sort(LC.EX), rep(RL$GenTime[i],6)),
-      table(RL$cat15.21[which(RL$cat15.21 %in% LC.EX)])), 3)
-  }
-  for (i in which(RL$cat21 == "DD")) {
-    RL$loss21[i] <- round(weighted.mean(
-      LoS(sort(LC.EX), rep(RL$GenTime[i],6)),
-      table(RL$cat21[which(RL$cat21 %in% LC.EX)])), 3)
-  }
-}
-
 
 # Create a list to summarise the Red Lists for 2010, 2015 and 2021
 ls21o <- LoS(substr(RL$Categ21, 1, 2), RL$GenTime)
-ls21o[which(isDD(RL$cat21))] <- RL$loss21[which(isDD(RL$cat21))]
+ls21o[which(isDD(RL$cat21))] <- RL$Loss21[which(isDD(RL$cat21))]
 
 # Means per Red List Category
 # (needed to approximate species loss for data that are not based on the 2021 Red List)
 mn10 <- mn15 <- mn21 <- rep(0, length(RedListCat))
 names(mn10) <- names(mn15) <- names(mn21) <- RedListCat
 for (i in RedListCat) {
-  mn10[i] <- mean(RL$loss10[which(RL$cat10.21 == i)])
-  mn15[i] <- mean(RL$loss15[which(RL$cat15.21 == i)])
-  mn21[i] <- mean(RL$loss21[which(RL$cat21 == i)])
+  mn10[i] <- mean(RL$Loss10[which(RL$cat10.21 == i)])
+  mn15[i] <- mean(RL$Loss15[which(RL$cat15.21 == i)])
+  mn21[i] <- mean(RL$Loss21[which(RL$cat21 == i)])
 }
 
 
@@ -457,17 +456,17 @@ for (i in RedListCat) {
   cat("\n\nRed List of species 2010(15)\n")
   cat("Total loss of species:",  sum(mn15 * tp$x10.15, na.rm=T), "\n")
   cat("\n\nRed List of species 2010(21)\n")
-  cat("Total loss of species:",  sum(RL$loss10, na.rm=T), "\n")
+  cat("Total loss of species:",  sum(RL$Loss10, na.rm=T), "\n")
   cat("\n\nRed List of species 2015 (uncorrected)\n")
   cat("Total loss of species:",  sum(mn15 * tp$x15o, na.rm=T), "\n")
   cat("\n\nRed List of species 2015\n")
   cat("Total loss of species:",  sum(mn15 * tp$x15, na.rm=T), "\n")
   cat("\n\nRed List of species 2015(21)\n")
-  cat("Total loss of species:",  sum(RL$loss15, na.rm=T), "\n")
+  cat("Total loss of species:",  sum(RL$Loss15, na.rm=T), "\n")
   cat("\n\nRed List of species 2021 (uncorrected)\n")
   cat("Total loss of species:",  sum(ls21o, na.rm=T), "\n")
   cat("\n\nRed List of species 2021\n")
-  cat("Total loss of species:",  sum(RL$loss21, na.rm=T), "\n")
+  cat("Total loss of species:",  sum(RL$Loss21, na.rm=T), "\n")
 }
 
 
@@ -693,7 +692,7 @@ for (y in c(21, 15, 10)) {
     # applying Equation 6:
     dRLI[p, "RL" %+% y] <- 0.2 * sum(Gw * THR, na.rm=T) / L
     # applying Equation 7:
-    ELS [p, "RL" %+% y] <- sum(RL[,"loss" %+% y] * THR, na.rm=T)
+    ELS [p, "RL" %+% y] <- sum(RL[,"Loss" %+% y] * THR, na.rm=T)
   } # p
 } # y
 if (inferThreats) {
