@@ -379,13 +379,28 @@ m <- function(x) matrix(rep(x, each=length(threats)), length(threats), length(x)
 # Read the dataset "Norwegian Red List for species 2021"
 RL <- read.csv2(file, as.is=TRUE, dec=".", na.strings="n/a")
 
+# Check whether the data are as expected
+RLCat <- unique(unlist(RL[, which(substr(names(RL), 1, 5) == "Categ")])) %-% ""
+if (all(nchar(RedListCat) == 2)) {
+  RLCat <- unique(substr(RLCat, 1, 2))
+}
+if (all(RLCat %in% RedListCat)) {
+  cat("Red List Categories are OK.\n")
+} else {
+  cat("NB: The Red List Categories specified in the \"Constants\" section\n(" %+%
+      paste(sort(RedListCat), collapse=", ") %+%
+      ")\nare incompatible with the Red List Categories in the data file\n("  %+%
+      paste(sort(RLCat), collapse=", ") %+% ")!\n")
+}
+# ¤¤¤ do the same for threats!
+
 # Create a list to summarise the Red Lists for 2010, 2015 and 2021.
 Table3 <- matrix(as.numeric(NA), 9, length(RedListCat) + 3, dimnames=list(
   "RL" %+% c("2010<", "2010", "2010(15)", "2010(21)",
              "2015<", "2015", "2015(21)", "2021<", "2021"),
   c("N", RedListCat, "RLI", "Cum.ELS50")
 ))
-alphabetic <- c("CR", "DD", "EN", "LC", "NA", "NE", "NT", "RE", "VU")
+alphabetic <- sort(RedListCat)
 Table3[1, match(alphabetic, colnames(Table3))] <-
   c(284, 809, 890, 16762, 2580, 6528, 1310, 127, 1265)
 Table3[2, match(alphabetic, colnames(Table3))] <-
@@ -396,7 +411,7 @@ Table3[6, match(alphabetic, colnames(Table3))] <-
   c(252, 755, 916, 17579,   NA,   NA, 1297, 119, 1294)
 tb <- table(substr(RL$Categ21, 1, 2))
 Table3[8, match(names(tb), colnames(Table3))] <- tb
-rm(alphabetic, tb)
+Loss21o <- LoS(substr(RL$Categ21, 1, 2), RL$GenTime)
 
 # Prepare the data frame for analyses
 years <- identifyYears(RL)
@@ -422,52 +437,24 @@ Table3[3, ] <- Table3[4, ] - Table3[7, ] + Table3[6, ]
 Table3[, "N"] <- apply(Table3[, RedListCat], 1, sum, na.rm=T)
 Table3[, "RLI"] <- 1 - apply(t(Table3[,LC.EX]) * 0:5, 2, sum, na.rm=T) / 
   apply(Table3[, LC.EX], 1, sum, na.rm=T) / max(RLweights)
-
 Table3 <- Table3[, !is.na(apply(Table3 > 0, 2, any))]
-print(Table3)
-
-
-
-# ¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤ (more or less) OK up to here
-
-
-
-# Create a list to summarise the Red Lists for 2010, 2015 and 2021
-ls21o <- LoS(substr(RL$Categ21, 1, 2), RL$GenTime)
-ls21o[which(isDD(RL$cat21))] <- RL$Loss21[which(isDD(RL$cat21))]
-
 # Means per Red List Category
 # (needed to approximate species loss for data that are not based on the 2021 Red List)
-mn10 <- mn15 <- mn21 <- rep(0, length(RedListCat))
-names(mn10) <- names(mn15) <- names(mn21) <- RedListCat
+mn10 <- mn15 <- rep(0, length(RedListCat))
+names(mn10) <- names(mn15) <- RedListCat
 for (i in RedListCat) {
-  mn10[i] <- mean(RL$Loss10[which(RL$cat10.21 == i)])
-  mn15[i] <- mean(RL$Loss15[which(RL$cat15.21 == i)])
-  mn21[i] <- mean(RL$Loss21[which(RL$cat21 == i)])
+  mn10[i] <- mean(RL$Loss10.21[which(RL$Categ10.21 == i)])
+  mn15[i] <- mean(RL$Loss15.21[which(RL$Categ15.21 == i)])
 }
-
-
-{# Summary (Table 3)
-  wt <- seq(1, 0, -0.2)
-  cat("\n\nRed List of species 2010 (uncorrected)\n")
-  cat("Total loss of species:",  sum(mn10 * tp$x10o, na.rm=T), "\n")
-  cat("\n\nRed List of species 2010\n")
-  cat("Total loss of species:",  sum(mn10 * tp$x10, na.rm=T), "\n")
-  cat("\n\nRed List of species 2010(15)\n")
-  cat("Total loss of species:",  sum(mn15 * tp$x10.15, na.rm=T), "\n")
-  cat("\n\nRed List of species 2010(21)\n")
-  cat("Total loss of species:",  sum(RL$Loss10, na.rm=T), "\n")
-  cat("\n\nRed List of species 2015 (uncorrected)\n")
-  cat("Total loss of species:",  sum(mn15 * tp$x15o, na.rm=T), "\n")
-  cat("\n\nRed List of species 2015\n")
-  cat("Total loss of species:",  sum(mn15 * tp$x15, na.rm=T), "\n")
-  cat("\n\nRed List of species 2015(21)\n")
-  cat("Total loss of species:",  sum(RL$Loss15, na.rm=T), "\n")
-  cat("\n\nRed List of species 2021 (uncorrected)\n")
-  cat("Total loss of species:",  sum(ls21o, na.rm=T), "\n")
-  cat("\n\nRed List of species 2021\n")
-  cat("Total loss of species:",  sum(RL$Loss21, na.rm=T), "\n")
-}
+Table3[1, "Cum.ELS50"] <- sum(mn10 * Table3[1, RedListCat], na.rm=T)
+Table3[2, "Cum.ELS50"] <- sum(mn10 * Table3[2, RedListCat], na.rm=T)
+Table3[3, "Cum.ELS50"] <- sum(mn15 * Table3[3, RedListCat], na.rm=T)
+Table3[5, "Cum.ELS50"] <- sum(mn15 * Table3[5, RedListCat], na.rm=T)
+Table3[6, "Cum.ELS50"] <- sum(mn15 * Table3[6, RedListCat], na.rm=T)
+Loss21o[which(isDD(RL$Categ21))] <- RL$Loss21[which(isDD(RL$Categ21))]
+Table3[8, "Cum.ELS50"] <- sum(Loss21o, na.rm=T)
+rm(alphabetic, tb, tab, mn10, mn15, Loss21o)
+print(Table3)
 
 
 
@@ -475,59 +462,58 @@ for (i in RedListCat) {
 # Analyse threat factors
 # ========================
 
-# Check whether the list of threats matches the threats reported in the Red List dataframe.
-# If it doesn't, matters have to be adjusted before going on!
-if (!(sort(threats) %=% sort(unique(substr(unlist(strsplit(RL$Threat21, ",")), 1, 8))))) {
-  cat("Something strange seems to have happened.\n")
-}
+#¤ construction site!!!
 
-# Add columns for each Red List and each threat to the data frame
-for (y in c(21, 15, 10)) {
-  t <- "Threat" %+% y
-  C <- "cat" %+% y
-  if (y != 21) C <- C %+% ".21"
-  RL[threats %+% y] <- 0
-  RL["Pop" %+% y] <- 0
-  selection <- which(isConcern(RL[,C]))
-  if (includeDD) {
-    selection <- which(isConcern(RL[,C]) | isDD(RL[,C]))
-  }
-  for (i in selection) {
-    if (isExtinct(RL[i,C])) {
-      # For RE species, all timings of threats are considered,
-      # i.e. they are re-coded as "ongoing"
-      RL[i,t] <- gsub("onlypast", "ongoingt", RL[i,t])
-      RL[i,t] <- gsub("suspendd", "ongoingt", RL[i,t])
-      RL[i,t] <- gsub("onlyfutu", "ongoingt", RL[i,t])
-      RL[i,t] <- gsub("unknownt", "ongoingt", RL[i,t])
+addThreats <- function(RL) {
+  # Adds columns for each Red List and each threat to the data frame
+  years <- sort(identifyYears(RL))
+  for (y in years) {
+    t <- "Threat" %+% y
+    C <- "Categ"  %+% y %+% "." %+% max(y)
+    RL[   threats %+% y] <- 0
+    RL[  "Pop"    %+% y] <- 0
+    selection <- which(isConcern(RL[,C]))
+    if (includeDD) {
+      selection <- which(isConcern(RL[,C]) | isDD(RL[,C]))
     }
-    if (nchar(RL[i,t])) {
-      if (RL[i,t] %contains% "ongoingt") {
-        P <- unlist(strsplit(RL[i,t], ","))
-      } else {
-        # If there is no ongoing threat for a threatened species,
-        # an ongoing unknown threat is added
-        P <- "unknownf:ongoingt:unknownp:unknownd"
+    for (i in selection) {
+      if (isExtinct(RL[i, C])) {
+        # For extinct species, all timings of threats are considered,
+        # i.e. they are re-coded as "ongoing"
+        RL[i, t] <- gsub("onlypast", "ongoingt", RL[i, t]) #¤ generalise!!!
+        RL[i, t] <- gsub("suspendd", "ongoingt", RL[i, t])
+        RL[i, t] <- gsub("onlyfutu", "ongoingt", RL[i, t])
+        RL[i, t] <- gsub("unknownt", "ongoingt", RL[i, t])
       }
-    } else {
-        # If there is no threat at all for a threatened species,
-        # an ongoing unknown threat is added
-      P <- "unknownf:ongoingt:unknownp:unknownd"
-    }
-    for (j in 1:length(P)) {
-      if (P[j] %contains% "ongoingt") {
-        # Threat factors receive score according to their severity
-        if (P[j] %contains% "rapidecl") sever <- rapidecl
-        if (P[j] %contains% "slowdecl") sever <- slowdecl
-        if (P[j] %contains% "negldecl") sever <- negldecl
-        if (P[j] %contains% "unknownd") sever <- unknownd
-        # Severity scores are summed for each species
-        RL[i,            "Pop" %+% y] <- RL[i,            "Pop" %+% y] + sever
-        RL[i, substr(P[j],1,8) %+% y] <- RL[i, substr(P[j],1,8) %+% y] + sever
-      } # if ongoing
-    } # j
-  } # i
-} # y
+      if (nchar(RL[i, t])) {
+        if (RL[i, t] %contains% "ongoingt") {
+          P <- unlist(strsplit(RL[i, t], ","))
+        } else {
+          # If there is no ongoing threat for a threatened species,
+          # an ongoing unknown threat is added
+          P <- "unknownf:ongoingt:unknownp:unknownd" #¤ generalise!!!
+        }
+      } else {
+          # If there is no threat at all for a threatened species,
+          # an ongoing unknown threat is added
+        P <- "unknownf:ongoingt:unknownp:unknownd" #¤ generalise!!!
+      }
+      for (j in 1:length(P)) {
+        if (P[j] %contains% "ongoingt") {
+          # Threat factors receive score according to their severity
+          if (P[j] %contains% "rapidecl") sever <- rapidecl #¤ generalise!!!
+          if (P[j] %contains% "slowdecl") sever <- slowdecl
+          if (P[j] %contains% "negldecl") sever <- negldecl
+          if (P[j] %contains% "unknownd") sever <- unknownd
+          # Severity scores are summed for each species
+          RL[i,           "Pop" %+% y] <- RL[i,           "Pop" %+% y] + sever
+          RL[i,substr(P[j],1,8) %+% y] <- RL[i,substr(P[j],1,8) %+% y] + sever #¤ generalise!!!
+        } # if ongoing
+      } # j
+   } # i
+  } # y
+  return(RL)
+} # addThreats
 
 
 
