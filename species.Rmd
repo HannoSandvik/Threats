@@ -1,91 +1,126 @@
+---
+title: Threats to species
+subtitle: "Quantification of threats on the Norwegian Red Lists of species"
+author: "Hanno Sandvik"
+date: "17 April 2023"
+output:
+  md_document:
+    toc: yes
+---
 
-# This R code can be used to run the analyses of the Norwegian
-# Red Lists for species described in the paper
-# "Metrics for quantifying threats to red-listed species and ecosystems"
+This R code can be used to run the analyses of the Norwegian Red Lists for species 
+described in the paper "Metrics for quantifying the contributions of 
+different threats to Red Lists of species and ecosystems"
 
 
 
-# ========================
-# Variables
-# ========================
+## Variables
 
-# These variables can be used to adjust the output
+The following variables can be used to adjust the output.
 
-# Specify the name of the data file. If you haven't saved the data file to 
-# your root directory, the file path needs to be included in the file name!
+**(1) Name of the data file.** If you haven't saved the data file to 
+your root directory, the file path needs to be included in the file name.
+```{r}
 file <- "species.csv"
+```
 
-# Number of simulations
-# NB: the default takes several hours!
-# For exploration purposes, nsim <- 1000 will suffice
+**(2) Number of simulations.** 
+NB: the default takes several hours!
+For exploration purposes, `nsim <- 1000` will suffice.
+For pure illustration, `nsim <- 100` is enough.
+```{r}
 nsim <- 100000
+```
 
-# Decides whether the estimation of confidence intervals
-# should be re-created exactly (if TRUE) or be based on 
-# different random numbers (if FALSE)
+**(3) Re-create published estimates?** 
+Decides whether the estimation of confidence intervals
+should be re-created exactly as published (if TRUE) or be based on 
+novel random numbers (if FALSE)
+```{r}
 re.create <- TRUE
+```
 
-# Decides whether Data Deficient species are excluded (if FALSE)
-# or randomly assigned to other Red List categories (if TRUE)
+**(4) Handling of DD species.** 
+Decides whether Data Deficient species are excluded (if FALSE)
+or randomly assigned to other Red List categories (if TRUE)
+```{r}
 includeDD <- TRUE
+```
 
-# Decides whether (if TRUE) or not (if FALSE) unknown threat factors
-# should be inferred from the distribution of the known threat factors 
+**(5) Handling of unknown threats.**
+Decides whether (if TRUE) or not (if FALSE) unknown threat factors
+should be inferred from the distribution of the known threat factors 
+```{r}
 inferThreats <- FALSE
+```
 
-# What is the abbreviation used for real population changes
-# (defaults to the abbreviation used in the dataset analysed in the paper)
-realChange <- "realpopu"
-
-# What are the abbreviation used for unknown threats
-# (defaults to the abbreviation used in the dataset analysed in the paper)
+**(6) Abbreviations used in the dataset.**
+What are the abbreviations used for real population changes and for unknown threats?
+(Defaults to the abbreviation used in the dataset analysed in the paper.
+May need to be adjusted for other datasets.)
+```{r}
+realChange      <- "realpopu"
 unknownThreat   <- "unknownf"
 unknownTiming   <- "unknownt"
 unknownScope    <- "unknownp"
 unknownSeverity <- "unknownd"
+```
 
-# What is (are) the abbreviation(s) of the timing categories that should be 
-# considered (defaults to "ongoing")
+**(7) Timings to include. **What is (are) the abbreviation(s) of the timing 
+categories that should be considered (defaults to "ongoing").
+```{r}
 inclTiming <- "ongoingt"
-# To include _all_ threats, irrespective of timing, use:
-# inclTiming <- c("onlypast", "suspendd", "ongoing", "onlyfutu", "unknownt")
+```
+If _all_ threats are to be included, irrespective of timing, this would need to be 
+replaced (in terms of the abbreviations used in thus dataset) by
+`inclTiming <- c("onlypast", "suspendd", "ongoing", "onlyfutu", "unknownt")`
 
-# File names of figures. If you want to display the figures on screen,
-# keep the default. If you want to create PNG file, specify the file names
-# (including paths).
+**(8) File names of figures.** If you want to display the figures on screen,
+keep the default. If you want to create PNG file, specify the file names
+(including paths).
+```{r}
 fig1  <- ""
 fig2  <- ""
 fig3  <- ""
 figS1 <- ""
 figS2 <- ""
 figS3 <- ""
+```
 
-# Column names in the dataset which contain Red List Categories, threat factors,
-# reasons for change in category, and generation time, respectively, followed by
-# the year (So if the column name containing Red List Categories is _not_ named
-#  something like "Categ21" or "Categ2021", this needs to be adjusted here!)
+**(9) Column names.** 
+Column names in the dataset which contain Red List Categories, threat factors,
+reasons for change in category, and generation time, respectively. 
+The three former ones need to be followed by the year of assessment
+(for change, the year of the _second_ of the two relevant assessments).
+So if the column name containing Red List Categories is _not_ named
+something like "Categ21" or "Categ2021", this needs to be adjusted here!
+```{r}
 Categ  <- "Categ"
 Threat <- "Threat"
 Change <- "Change"
 GTime  <- "GenTime"
+```
 
 
 
-# ========================
-# Constants 
-# ========================
+## Constants 
 
-# Constants that do not normally need to be changed.
-# Change only if you want to modify the underlying assumptions!
+Constants should not normally need to be changed.
+Changing them entails modifying some underlying assumptions.
 
-# (1) Red List Categories and their weights, extinction probabilities etc.
-# This data frame needs to contain all Red List Categories used in the 
-# Red List analysed of species or ecosystems that have been evaluated.
-# ...
-# The column "LC" identifies the Red List Category "Least Concern".
-# The column "EX" identified the Red List Categories for extinction.
-# The column "wt" ...
-# ...
+**(1) Red List Categories** and their weights, extinction probabilities etc.
+This data frame needs to contain all Red List Categories used in the 
+Red List analysed of species or ecosystems that have been evaluated.
+
+* The column "LC" identifies the Red List Category "Least Concern" (defaults to IUCN's abbreviation).
+* The column "EX" identified the Red List Categories for extinction (defaults to IUCN IUCN's abbreviations).
+* The column "wt" provides the Red List Weight of the Category (defaults to equal-steps weighting).
+* The columns "lowP" and "uppP" provide the lower and upper threshold values for extinction probability (defaults to IUCN Red ListCriterion E).
+* The columns "lowT" and "uppT" provide the lower and upper threshold values for extinction time frames in _years_ (defaults to IUCN Red List Criterion E).
+* The columns "lowG" and "uppG" provide the lower and upper threshold values for extinction time in _generations_ (defaults to IUCN Red List Criterion E).
+* The column "distr" provides the distribution of extinction probabilities within the interval.
+* The column "beta" is not currently needed (but may be needed if "distr" is changed).
+```{r}
 RLcateg <- data.frame(
   name  = c(  "LC",   "NT",   "VU",   "EN",   "CR",   "RE",   "EW",   "EX"),
   LC    = c(  TRUE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE),
@@ -97,49 +132,46 @@ RLcateg <- data.frame(
   uppT  = c(   100,    100,     20,     10,     10,     10,     10,     10),
   lowG  = c(     0,      0,      0,      5,      3,      1,      1,      1),
   uppG  = c(     0,      0,      5,      3,      1,      1,      1,      1),
-  lowA1 = c(  0.00,   0.25,   0.50,   0.70,   0.90,   1.00,   1.00,   1.00),
-  uppA1 = c(  0.00,   0.50,   0.70,   0.90,   1.00,   1.00,   1.00,   1.00),
-  lowA2 = c(  0.00,   0.15,   0.30,   0.50,   0.80,   1.00,   1.00,   1.00),
-  uppA2 = c(  0.00,   0.30,   0.50,   0.80,   1.00,   1.00,   1.00,   1.00),
-  lowB1 = c( 40000,  40000,  20000,   5000,    100,      0,      0,      0),
-  uppB1 = c( 40000,  20000,   5000,    100,      0,      0,      0,      0),
-  lowB2 = c(  4000,   4000,   2000,    500,     10,      0,      0,      0),
-  uppB2 = c(  4000,   2000,    500,     10,      0,      0,      0,      0),
-  lowC  = c( 20000,  20000,  10000,   2500,    250,      0,      0,      0),
-  uppC  = c( 20000,  10000,   2500,    250,      0,      0,      0,      0),
-  lowD  = c(  2000,   2000,   1000,    250,     50,      0,      0,      0),
-  uppD  = c(  2000,   1000,    250,     50,      0,      0,      0,      0),
   distr = c("unif", "unif", "unif", "unif", "decr", "unif", "unif", "unif"),
   beta  = c(    NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA),
   stringsAsFactors = FALSE
 )
+```
 
-# What is the abbreviation used for the "Data Deficient" Red List Category
-# (defaults to IUCN's abbreviation)
+**(2) Data deficiency**. What is the abbreviation used for the "Data Deficient" 
+Red List Category? (Defaults to IUCN's abbreviation.)
+```{r}
 DD <- "DD"
+```
 
-# Which Red List Categories exist for species or ecosystems that have _not_ been
-# evaluated (defaults to IUCN's abbreviations for the Red List Categories
-# "Not Applicable" and "Not Evaluated")
+**(3) Not Evaluated.** Which Red List Categories exist for species or ecosystems 
+that have _not_ been evaluated? (Defaults to IUCN's abbreviations for the Red List 
+Categories "Not Applicable" and "Not Evaluated".)
+```{r}
 notEval <- c("NA", "NE")
+```
 
-# What is added to a Red List Category to indicate downlisting
-# (defaults to the degree symbol)
+**(4) Downlisting.** What is added to a Red List Category to indicate downlisting?
+(Defaults to the degree symbol.)
+```{r}
 downlistSymbol <- "°"
+```
 
-# Severities of severities and their threshold values
-# This data frame needs to contain all severity categories used in the 
-# Red List analysed.
-# The data frame defaults to the severity categories used in Norwegian Red Lists,
-# where values correspond to the declines in population size over 10 years or
-# 3 generations (whichever is largest) caused by a threat.
-# The column "name" contains the abbreviations used for the severity categories.
-# The column "lower" contains the lower limit of the respective interval.
-# The column "upper" contains the upper limit of the respective interval.
-# The column "distr" contains the distribution of values within the respective 
-# interval (possible values: "unif", "incr", "decr", "beta").
-# The column "beta" contains the beta parameter of a Beta distribution
-# (a numeric values if distr == "beta", and "NA" otherwise).
+**(5) Severities** and their threshold values.
+This data frame needs to contain all severity categories of threats used in the 
+Red List analysed.
+The data frame defaults to the severity categories used in Norwegian Red Lists,
+where values correspond to the declines in population size over 10 years or
+3 generations (whichever is largest) caused by a threat.
+
+* The column "name" contains the abbreviations used for the severity categories.
+* The column "lower" contains the lower limit of the respective interval.
+* The column "upper" contains the upper limit of the respective interval.
+* The column "distr" contains the distribution of values within the respective 
+interval (possible values: "unif", "incr", "decr", "beta").
+* The column "beta" contains the beta parameter of a Beta distribution
+(a numeric values if `distr == "beta"`, and `NA` otherwise).
+```{r}
 Severity <- data.frame(
   name  = c("negldecl", "slowdecl", "rapidecl", "unknownd"),
   lower = c(      0.00,       0.02,       0.20,       0.00),
@@ -148,49 +180,119 @@ Severity <- data.frame(
   beta  = c(        NA,         NA,         NA,         20),
   stringsAsFactors = FALSE
 )
+```
 
-# Time frame for the expected loss of species or ecosystems, in years
-# (defaults to 50 years)
+**(6) Time frame** for the expected loss of species or ecosystems, in years
+(defaults to 50 years).
+```{r}
 TimeFrame <- 50
+```
 
 
 
-# ========================
-# Preparations
-# ========================
+## Preliminaries
 
-# Definition of further required variables, 
-# based on the variables and constants specified above
+Load the set of functions belonging to this depository:
+```{r}
+eval(parse(text = readLines("function.R")))
+```
 
+Define further required variables, 
+based on the variables and constants specified above:
+```{r}
 LC      <- RLcateg$name[RLcateg$LC]
 extinct <- RLcateg$name[RLcateg$EX]
 LC.EX   <- RLcateg$name
 RedListCat <- c(LC.EX, DD, notEval)
+```
 
 
 
-# ========================
-# Read, prepare and summarise the data
-# ========================
+## Read and check the data
 
-# Read the dataset "Norwegian Red List for species 2021"
+Read the dataset "Norwegian Red List for species":
+```{r}
 RL <- read.csv2(file, as.is=TRUE, dec=".", na.strings="n/a", encoding="latin1")
+```
 
-# Check whether the data are as expected
-usedCategories <- checkRL(RL)
+Check whether the data are as expected:
+```{r}
+{
+  usedCategories <- checkRL(RL)
+  years <- identifyYears(RL)
+  cat("\nYears included in this dataset:\n")
+  print(years)
+  threats <- identifyThreats(RL)
+  cat("\nThreats reported in this dataset:\n")
+  print(threats)
+}
+```
 
-# Ensure that `RedListCat` and `LC.EX` only contain categories 
-# that are actually used
+Ensure that `RedListCat` and `LC.EX` only contain categories 
+that are actually used:
+```{r}
 RedListCat <- RedListCat %A% usedCategories
 LC.EX      <-      LC.EX %A% usedCategories
+```
 
-# Create a list to summarise the Red Lists for 2010, 2015 and 2021.
+
+
+## Prepare the data frame for analyses
+
+**(1) Reverse uplisting**:
+```{r}
+RL <- uplist(RL) 
+```
+
+**(2) Back-cast** knowledge from the most recent Red List to earlier ones:
+```{r}
+RL <- backCast(RL)
+```
+
+**(3) Calculate extinction probabilites** for all species:
+```{r}
+RL <- calcLoss(RL)
+```
+
+**(4) Add columns for all threat factors**:
+```{r}
+RL <- addThreats(RL)
+```
+
+
+
+## Summarise the data
+
+Calculate RLIs for the three Red Lists 
+(corrected for knowledge in the most recent one):
+```{r}
+{
+  RLI21 <- RLI(RL$Categ21.21)
+  RLI15 <- RLI(RL$Categ15.21)
+  RLI10 <- RLI(RL$Categ10.21)
+  cat("Red List Index 2010: " %+% RLI10 %+% "\n")
+  cat("Red List Index 2015: " %+% RLI15 %+% "\n")
+  cat("Red List Index 2021: " %+% RLI21 %+% "\n")
+}
+```
+
+Create a list to summarise the Red Lists for 2010, 2015 and 2021:
+```{r}
 Table3 <- matrix(as.numeric(NA), 9, length(RedListCat) + 3, dimnames=list(
   "RL" %+% c("2010°", "2010", "2010(15)", "2010(21)",
              "2015°", "2015", "2015(21)", "2021°", "2021"),
   c("N", RedListCat, "RLI", "Cum.ELS50")
 ))
 alphabetic <- sort(RedListCat)
+```
+
+Data for Red Lists 2010 and 2015 (prior to back-casting) have to be added
+manually, because they cannot be re-created fully from the 2021 Red List data.
+Source for these data:
+
+* [Artsdatabanken (2010)](http://www.artsportalen.artsdatabanken.no/)
+* [Artsdatabanken (2015)](https://www.artsdatabanken.no/Rodlista2015) 
+```{r}
 Table3[1, match(alphabetic, colnames(Table3))] <-
   c(284, 809, 890, 16762, 2580, 6528, 1310, 127, 1265)
 Table3[2, match(alphabetic, colnames(Table3))] <-
@@ -202,25 +304,10 @@ Table3[6, match(alphabetic, colnames(Table3))] <-
 tb <- table(substr(RL$Categ21, 1, 2))
 Table3[8, match(names(tb), colnames(Table3))] <- tb
 Loss21o <- LoS(substr(RL$Categ21, 1, 2), RL$GenTime)
+```
 
-# Prepare the data frame for analyses
-years <- identifyYears(RL)
-threats <- identifyThreats(RL)
-RL <- uplist(RL) 
-RL <- backCast(RL)
-RL <- calcLoss(RL)
-
-# RLIs for the three Red Lists, corrected for knowledge in the most recent one
-RLI21 <- RLI(RL$Categ21.21)
-RLI15 <- RLI(RL$Categ15.21)
-RLI10 <- RLI(RL$Categ10.21)
-
-# Summarise the Red Lists
-# Data for Red Lists 2010 and 2015 (prior to back-casting) have to be added
-# manually, because they cannot be re-created fully from the 2021 Red List data.
-# Source for these data: Artsdatabanken (2010, 2015), i.e.:
-# * http://www.artsportalen.artsdatabanken.no/
-# * https://www.artsdatabanken.no/Rodlista2015 
+Summarise the Red Lists:
+```{r}
 tab <- summariseRL(RL)
 Table3[c(4, 7, 9), colnames(tab)] <- tab[c(3, 5, 6), ]
 Table3[3, ] <- Table3[4, ] - Table3[7, ] + Table3[6, ]
@@ -228,9 +315,12 @@ Table3[, "N"] <- apply(Table3[, RedListCat], 1, sum, na.rm=T)
 Table3[, "RLI"] <- 1 - apply(t(Table3[,LC.EX]) * 0:5, 2, sum, na.rm=T) / 
   apply(Table3[, LC.EX], 1, sum, na.rm=T) / max(RLcateg$wt,   na.rm=T)
 Table3 <- Table3[, !is.na(apply(Table3 > 0, 2, any))]
-# Means per Red List Category
-# (needed to approximate species loss for data 
-# that are not based on the 2021 Red List)
+```
+
+Calculate means per Red List Category
+(needed to approximate species loss for data 
+that are not based on the 2021 Red List):
+```{r}
 mn10 <- mn15 <- rep(0, length(RedListCat))
 names(mn10) <- names(mn15) <- RedListCat
 for (i in RedListCat) {
@@ -245,55 +335,59 @@ Table3[6, "Cum.ELS50"] <- sum(mn15 * Table3[6, RedListCat], na.rm=T)
 Loss21o[which(isDD(RL$Categ21))] <- RL$Loss21[which(isDD(RL$Categ21))]
 Table3[8, "Cum.ELS50"] <- sum(Loss21o, na.rm=T)
 rm(alphabetic, tb, tab, mn10, mn15, Loss21o)
+```
+
+Print the table (which underlies Table 3 of the paper):
+```{r}
 print(Table3)
+```
 
 
 
-# ========================
-# Analysis of threat factors
-# ========================
+## Analysis of threat factors
 
-# Add columns for each threat factor
-RL <- addThreats(RL)
-
-# Estimate DeltaRLI
+Estimate DeltaRLI:
+```{r}
 DRLI <- DeltaRLI(RL)
 print(DRLI)
+```
 
-# Estimate deltaRLI and ELS50
+Estimate deltaRLI and ELS50:
+```{r}
 drli <- dRLI(RL)
 print(drli)
+```
 
-# Please note that the following two commands take a looong time
-# if you use the default value for `nsim`!
-# Replace `nsim` by 100 to just see how they work.
-
-# Confidence intervals on RLI
+Confidence intervals on RLI:
+```{r, eval=FALSE, echo=TRUE}
 print(confidenceRLI(RL, nsim, "Categ21"))
+```
 
-# Confidence intervals on DeltaRLI, deltaRLI and ELS50
+Confidence intervals on DeltaRLI, deltaRLI and ELS50:
+```{r, eval=FALSE, echo=TRUE}
 results <- simulateDRLI(RL, nsim)
+```
 
 
 
-# ========================
-# Figures
-# ========================
+## Figures
 
-# ------------------------
-# Figure 1
-# The following script recreates Fig 1 only if the
-# above default parameterisation is left unchanged
+### Figure 1
+The following script recreates Fig 1 only if the
+above default parameter values are left unchanged.
 
-# Simplify the table by collapsing minor threats
+Simplify the table by collapsing minor threats:
+```{r}
 DRLI. <- DRLI
 DRLI.[10, ] <- apply(DRLI.[c(1, 2, 5, 7, 9, 10, 11, 13), ], 2, sum)
 DRLI. <- DRLI.[c(6, 10, 3, 12, 8, 4), ]
 DRLI. <- DRLI.[, c(1:3, 3)]
 DRLI. <- rbind(0, DRLI.)
 DRLI. <- rbind(DRLI., 0)
+```
 
-# Plot a graph for DeltaRLI
+Plot a graph for DeltaRLI:
+```{r}
 if (nchar(fig1)) {
  png(fig1, 1500, 1200, res = 180)
 }
@@ -332,22 +426,25 @@ text(2015.5, 0.92021, expression(bold(Delta*RLI)), cex = 1.8)
 if (nchar(fig1)) {
   dev.off()
 }
+```
 
 
-# ------------------------
-# Figure S1
-# The following script recreates Fig S1 only if inferThreats == TRUE
-# and the remaining parameterisation is left unchanged
+### Figure S1
+The following script recreates Fig S1 only if `inferThreats == TRUE`
+and the remaining default parameter values are is left unchanged.
 
-# Simplify the table by collapsing minor threats
+Simplify the table by collapsing minor threats:
+```{r}
 DRLI. <- DRLI
 DRLI.[10, ] <- apply(DRLI.[c(1, 2, 5, 7, 9, 10, 11, 13), ], 2, sum)
 DRLI. <- DRLI.[c(6, 10, 3, 12, 8, 4), ]
 DRLI. <- DRLI.[, c(1:3, 3)]
 DRLI. <- rbind(0, DRLI.)
 DRLI. <- rbind(DRLI., 0)
+```
 
-# Plot a graph for DeltaRLI
+Plot a graph for DeltaRLI:
+```{r}
 if (nchar(figS1)) {
  png(figS1, 1500, 1200, res = 180)
 }
@@ -379,14 +476,15 @@ text(2015.5, 0.92032, expression(bold(Delta*RLI)), cex = 1.8)
 if (nchar(figS1)) {
   dev.off()
 }
+```
 
 
-# ------------------------
-# Figure 2
-# The following script recreates Fig 2 only if the
-# above default parameterisation is left unchanged
+### Figure 2
+The following script recreates Fig 2 only if the
+above default parameter values are left unchanged.
 
-# Simplify the table by collapsing minor threats
+Simplify the table by collapsing minor threats:
+```{r}
 drli. <- drli$dRLI
 ELS. <- drli$ELS50
 for (i in 1:3) {
@@ -405,8 +503,10 @@ drli. <- drli.[order(drli.[, 3], decreasing=T),]
 drli. <- drli.[, 3:1]
 drli. <- rbind(0, drli.)
 drli. <- rbind(0, drli.)
+```
 
-# Plot a graph for deltaRLI
+Plot a graph for deltaRLI:
+```{r}
 if (nchar(fig2)) {
  png(fig2, 1500, 1200, res=180)
 }
@@ -460,14 +560,15 @@ text(2015.5, 1.005, expression(bold(delta*RLI)), cex = 1.8)
 if (nchar(fig2)) {
   dev.off()
 }
+```
 
 
-# ------------------------
-# Figure 3
-# The following script recreates Fig 3 only if the
-# above default parameterisation is left unchanged
+### Figure 3
+The following script recreates Fig 3 only if the
+above default parameter values are left unchanged.
 
-# Plot a graph for ELS50
+Plot a graph for ELS50:
+```{r}
 if (nchar(fig3)) {
  png(fig3, 1500, 1200, res = 180)
 }
@@ -503,14 +604,15 @@ text(2015.5, 3.01, expression(bold(ELS[50])), cex = 1.8)
 if (nchar(fig3)) {
   dev.off()
 }
+```
 
 
-# ------------------------
-# Figure S2
-# The following script recreates Fig S2 only if inferThreats == TRUE
-# and the remaining parameterisation is left unchanged
+### Figure S2
+The following script recreates Fig S2 only if `inferThreats == TRUE`
+and the remaining default parameter values are left unchanged.
 
-# Simplify the table by collapsing minor threats
+Simplify the table by collapsing minor threats:
+```{r}
 drli. <- drli$dRLI
 ELS. <- drli$ELS50
 for (i in 1:3) {
@@ -532,8 +634,10 @@ drli. <- drli.[order(drli.[, 3], decreasing=T), ]
 drli. <- drli.[, 3:1]
 drli. <- rbind(0, drli.)
 drli. <- rbind(0, drli.)
+```
 
-# Plot a graph for deltaRLI
+Plot a graph for deltaRLI:
+```{r}
 if (nchar(figS2)) {
  png(figS2, 1500, 1200, res = 180)
 }
@@ -575,14 +679,15 @@ text(2015.5, 1.005, expression(bold(delta*RLI)), cex = 1.8)
 if (nchar(figS2)) {
   dev.off()
 }
+```
 
 
-# ------------------------
-# Figure S3
-# The following script recreates Fig S3 only if inferThreats == TRUE
-# and the remaining parameterisation is left unchanged
+### Figure S3
+The following script recreates Fig S3 only if `inferThreats == TRUE`
+and the remaining default parameter values are left unchanged.
 
-# Plot a graph for ELS50
+Plot a graph for ELS50:
+```{r}
 if (nchar(figS3)) {
  png(figS3, 1500, 1200, res = 180)
 }
@@ -616,4 +721,5 @@ text(2015.5, 3.12, expression(bold(ELS[50])), cex = 1.8)
 if (nchar(figS3)) {
   dev.off()
 }
+```
 
