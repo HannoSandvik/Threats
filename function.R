@@ -22,18 +22,24 @@
 # Combines text strings
 "%+%" <- function(string1, string2) paste0(string1, string2)
 
+# Calculates the union of two sets (vectors)
+"%A%" <- function(set1, set2)
+  if (is.null(set1)) logical(0) else as.vector(na.omit(set1[set1 %in% set2]))
+
 # Removes an element of a set
 "%-%" <- function(arg1, arg2) arg1[which(!(arg1 %in% na.omit(arg2)))]
 
 # I just find this more intuitive...
 "%contains%" <- function(vector, search) grepl(search, vector, fixed = TRUE)
 
-# Calculates the union of two sets (vectors)
-"%A%" <- function(set1, set2)
-  if (is.null(set1)) logical(0) else as.vector(na.omit(set1[set1 %in% set2]))
-
 # Decadal logarithm should be abbreviated "lg"!
 lg <- function(x) log10(x)
+
+# Logit function
+logit <- function(x) log(x / (1 - x))
+
+# Inverse of the logit function
+invlogit <- function(x) ifelse(x > 100, 1, exp(x) / (1 + exp(x)))
 
 # Ceiling function that keeps two decimals
 c100 <- function(x) ceiling(x * 100) / 100
@@ -83,33 +89,342 @@ extractSeverity <- function(x) return(
 )
 
 
-RLW <- function(x) {
+RLW <- function(x, t = 0, method = weightingRLI) {
   # Red List Weights
   # Applies Equation 2
-  wt <- function(x) return(
-    ifelse(x %in% RLcateg$name,
-           which(RLcateg$name == x),
-           Inf)
-  )
-  return(as.vector(RLcateg$wt[sapply(x, wt)]))
+  method <- tolower(method)
+  wt <- NULL
+  if (substr(method, 1, 2) == "eq") wt <- RLW.eqSteps(x, t)
+  if (method == "a1")  wt <- RLW.A1 (x, t)
+  if (method == "a2")  wt <- RLW.A2 (x, t)
+  if (method == "b")   wt <- RLW.B1 (x, t)
+  if (method == "b1")  wt <- RLW.B1 (x, t)
+  if (method == "b2")  wt <- RLW.B2 (x, t)
+  if (method == "c")   wt <- RLW.C  (x, t)
+  if (method == "c1")  wt <- RLW.C  (x, t)
+  if (method == "d")   wt <- RLW.D  (x, t)
+  if (method == "d1")  wt <- RLW.D  (x, t)
+  if (method == "e")   wt <- RLW.Ev1(x, t)
+  if (method == "e1")  wt <- RLW.Ev1(x, t)
+  if (method == "ev1") wt <- RLW.Ev1(x, t)
+  if (method == "e2")  wt <- RLW.Ev2(x, t)
+  if (method == "ev2") wt <- RLW.Ev2(x, t)
+  if (method == "e3")  wt <- RLW.Ev3(x, t)
+  if (method == "ev3") wt <- RLW.Ev3(x, t)
+  if (is.null(wt)) stop("Unknown method")
+  return(wt)
 }
 
 
-RLI <- function(x) {
+RLW.eqSteps <- function(x, t) {
+  # Cumulative loss of species using the "equal-steps" weighting scheme
+  w <- sapply(x, function(y) ifelse(y %in% RLcateg$name,
+                                    which(RLcateg$name == y),
+                                    Inf))
+  return(as.vector(RLcateg$wt[w]))
+}
+
+
+RLW.A1 <- function(x, t) {
+  # Cumulative loss of species using the "A1" weighting scheme
+  return(LoS.A1(x, t) *  max(RLcateg$wt, na.rm=TRUE))
+}
+
+
+RLW.A2 <- function(x, t) {
+  # Cumulative loss of species using the "A2" weighting scheme
+  return(LoS.A2(x, t) *  max(RLcateg$wt, na.rm=TRUE))
+}
+
+
+RLW.B1 <- function(x, t) {
+  # Cumulative loss of species using the "B1" weighting scheme
+  return(LoS.B1(x, t) *  max(RLcateg$wt, na.rm=TRUE))
+}
+
+
+RLW.B2 <- function(x, t) {
+  # Cumulative loss of species using the "B2" weighting scheme
+  return(LoS.B2(x, t) *  max(RLcateg$wt, na.rm=TRUE))
+}
+
+
+RLW.C <- function(x, t) {
+  # Cumulative loss of species using the "C" weighting scheme
+  return(LoS.C(x, t) *  max(RLcateg$wt, na.rm=TRUE))
+}
+
+
+RLW.D <- function(x, t) {
+  # Cumulative loss of species using the "D" weighting scheme
+  return(LoS.D(x, t) *  max(RLcateg$wt, na.rm=TRUE))
+}
+
+
+RLW.Ev1 <- function(x, t) {
+  # Cumulative loss of species using version 1 of the "E" weighting scheme
+  return(LoS.Ev1(x, t) *  max(RLcateg$wt, na.rm=TRUE))
+}
+
+
+RLW.Ev2 <- function(x, t) {
+  # Cumulative loss of species using version 2 of the "E" weighting scheme
+  return(LoS.Ev2(x, t) *  max(RLcateg$wt, na.rm=TRUE))
+}
+
+
+RLW.Ev3 <- function(x, t) {
+  # Cumulative loss of species using version 3 of the "E" weighting scheme
+  return(LoS.Ev3(x, t) *  max(RLcateg$wt, na.rm=TRUE))
+}
+
+
+RLI <- function(x, t = 0, method = weightingRLI) {
   # Red List Index
   # Applies Equation 1
-  rlw <- na.omit(RLW(x))
+  rlw <- na.omit(RLW(x, t, method))
   rli <- 1 - sum(rlw) / length(rlw) / max(RLcateg$wt, na.rm=TRUE)
   attr(rli, "N") <- length(rlw)
   return(rli)
 }
 
 
+LoS <- function(k, t, nsim = 0, method = weightingELS) {
+  # Loss of species, given Red List category k and generation time t
+  # (this is the cumulative loss of species, not threat-wise!)
+  # Note that the expected (mean) loss of species is returned if nsim <= 1,
+  # whereas nsim randomised losses of species are returned otherwise.
+  # In the latter case, both `k` and `t` have to be of length 1.
+  method <- tolower(method)
+  loss <- NULL
+  if (substr(method, 1, 2) == "eq") loss <- LoS.eqSteps(k, t, nsim)
+  if (method == "a1")  loss <- LoS.A1 (k, t, nsim)
+  if (method == "a2")  loss <- LoS.A2 (k, t, nsim)
+  if (method == "b")   loss <- LoS.B1 (k, t, nsim)
+  if (method == "b1")  loss <- LoS.B1 (k, t, nsim)
+  if (method == "b2")  loss <- LoS.B2 (k, t, nsim)
+  if (method == "c")   loss <- LoS.C  (k, t, nsim)
+  if (method == "c1")  loss <- LoS.C  (k, t, nsim)
+  if (method == "d")   loss <- LoS.D  (k, t, nsim)
+  if (method == "d1")  loss <- LoS.D  (k, t, nsim)
+  if (method == "e")   loss <- LoS.Ev1(k, t, nsim)
+  if (method == "e1")  loss <- LoS.Ev1(k, t, nsim)
+  if (method == "ev1") loss <- LoS.Ev1(k, t, nsim)
+  if (method == "e2")  loss <- LoS.Ev2(k, t, nsim)
+  if (method == "ev2") loss <- LoS.Ev2(k, t, nsim)
+  if (method == "e3")  loss <- LoS.Ev3(k, t, nsim)
+  if (method == "ev3") loss <- LoS.Ev3(k, t, nsim)
+  if (is.null(loss)) stop("Unknown method")
+  return(loss)
+}
+
+
+LoS.Ev1 <- function(k, t, nsim = 0) {
+  # Cumulative loss of species using the "E" weighting scheme (version 1)
+  w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
+                                    which(RLcateg$name == x),
+                                    Inf))
+  tauL <- apply(rbind(apply(rbind(t * RLcateg$lowG[w], 100), 2, min), 
+                      RLcateg$lowT[w]), 2, max)
+  tauU <- apply(rbind(apply(rbind(t * RLcateg$uppG[w], 100), 2, min), 
+                      RLcateg$uppT[w]), 2, max)
+  # applying Equation 8:
+  R50L <- 1 - (1 - RLcateg$lowP[w])^(TimeFrame / tauL)
+  R50U <- 1 - (1 - RLcateg$uppP[w])^(TimeFrame / tauU)
+  # rounding downwards for tau > TimeFrame and upwards for tau < TimeFrame:
+  R50L <- ifelse(tauL > TimeFrame, f100(R50L), c100(R50L))
+  R50U <- ifelse(tauU > TimeFrame, f100(R50U), c100(R50U))
+  if (nsim < 2) {
+    # applying Equation 9:
+    return(meanDist(RLcateg$distr[w], R50L, R50U))
+  } else {
+    return(randomiseDist(RLcateg$distr[w], R50L, R50U, nsim))
+  }
+}
+
+
+LoS.Ev2 <- function(k, t, nsim = 0) {
+  # Cumulative loss of species using version 2 of the "E" weighting scheme
+  w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
+                                    which(RLcateg$name == x),
+                                    Inf))
+  tauL <- apply(rbind(apply(rbind(t * RLcateg$lowG[w], 100), 2, min), 
+                      RLcateg$lowT[w]), 2, max)
+  tauU <- apply(rbind(apply(rbind(t * RLcateg$uppG[w], 100), 2, min), 
+                      RLcateg$uppT[w]), 2, max)
+  # applying (logit of!) Equation 8:
+  R50L <- logit(1 - (1 - RLcateg$lowP[w])^(TimeFrame / tauL))
+  R50U <- logit(1 - (1 - RLcateg$uppP[w])^(TimeFrame / tauU))
+  # shifting extinction probabilities "outwards":
+  R50L <- R50L + ifelse(RLcateg$wt[w] == 0, -100,
+                 ifelse(RLcateg$wt[w] == 1, -0.6,
+                 ifelse(RLcateg$wt[w] == 2, -0.3,
+                 ifelse(RLcateg$wt[w] == 3, +0.3,
+                 ifelse(RLcateg$wt[w] == 4, +0.6,
+                 ifelse(RLcateg$wt[w] == 5, +100,
+                                              NA))))))
+  R50U <- R50U + ifelse(RLcateg$wt[w] == 0, -100,
+                 ifelse(RLcateg$wt[w] == 1, -0.3,
+                 ifelse(RLcateg$wt[w] == 2, +0.3,
+                 ifelse(RLcateg$wt[w] == 3, +0.6,
+                 ifelse(RLcateg$wt[w] == 4, +100,
+                 ifelse(RLcateg$wt[w] == 5, +100,
+                                              NA))))))
+  # back-transforming and rounding:
+  R50L <- round(invlogit(R50L), 2)
+  R50U <- round(invlogit(R50U), 2)
+  if (nsim < 2) {
+    return(meanDist(RLcateg$distr[w], R50L, R50U))
+  } else {
+    return(randomiseDist(RLcateg$distr[w], R50L, R50U, nsim))
+  }
+}
+
+
+LoS.Ev3 <- function(k, t, nsim = 0) {
+  # Cumulative loss of species using version 3 of the "E" weighting scheme
+  w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
+                                    which(RLcateg$name == x),
+                                    Inf))
+  tauL <- apply(rbind(apply(rbind(t * RLcateg$lowG[w], 100), 2, min), 
+                      RLcateg$lowT[w]), 2, max)
+  tauU <- apply(rbind(apply(rbind(t * RLcateg$uppG[w], 100), 2, min), 
+                      RLcateg$uppT[w]), 2, max)
+  # applying (logit of!) Equation 8:
+  R50L <- logit(1 - (1 - RLcateg$lowP[w])^(TimeFrame / tauL))
+  R50U <- logit(1 - (1 - RLcateg$uppP[w])^(TimeFrame / tauU))
+  # reducing extinction probabilities:
+  R50L <- R50L + ifelse(RLcateg$wt[w] == 0, -100,
+                 ifelse(RLcateg$wt[w] == 5, +100,
+                                            -0.5))
+  R50U <- R50U + ifelse(RLcateg$wt[w] == 0, -100,
+                 ifelse(RLcateg$wt[w] >= 4, +100,
+                                            -0.5))
+  # back-transforming and rounding:
+  R50L <- round(invlogit(R50L), 2)
+  R50U <- round(invlogit(R50U), 2)
+  if (nsim < 2) {
+    return(meanDist(RLcateg$distr[w], R50L, R50U))
+  } else {
+    return(randomiseDist(RLcateg$distr[w], R50L, R50U, nsim))
+  }
+}
+
+
+LoS.eqSteps <- function(k, t, nsim = 0) {
+  # Cumulative loss of species using the "equal-steps" weighting scheme
+  w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
+                                    which(RLcateg$name == x),
+                                    Inf))
+  return(rep(RLcateg$wt[w], max(1, nsim)) / max(RLcateg$wt, na.rm=TRUE))
+}
+
+
+LoS.A1 <- function(k, t, nsim = 0) {
+  # Cumulative loss of species using the "A1" weighting scheme
+  w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
+                                    which(RLcateg$name == x),
+                                    Inf))
+  time <- sapply(sapply(t, min, 100 / 3) * 3, max, 10)
+  L <- round(RLcateg$lowA1[w]^(time / 10), 2)
+  U <- round(RLcateg$uppA1[w]^(time / 10), 2)
+  if (nsim < 2) {
+    return(meanDist(RLcateg$distr[w], L, U))
+  } else {
+    return(randomiseDist(RLcateg$distr[w], L, U, nsim))
+  }
+}
+
+
+LoS.A2 <- function(k, t, nsim = 0) {
+  # Cumulative loss of species using version 2 of the "A2" weighting scheme
+  w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
+                                    which(RLcateg$name == x),
+                                    Inf))
+  time <- sapply(sapply(t, min, 100 / 3) * 3, max, 10)
+  L <- round(RLcateg$lowA2[w]^(time / 10), 2)
+  U <- round(RLcateg$uppA2[w]^(time / 10), 2)
+  if (nsim < 2) {
+    return(meanDist(RLcateg$distr[w], L, U))
+  } else {
+    return(randomiseDist(RLcateg$distr[w], L, U, nsim))
+  }
+}
+
+
+LoS.B1 <- function(k, t, nsim = 0) {
+  # Cumulative loss of species using version 2 of the "B1" weighting scheme
+  w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
+                                    which(RLcateg$name == x),
+                                    Inf))
+  L <- 1 - RLcateg$lowB1[w] / RLcateg$lowB1[which(RLcateg$LC)]
+  U <- 1 - RLcateg$uppB1[w] / RLcateg$uppB1[which(RLcateg$LC)]
+  L <- ifelse(L > 0.5, f100(L), c100(L))
+  U <- ifelse(U > 0.5, f100(U), c100(U))
+  if (nsim < 2) {
+    return(meanDist(RLcateg$distr[w], L, U))
+  } else {
+    return(randomiseDist(RLcateg$distr[w], L, U, nsim))
+  }
+}
+
+
+LoS.B2 <- function(k, t, nsim = 0) {
+  # Cumulative loss of species using version 2 of the "B2" weighting scheme
+  w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
+                                    which(RLcateg$name == x),
+                                    Inf))
+  L <- 1 - RLcateg$lowB2[w] / RLcateg$lowB2[which(RLcateg$LC)]
+  U <- 1 - RLcateg$uppB2[w] / RLcateg$uppB2[which(RLcateg$LC)]
+  L <- ifelse(L > 0.5, f100(L), c100(L))
+  U <- ifelse(U > 0.5, f100(U), c100(U))
+  if (nsim < 2) {
+    return(meanDist(RLcateg$distr[w], L, U))
+  } else {
+    return(randomiseDist(RLcateg$distr[w], L, U, nsim))
+  }
+}
+
+
+LoS.C <- function(k, t, nsim = 0) {
+  # Cumulative loss of species using version 2 of the "C" weighting scheme
+  w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
+                                    which(RLcateg$name == x),
+                                    Inf))
+  L <- 1 - RLcateg$lowC[w] / RLcateg$lowC[which(RLcateg$LC)]
+  U <- 1 - RLcateg$uppC[w] / RLcateg$uppC[which(RLcateg$LC)]
+  L <- ifelse(L > 0.5, f100(L), c100(L))
+  U <- ifelse(U > 0.5, f100(U), c100(U))
+  if (nsim < 2) {
+    return(meanDist(RLcateg$distr[w], L, U))
+  } else {
+    return(randomiseDist(RLcateg$distr[w], L, U, nsim))
+  }
+}
+
+
+LoS.D <- function(k, t, nsim = 0) {
+  # Cumulative loss of species using version 2 of the "D" weighting scheme
+  w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
+                                    which(RLcateg$name == x),
+                                    Inf))
+  L <- 1 - RLcateg$lowD[w] / RLcateg$lowD[which(RLcateg$LC)]
+  U <- 1 - RLcateg$uppD[w] / RLcateg$uppD[which(RLcateg$LC)]
+  L <- ifelse(L > 0.5, f100(L), c100(L))
+  U <- ifelse(U > 0.5, f100(U), c100(U))
+  if (nsim < 2) {
+    return(meanDist(RLcateg$distr[w], L, U))
+  } else {
+    return(randomiseDist(RLcateg$distr[w], L, U, nsim))
+  }
+}
+
+
 meanDist <- function(D, L, U) return(
   ifelse(D == "unif", L * 0.50 + U * 0.50,
-         ifelse(D == "incr", L * 0.25 + U * 0.75,
-                ifelse(D == "decr", L * 0.75 + U * 0.25,
-                       NA)))
+  ifelse(D == "incr", L * 0.25 + U * 0.75,
+  ifelse(D == "decr", L * 0.75 + U * 0.25,
+  NA)))
 )
 
 
@@ -157,45 +472,6 @@ randomiseSeverity <- function(n, x) {
                  NA)
   }
   return(as.vector(sapply(name, m)))
-}
-
-
-n0 <- function(x, symbol = downlistSymbol) {
-  # "Uplisting" of downlisted species,
-  # i.e. downlisted species are raised by one Red List Category. 
-  # Note that this function assumes:
-  # * that downlisting is indicated by "symbol" after the Red List Category,
-  # * that downlisting is always to the Red List Category immediately below.
-  for (i in which(!RLcateg$EX)) {
-    v <- which(x == (RLcateg$name[i] %+% symbol))
-    W <- RLcateg$wt[i]
-    j <- which(RLcateg$wt == min(RLcateg$wt[which(RLcateg$wt > W)],
-                                 na.rm = TRUE))[1]
-    x[v] <- RLcateg$name[j]
-  }
-  return(x)
-}
-
-
-uplist <- function(RL, symbol = downlistSymbol) {
-  # "Uplists" species that have been downlisted.
-  # This function works only for IUCN Red List Categories (specifically, 
-  # LC, NT, VU and EN). Others are returned unmodified.
-  years <- identifyYears(RL)
-  for (y in years) {
-    RL[, Categ %+% y] <- n0(RL[, Categ %+% y], symbol = symbol)
-  }
-  return(RL)
-}
-
-
-downlist <- function(RL, symbol = downlistSymbol) {
-  # "Confirms" downlisting, i.e. removes the symbol for downlisting
-  years <- identifyYears(RL)
-  for (y in years) {
-    RL[, Categ %+% y] <- gsub(symbol, "", RL[, Categ %+% y], fixed = TRUE)
-  }
-  return(RL)
 }
 
 
@@ -276,12 +552,12 @@ checkRL <- function(RL) {
                 if (any(extractSeverity(thr) %in% unknownSeverity)) {
                   cat("Threat columns are OK.\n")
                 } else {
-                  cat("ERROR: The severity \"" %+% unknownSeverity %+%
+                  cat("WARNING: The severity \"" %+% unknownSeverity %+%
                         "\" does not occur in the dataset!\n")
                   OK <- FALSE
                 }
               } else {
-                cat("ERROR: The scope \"" %+% unknownScope %+%
+                cat("WARNING: The scope \"" %+% unknownScope %+%
                       "\" does not occur in the dataset!\n")
                 OK <- FALSE
               }
@@ -291,19 +567,19 @@ checkRL <- function(RL) {
               OK <- FALSE
             }
           } else {
-            cat("ERROR: The timing \"" %+% unknownTiming %+%
+            cat("WARNING: The timing \"" %+% unknownTiming %+%
                   "\" does not occur in the dataset!\n")
             OK <- FALSE
           }
         } else {
-          cat("ERROR: The threat factor \"" %+% unknownThreat %+%
+          cat("WARNING: The threat factor \"" %+% unknownThreat %+%
                 "\" does not occur in the dataset!\n")
           OK <- FALSE
         }
       }
     } else {
       cat("ERROR: The following column name(s) were expected but not found:\n")
-      cat(paste(Threat %+% sort(years), collapse = ", ") %+% "\n")
+      cat(paste((Threat %+% sort(years)) %-% names(RL), collapse = ", ") %+% "\n")
       OK <- FALSE
     }
     # Check the change columns
@@ -323,6 +599,13 @@ checkRL <- function(RL) {
       }
     }
   }
+  # Check the generation time column
+  if (GTime %in% names(RL)) {
+    cat("Generation time was found.\n")
+  } else {
+    cat("WARNING: The dataset lacks a column containing generation times!\n")
+    OK <- FALSE
+  }
   if (OK) {
     cat("\nEverything looks fine so far!\n")
   } else {
@@ -332,13 +615,52 @@ checkRL <- function(RL) {
 }
 
 
+n0 <- function(x, symbol = downlistSymbol) {
+  # "Uplisting" of downlisted species,
+  # i.e. downlisted species are raised by one Red List Category. 
+  # Note that this function assumes:
+  # * that downlisting is indicated by "symbol" after the Red List Category,
+  # * that downlisting is always to the Red List Category immediately below.
+  for (i in which(!RLcateg$EX)) {
+    v <- which(x == (RLcateg$name[i] %+% symbol))
+    W <- RLcateg$wt[i]
+    j <- which(RLcateg$wt == min(RLcateg$wt[which(RLcateg$wt > W)],
+                                 na.rm = TRUE))[1]
+    x[v] <- RLcateg$name[j]
+  }
+  return(x)
+}
+
+
+uplist <- function(RL, symbol = downlistSymbol) {
+  # "Uplists" species that have been downlisted.
+  # This function works only for IUCN Red List Categories (specifically, 
+  # LC, NT, VU and EN). Others are returned unmodified.
+  years <- identifyYears(RL)
+  for (y in years) {
+    RL[, Categ %+% y] <- n0(RL[, Categ %+% y], symbol = symbol)
+  }
+  return(RL)
+}
+
+
+downlist <- function(RL, symbol = downlistSymbol) {
+  # "Confirms" downlisting, i.e. removes the symbol for downlisting
+  years <- identifyYears(RL)
+  for (y in years) {
+    RL[, Categ %+% y] <- gsub(symbol, "", RL[, Categ %+% y], fixed = TRUE)
+  }
+  return(RL)
+}
+
+
 backCast <- function(RL, real = realChange) {
   # "Back-casts" the most recent knowledge to earlier Red Lists
   years <- sort(identifyYears(RL), decreasing = TRUE)
+  for (y1 in years) { # copy category columns
+    RL[, Categ %+% y1 %+% "." %+% y1] <- RL[, Categ %+% y1]
+  }
   if (length(years) > 1) {
-    for (y1 in years) { # copy category columns
-      RL[, Categ %+% y1 %+% "." %+% y1] <- RL[, Categ %+% y1]
-    }
     for (y1 in years[-1]) {
       # y1 is the year _to_ which knowledge is back-cast
       y1f <- min(years[years > y1])
@@ -367,39 +689,24 @@ backCast <- function(RL, real = realChange) {
 } # backCast
 
 
-LoS <- function(k, t, nsim = 0) {
-  # Loss of species, given Red List category k and generation time t
-  # (this is the cumulative loss of species, not threat-wise!)
-  # Note that the expected (mean) loss of species is returned is nsim <= 1,
-  # whereas nsim randomised losses of species are returned otherwise.
-  # In the latter case, both `k` and `t` have to be of length 1.
-  w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
-                                    which(RLcateg$name == x),
-                                    Inf))
-  tauL <- apply(rbind(apply(rbind(t * RLcateg$lowG[w], 100), 2, min), 
-                      RLcateg$lowT[w]), 2, max)
-  tauU <- apply(rbind(apply(rbind(t * RLcateg$uppG[w], 100), 2, min), 
-                      RLcateg$uppT[w]), 2, max)
-  # applying Equation 8:
-  R50L <- 1 - (1 - RLcateg$lowP[w])^(TimeFrame / tauL)
-  R50U <- 1 - (1 - RLcateg$uppP[w])^(TimeFrame / tauU)
-  # rounding downwards for tau > TimeFrame and upwards for tau < TimeFrame:
-  R50L <- ifelse(tauL > TimeFrame, f100(R50L), c100(R50L))
-  R50U <- ifelse(tauU > TimeFrame, f100(R50U), c100(R50U))
-  if (nsim < 2) {
-    # applying Equation 9:
-    return(meanDist(RLcateg$distr[w], R50L, R50U))
-  } else {
-    return(randomiseDist(RLcateg$distr[w], R50L, R50U, nsim))
-  }
-}
-
-
 calcLoss <- function(RL) {
   # Adds columns to the Red List data frame which contain the species loss
   # (or ecosystem loss), i.e. the extinction probabilities within 50 years
   # for each species (or ecosystem)
   years <- sort(identifyYears(RL))
+  if (GTime %in% colnames(RL)) {
+    if (!is.numeric(RL[, GTime])) {
+      RL[, GTime] <- as.numeric(RL[, GTime])
+    }
+    w <- which(is.na(RL[, GTime]))
+    if (length(w)) {
+      RL[w, GTime] <- 0
+      cat("NB: `NA` generation times have been set to 0.\n")
+    }
+  } else {
+    RL[, GTime] <- 0
+    cat("WARNING: All generation times were assumed to be < 1 year.\n")
+  }
   for (y1 in years) {
     for (y2 in years[years >= y1]) {
       RL[, "Loss" %+% y1 %+% "." %+% y2] <-
@@ -416,43 +723,6 @@ calcLoss <- function(RL) {
   } # y1
   return(RL)
 } # calcLoss
-
-
-summariseRL <- function(RL, exclude=notEval) {
-  years <- sort(identifyYears(RL))
-  categ <- RedListCat %-% exclude
-  rows  <- ""
-  i <- 0
-  if (length(years) > 1) {
-    tab  <- matrix(as.numeric(NA),
-                   length(years) * (length(years) + 1) / 2,
-                   length(categ) + 3)
-    colnames(tab) <- c("N", categ, "RLI", "Cum.ELS50")
-    wt <- RLW(categ)
-    for (y1 in years) {
-      for (y2 in years[years >= y1]) {
-        i <- i + 1
-        tb <- table(RL[, Categ %+% y1 %+% "." %+% y2])
-        tab[i, categ] <- tb[categ]
-        tab[i, "N"]   <-     sum(tab[i, categ]     , na.rm=TRUE)
-        tab[i, "RLI"] <- 1 - sum(tab[i, categ] * wt, na.rm=TRUE) /
-          sum(tab[i, LC.EX], na.rm=TRUE)  /  max(wt, na.rm=TRUE)
-        tab[i, "Cum.ELS50"] <- sum(RL[, "Loss" %+% y1 %+% "." %+% y2], na.rm=TRUE)
-        if (y1 %=% y2) {
-          rows[i] <- "RL" %+% y1
-        } else {
-          rows[i] <- "RL" %+% y1 %+% "." %+% y2
-        }
-      } # y2
-    } # y1
-    rownames(tab) <- rows
-    print(tab)
-  } else {
-    cat("NB: There were no Red List data to summarise!\n")
-    tab <- NA
-  }
-  invisible(tab)
-} # summariseRL
 
 
 addThreats <- function(RL) {
@@ -519,13 +789,50 @@ addThreats <- function(RL) {
 } # addThreats
 
 
+summariseRL <- function(RL, exclude = notEval) {
+  # Produces a summary table of the Red List(s) in the dataset
+  years <- sort(identifyYears(RL))
+  categ <- RedListCat %-% exclude
+  rows  <- ""
+  i <- 0
+  if (length(years) > 0) {
+    tab  <- matrix(as.numeric(NA),
+                   length(years) * (length(years) + 1) / 2,
+                   length(categ) + 3)
+    colnames(tab) <- c("N", categ, "RLI", "Cum.ELS" %+% TimeFrame)
+    for (y1 in years) {
+      for (y2 in years[years >= y1]) {
+        i <- i + 1
+        C <- Categ %+% y1 %+% "." %+% y2
+        tb <- table(RL[, C])
+        tab[i, categ] <- tb[categ]
+        tab[i, "N"]   <- sum(tab[i, categ], na.rm=TRUE)
+        tab[i, "RLI"] <- RLI(RL[, C], RL[, GTime])
+        tab[i, "Cum.ELS" %+% TimeFrame] <- 
+          sum(RL[, "Loss" %+% y1 %+% "." %+% y2], na.rm=TRUE)
+        if (y1 %=% y2) {
+          rows[i] <- "RL" %+% y1
+        } else {
+          rows[i] <- "RL" %+% y1 %+% "." %+% y2
+        }
+      } # y2
+    } # y1
+    rownames(tab) <- rows
+    print(tab)
+  } else {
+    cat("NB: There were no Red List data to summarise!\n")
+    tab <- NA
+  }
+  invisible(tab)
+} # summariseRL
+
+
 DeltaRLI <- function(RL) {
   # Calculates DeltaRLI
   # This requires a dataframe `RL` with Red List Categories and threats factors
   # from more than one Red List.
-  # The output is a matrix with threat-wise DeltaRLI values for each Red List,
-  # relative to the oldest Red List, and corrected for knowledge from the
-  # most recent Red List.
+  # The output is a matrix with threat-wise DeltaRLI values for each combination
+  # of Red Lists, corrected for knowledge from the most recent Red List.
   years <- sort(identifyYears(RL))
   threats <- identifyThreats(RL)
   if (length(years) > 1) {
@@ -535,7 +842,7 @@ DeltaRLI <- function(RL) {
     W <- THR <- DW <- list()
     for (y in years) {
       categ <- Categ %+% y %+% "." %+% max(years)
-      W[[y]] <-        RLW(RL[, categ])
+      W[[y]] <- RLW(RL[, categ], RL[, GTime])
     } # y
     L <- length(which(RL[, categ] %in% LC.EX))
     for (p in threats) {
@@ -564,11 +871,22 @@ DeltaRLI <- function(RL) {
       }
       DRLIp[n, ] <- DRLIm[n, ] <- 0
     } # extrapolation
-    DRLI <- DRLIp + DRLIm
-    for (i in 2:length(years)) {
-      DRLI[, i] <- DRLI[, i - 1] + DRLI[, i]
+    DRLIpm <- DRLIp + DRLIm
+    DRLI   <- matrix(0, length(threats), length(years) * (length(years)- 1) / 2)
+    cnames <- character()
+    k <- 0
+    for (i in (length(years) - 1):1) {
+      y1 <- years[i]
+      DR <- rep(0, length(threats))
+      for (j in (i + 1):length(years)) {
+        k <- k + 1
+        y2 <- years[j]
+        DR <- DR + DRLIpm[, j]
+        cnames <- c(cnames, "RL" %+% y1 %+% "_" %+% y2)
+        DRLI[, k] <- DR
+      }
     }
-    DRLI[, 1] <- 0
+    dimnames(DRLI) <- list(threats, cnames)
     return(DRLI)
   } else {
     cat("DeltaRLI can only be estimated if there are at least two Red Lists.\n")
@@ -578,10 +896,10 @@ DeltaRLI <- function(RL) {
 
 
 dRLI <- function(RL, RLI = TRUE, ELS = TRUE) {
-  # Calculates deltaRLI and ELS50
+  # Calculates dRLI and ELS50
   # This requires a dataframe `RL` with Red List Categories and threats factors.
   # The output is a list with two elements:
-  # * a matrix with threat-wise deltaRLI values for each Red List,
+  # * a matrix with threat-wise dRLI values for each Red List,
   # * a matrix with threat-wise ELS50 values for each Red List.
   years <- sort(identifyYears(RL))
   threats <- identifyThreats(RL)
@@ -590,7 +908,7 @@ dRLI <- function(RL, RLI = TRUE, ELS = TRUE) {
   for (y in years) {
     C <- Categ %+% y %+% "." %+% max(years)
     L <- length(which(RL[, C] %in% LC.EX))
-    Gw <- RLW(RL[, C])
+    Gw <- RLW(RL[, C], RL[, GTime])
     if (includeDD) {
       # extrapolate to DD species
       L <- length(which(RL[, C] %in% c(LC.EX, DD)))
@@ -629,6 +947,7 @@ dRLI <- function(RL, RLI = TRUE, ELS = TRUE) {
 
 
 ELS <- function(RL, RLI = FALSE, ELS = TRUE) return(
+  # A wrapper for dRLI which (by default) drops the dRLI values
   dRLI(RL, RLI = RLI, ELS = ELS)
 )
 
@@ -659,7 +978,7 @@ confidenceRLI <- function(RL, nsim, column,
     L[i] <- sum(L[1:i])
   }
   L <- c(0, L)
-  cat("\n\n\n")
+  cat("\n")
   for (i in 1:nsim) {
     # random assignment of DD species to other Red List Categories
     rlcat <- rlcat.
@@ -667,16 +986,16 @@ confidenceRLI <- function(RL, nsim, column,
     for (j in length(LC.EX):1) {
       rlcat[w][which(zf >= L[j] & zf <= L[j + 1])] <- LC.EX[j]
     } # j
-    rli[i] <- RLI(rlcat)
+    rli[i] <- RLI(rlcat, RL[, GTime])
     cat ("\r" %+% round(100*i/nsim) %+% "% done.")
   } # i
-  cat("\n\n\n")
+  cat("\n\n")
   return(quantile(rli, quantiles))
 } # confidenceRLI
 
 
 simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
-  # Estimates confidence intervals on DeltaRLI, deltaRLI and ELS50
+  # Estimates confidence intervals on DeltaRLI, dRLI and ELS50
   years <- sort(identifyYears(RL))
   C <- Categ %+% max(years) %+% "." %+% max(years)
   # remove rows that are not needed
@@ -692,7 +1011,7 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975))
   loss <- dr <- pop <- thr <- list()
   for (y in years) { # for each edition of the Red List
     C <- Categ %+% y %+% "." %+% max(years)
-    W   [[y]] <- RLW(RL[, C])
+    W   [[y]] <- RLW(RL[, C], RL[, GTime])
     ELS [[y]] <- drli[[y]] <- DRLI[[y]] <- DRLIp[[y]] <- DRLIm[[y]] <-
       matrix(0, length(threats), nsim, dimnames=list(threats, NULL))
     loss[[y]] <- dr[[y]] <- rep(0, nsim)
@@ -766,8 +1085,8 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975))
               if (DDwt[j]) {
                 w <- (last + 1):sum(DDwt[1:j])
                 last   <-       sum(DDwt[1:j])
-                DDW[w] <- rep(RLcateg$wt[which(RLcateg$name == LC.EX[j])], DDwt[j])
-                LSS[w] <- LoS(LC.EX[j], RL[i, GTime], nsim = DDwt[j])
+                DDW[w] <- rep(RLW(LC.EX[j], RL[i, GTime]),       DDwt[j])
+                LSS[w] <-     LoS(LC.EX[j], RL[i, GTime], nsim = DDwt[j])
               }
             }
             o <- sample(1:nsim)
@@ -856,39 +1175,49 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975))
   } # i
   cat("\n\n\n")
   # prepare results for output
-  mxW <- max(RLcateg$wt, na.rm = TRUE)
-  DR <- DRLI[[years[1]]] <-
-    matrix(0, length(threats), nsim, dimnames=list(threats, NULL))
+  mxW <- RLW(extinct[1])
   for (y in years) {
-    DR <- DR + DRLIp[[y]] + DRLIm[[y]]
-    DRLI[[y]] <- DR        / mxW / nrow(RL)
-    dr  [[y]] <- dr        / mxW / nrow(RL)
-    drli[[y]] <- drli[[y]] / mxW / nrow(RL)
+    DRLI[[y]] <- (DRLIp[[y]] + DRLIm[[y]]) / mxW / nrow(RL)
+    dr  [[y]] <-               dr   [[y]]  / mxW / nrow(RL)
+    drli[[y]] <-               drli [[y]]  / mxW / nrow(RL)
   }
-  printResults(years, DRLI, dr, drli, loss, ELS, quantiles)
-  invisible(list(DeltaRLI = DRLI,
-                 Cum.deltaRLI = dr,
-                 deltaRLI = drli,
-                 Cum.ELS = loss,
-                 ELS = ELS)
-  )
+  results <- list(DeltaRLI = DRLI,
+                  Cum.dRLI = dr,
+                      dRLI = drli,
+                  Cum.ELS  = loss,
+                      ELS  = ELS)
+  printResults(years, results, quantiles)
+  invisible(results)
 }
 
 
-printResults <- function(years, DRLI, dr, drli, loss, ELS, quantiles) {
+printResults <- function(years, results, quantiles) {
+  # Prints the output of `simulateDRLI`
   years <- sort(years)
+  DRLI  <- results$DeltaRLI
+  dr    <- results$Cum.dRLI
+  drli  <- results$dRLI
+  loss  <- results$Cum.ELS
+  ELS   <- results$ELS
   if (length(years) > 1) {
-    for (i in length(years):2) {
-      cat("\n\nConfidence intervals for DeltaRLI from " %+%
-            years[i - 1] %+% " to " %+% max(years) %+% ":\n")
-      print(apply(DRLI[[years[i]]], 1, quantile, quantiles))
+    for (i in (length(years) - 1):1) {
+      y1 <- years[i]
+      DR <- matrix(0, nrow(DRLI[[y1]]), ncol(DRLI[[y1]]),
+                   dimnames = dimnames(DRLI[[y1]]))
+      for (j in (i + 1):length(years)) {
+        y2 <- years[j]
+        DR <- DR + DRLI[[y2]]
+        cat("\n\nConfidence intervals for DeltaRLI from " %+%
+              y1 %+% " to " %+% y2 %+% ":\n")
+        print(apply(DR, 1, quantile, quantiles))
+      }
     }
   }
   for (y in years) {
-    cat("\n\nConfidence intervals for the cumulative deltaRLI in " %+%
+    cat("\n\nConfidence intervals for the cumulative dRLI in " %+%
           y %+% ":\n")
     print(quantile(dr[[y]], quantiles))
-    cat("\n\nConfidence intervals for the threat-wise deltaRLIs in " %+%
+    cat("\n\nConfidence intervals for the threat-wise dRLIs in " %+%
           y %+% ":\n")
     print(apply(drli[[y]], 1, quantile, quantiles))
   }
@@ -901,5 +1230,42 @@ printResults <- function(years, DRLI, dr, drli, loss, ELS, quantiles) {
     print(apply(ELS[[y]], 1, quantile, quantiles))
   }
   invisible(NULL)
+}
+
+
+disaggrMajorTypes <- function(RL, minor, type, id, categ) {
+  # Disaggregates major ecosystem types into their respective minor ecosystem types
+  for (i in rev(which(!is.na(RL[, minor]) & RL[, minor] != 1 & RL[, minor] != 0))) {
+    if (RL[i, minor] < 1) {
+      code <- RL[i, type]
+      if (!length(which(RL[, type] == code & RL[, minor] == 1))) {
+        RL <- rbind(RL, RL[i, ])
+        n <- nrow(RL)
+        RL[n, minor] <- 1
+        RL[n, id] <- n
+      }
+    } else {
+      code <- RL[i, type]
+      if (code %contains% ",") {
+        code <- unlist(strsplit(code, ","))
+        if (length(code) != RL[i, minor]) {
+          code <- RL[i, type]
+        }
+      }
+      for (j in 1:RL[i, minor]) {
+        RL <- rbind(RL, RL[i, ])
+        n <- nrow(RL)
+        if (length(code) > 1) {
+          RL[n, type] <- code[j]
+        } else {
+          RL[n, type] <- RL[i, type] %+% "-*" %+% j
+        }
+        RL[n, minor] <- 1
+        RL[n, id] <- n
+      }
+    }
+    RL[i, categ] <- "NA"
+  }
+  return(RL)
 }
 

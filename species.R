@@ -33,6 +33,17 @@ includeDD <- TRUE
 # should be inferred from the distribution of the known threat factors 
 inferThreats <- FALSE
 
+# Defines the weighting scheme for the Red List Index
+# (defaults to "equal-steps"; other options are the IUCN Red List Criteria
+#  "A1", "A2", "B1", "B2", "C", "D" and "E" as well as "Ev2", "Ev3")
+weightingRLI <- "equal-steps"
+
+# Defines the weighting scheme for the Expected Loss of Species
+# (defaults to using the thresholds of the IUCN Red List Criterion E;
+#  other options are "A1", "A2", "B1", "B2", "C", "D", "Ev2", "Ev3" and
+#  "equal-steps")
+weightingELS <- "E"
+
 # What is the abbreviation used for real population changes
 # (defaults to the abbreviation used in the dataset analysed in the paper)
 realChange <- "realpopu"
@@ -186,8 +197,9 @@ LC.EX      <-      LC.EX %A% usedCategories
 
 # Create a list to summarise the Red Lists for 2010, 2015 and 2021.
 Table3 <- matrix(as.numeric(NA), 9, length(RedListCat) + 3, dimnames=list(
-  "RL" %+% c("2010°", "2010", "2010(15)", "2010(21)",
-             "2015°", "2015", "2015(21)", "2021°", "2021"),
+  "RL" %+% c("2010" %+% downlistSymbol, "2010", "2010(15)", "2010(21)",
+             "2015" %+% downlistSymbol, "2015", "2015(21)", 
+             "2021" %+% downlistSymbol, "2021"),
   c("N", RedListCat, "RLI", "Cum.ELS50")
 ))
 alphabetic <- sort(RedListCat)
@@ -211,9 +223,9 @@ RL <- backCast(RL)
 RL <- calcLoss(RL)
 
 # RLIs for the three Red Lists, corrected for knowledge in the most recent one
-RLI21 <- RLI(RL$Categ21.21)
-RLI15 <- RLI(RL$Categ15.21)
-RLI10 <- RLI(RL$Categ10.21)
+RLI21 <- RLI(RL$Categ21.21, RL$GenTime)
+RLI15 <- RLI(RL$Categ15.21, RL$GenTime)
+RLI10 <- RLI(RL$Categ10.21, RL$GenTime)
 
 # Summarise the Red Lists
 # Data for Red Lists 2010 and 2015 (prior to back-casting) have to be added
@@ -225,12 +237,14 @@ tab <- summariseRL(RL)
 Table3[c(4, 7, 9), colnames(tab)] <- tab[c(3, 5, 6), ]
 Table3[3, ] <- Table3[4, ] - Table3[7, ] + Table3[6, ]
 Table3[, "N"] <- apply(Table3[, RedListCat], 1, sum, na.rm=T)
-Table3[, "RLI"] <- 1 - apply(t(Table3[,LC.EX]) * 0:5, 2, sum, na.rm=T) / 
-  apply(Table3[, LC.EX], 1, sum, na.rm=T) / max(RLcateg$wt,   na.rm=T)
+Table3[, "RLI"] <- 1 - 
+  apply(t(Table3[, LC.EX]) * RLW(LC.EX), 2, sum, na.rm=T) / 
+  apply(  Table3[, LC.EX], 1, sum, na.rm=T) / max(RLW(LC.EX))
+Table3[c(4, 7, 9), colnames(tab)] <- tab[c(3, 5, 6), ]
 Table3 <- Table3[, !is.na(apply(Table3 > 0, 2, any))]
 # Means per Red List Category
 # (needed to approximate species loss for data 
-# that are not based on the 2021 Red List)
+#  that are not based on the 2021 Red List)
 mn10 <- mn15 <- rep(0, length(RedListCat))
 names(mn10) <- names(mn15) <- RedListCat
 for (i in RedListCat) {
@@ -260,7 +274,7 @@ RL <- addThreats(RL)
 DRLI <- DeltaRLI(RL)
 print(DRLI)
 
-# Estimate deltaRLI and ELS50
+# Estimate dRLI and ELS50
 drli <- dRLI(RL)
 print(drli)
 
@@ -271,7 +285,7 @@ print(drli)
 # Confidence intervals on RLI
 print(confidenceRLI(RL, nsim, "Categ21"))
 
-# Confidence intervals on DeltaRLI, deltaRLI and ELS50
+# Confidence intervals on DeltaRLI, dRLI and ELS50
 results <- simulateDRLI(RL, nsim)
 
 
@@ -406,7 +420,7 @@ drli. <- drli.[, 3:1]
 drli. <- rbind(0, drli.)
 drli. <- rbind(0, drli.)
 
-# Plot a graph for deltaRLI
+# Plot a graph for dRLI
 if (nchar(fig2)) {
  png(fig2, 1500, 1200, res=180)
 }
@@ -533,7 +547,7 @@ drli. <- drli.[, 3:1]
 drli. <- rbind(0, drli.)
 drli. <- rbind(0, drli.)
 
-# Plot a graph for deltaRLI
+# Plot a graph for dRLI
 if (nchar(figS2)) {
  png(figS2, 1500, 1200, res = 180)
 }
