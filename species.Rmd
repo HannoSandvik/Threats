@@ -24,70 +24,37 @@ your root directory, the file path needs to be included in the file name.
 file <- "species.csv"
 ```
 
-**(2) Number of simulations.** 
-NB: the default takes several hours!
-For exploration purposes, `nsim <- 1000` will suffice.
-For pure illustration, `nsim <- 100` is enough.
-```{r}
-nsim <- 100000
-```
-
-**(3) Re-create published estimates?** 
-Decides whether the estimation of confidence intervals
-should be re-created exactly as published (if TRUE) or be based on 
-novel random numbers (if FALSE)
-```{r}
-re.create <- TRUE
-```
-
-**(4) Handling of DD species.** 
+**(2) Handling of DD species.** 
 Decides whether Data Deficient species are excluded (if FALSE)
-or randomly assigned to other Red List categories (if TRUE)
+or randomly assigned to other Red List categories (if TRUE).
 ```{r}
 includeDD <- TRUE
 ```
 
-**(5) Handling of unknown threats.**
+**(3) Handling of unknown threats.**
 Decides whether (if TRUE) or not (if FALSE) unknown threat factors
-should be inferred from the distribution of the known threat factors 
+should be inferred from the distribution of the known threat factors.
 ```{r}
 inferThreats <- FALSE
 ```
 
-**(6) Abbreviations used in the dataset.**
-What are the abbreviations used for real population changes and for unknown threats?
-(Defaults to the abbreviation used in the dataset analysed in the paper.
-May need to be adjusted for other datasets.)
+**(4) Weighting underlying RLI.** 
+Defines the weighting scheme for the Red List Index.
+(Defaults to "equal-steps"; other options are the IUCN Red List Criteria
+"A1", "A2", "B1", "B2", "C", "D" and "E" as well as "Ev2", "Ev3")
 ```{r}
-realChange      <- "realpopu"
-unknownThreat   <- "unknownf"
-unknownTiming   <- "unknownt"
-unknownScope    <- "unknownp"
-unknownSeverity <- "unknownd"
+weightingRLI <- "equal-steps"
 ```
 
-**(7) Timings to include. **What is (are) the abbreviation(s) of the timing 
-categories that should be considered (defaults to "ongoing").
+**(5) Weighting underlying ELS.** 
+Defines the weighting scheme for the Expected Loss of Species.
+(Defaults to using the thresholds of the IUCN Red List Criterion E;
+other options are "A1", "A2", "B1", "B2", "C", "D", "Ev2", "Ev3" and "equal-steps")
 ```{r}
-inclTiming <- "ongoingt"
-```
-If _all_ threats are to be included, irrespective of timing, this would need to be 
-replaced (in terms of the abbreviations used in thus dataset) by
-`inclTiming <- c("onlypast", "suspendd", "ongoing", "onlyfutu", "unknownt")`
-
-**(8) File names of figures.** If you want to display the figures on screen,
-keep the default. If you want to create PNG file, specify the file names
-(including paths).
-```{r}
-fig1  <- ""
-fig2  <- ""
-fig3  <- ""
-figS1 <- ""
-figS2 <- ""
-figS3 <- ""
+weightingELS <- "E"
 ```
 
-**(9) Column names.** 
+**(6) Column names.** 
 Column names in the dataset which contain Red List Categories, threat factors,
 reasons for change in category, and generation time, respectively. 
 The three former ones need to be followed by the year of assessment
@@ -100,6 +67,71 @@ Threat <- "Threat"
 Change <- "Change"
 GTime  <- "GenTime"
 ```
+Note the following formatting requirements of these columns:
+
+* Data columns with Red List Categories must match with the constants specified (see next section).
+* Threat columns must contain text strings specifying threat. Each threat must be described as a sequence of (abbreviations for) (i) threat factor, (ii) timing, (iii) scope and (iv) severity, which are separated by _colons_; different threats to the same species are separated by _commas_.
+* Change columns are needed only if the dataset contains results from more than one Red List. It must contain no more than one reason for change in Red List Category per species.
+* Generation time, measured in _years_, must be a numerical variable.
+
+**(7) Abbreviations used for threats.**
+What are the abbreviations used for unknown threats? 
+They can occur in the `Threat` column(s), see previous item. 
+(Defaults to the abbreviations used in the dataset analysed in the paper.
+May need to be adjusted for other datasets.)
+```{r}
+unknownThreat   <- "unknownf"
+unknownTiming   <- "unknownt"
+unknownScope    <- "unknownp"
+unknownSeverity <- "unknownd"
+```
+
+**(8) Abbreviation used for real change.**
+What is the abbreviations used for real population changes? 
+This is only needed if Red List Categories are to be "back-cast" to earlier Red List assessments. 
+It must occur in the `Change` column(s), see item (6). 
+(Defaults to the abbreviation used in the dataset analysed in the paper.
+May need to be adjusted for other datasets.)
+```{r}
+realChange      <- "realpopu"
+```
+
+**(9) Timings to include. **What is (are) the abbreviation(s) of the timing 
+categories that should be considered (defaults to "ongoing").
+```{r}
+inclTiming <- "ongoingt"
+```
+If _all_ threats are to be included, irrespective of timing, this would need to be 
+replaced (in terms of the abbreviations used in this dataset) by
+`inclTiming <- c("onlypast", "suspendd", "ongoing", "onlyfutu", "unknownt")`
+
+**(10) Number of simulations.** 
+NB: the default takes several hours!
+For exploration purposes, `nsim <- 1000` will suffice.
+For pure illustration, `nsim <- 100` is enough.
+```{r}
+nsim <- 100000
+```
+
+**(11) Re-create published estimates?** 
+Decides whether the estimation of confidence intervals
+should be re-created exactly as published (if TRUE) or be based on 
+novel random numbers (if FALSE)
+```{r}
+re.create <- TRUE
+```
+
+**(12) File names of figures.** If you want to display the figures on screen,
+keep the default. If you want to create PNG file, specify the file names
+(including paths).
+```{r}
+fig1  <- ""
+fig2  <- ""
+fig3  <- ""
+figS1 <- ""
+figS2 <- ""
+figS3 <- ""
+```
 
 
 
@@ -110,14 +142,20 @@ Changing them entails modifying some underlying assumptions.
 
 **(1) Red List Categories** and their weights, extinction probabilities etc.
 This data frame needs to contain all Red List Categories used in the 
-Red List analysed of species or ecosystems that have been evaluated.
+Red List analysed of species that have been evaluated.
 
 * The column "LC" identifies the Red List Category "Least Concern" (defaults to IUCN's abbreviation).
-* The column "EX" identified the Red List Categories for extinction (defaults to IUCN IUCN's abbreviations).
+* The column "EX" identified the Red List Categories for extinction (defaults to IUCN's abbreviations).
 * The column "wt" provides the Red List Weight of the Category (defaults to equal-steps weighting).
-* The columns "lowP" and "uppP" provide the lower and upper threshold values for extinction probability (defaults to IUCN Red ListCriterion E).
-* The columns "lowT" and "uppT" provide the lower and upper threshold values for extinction time frames in _years_ (defaults to IUCN Red List Criterion E).
-* The columns "lowG" and "uppG" provide the lower and upper threshold values for extinction time in _generations_ (defaults to IUCN Red List Criterion E).
+* The columns "lowP" and "uppP" provide the lower and upper threshold values for extinction probability according to IUCN Red List Criterion E.
+* The columns "lowT" and "uppT" provide the lower and upper threshold values for extinction time frames in _years_ according to IUCN Red List Criterion E.
+* The columns "lowG" and "uppG" provide the lower and upper threshold values for extinction time in _generations_ according to IUCN Red List Criterion E.
+* The columns "lowA1" and "uppA1" provide the lower and upper threshold values for population reduction according to IUCN Red List Criterion A1.
+* The columns "lowA2" and "uppA2" provide the lower and upper threshold values for population reduction according to IUCN Red List Criterion A2.
+* The columns "lowB1" and "uppB1" provide the lower and upper threshold values for extents of occurrence (EOO) according to IUCN Red List Criterion B1.
+* The columns "lowB2" and "uppB2" provide the lower and upper threshold values for areas of occupancy (AOO) according to IUCN Red List Criterion B2.
+* The columns "lowC" and "uppC" provide the lower and upper threshold values for population size according to IUCN Red List Criterion C.
+* The columns "lowD" and "uppD" provide the lower and upper threshold values for population size according to IUCN Red List Criterion D.
 * The column "distr" provides the distribution of extinction probabilities within the interval.
 * The column "beta" is not currently needed (but may be needed if "distr" is changed).
 ```{r}
@@ -132,6 +170,18 @@ RLcateg <- data.frame(
   uppT  = c(   100,    100,     20,     10,     10,     10,     10,     10),
   lowG  = c(     0,      0,      0,      5,      3,      1,      1,      1),
   uppG  = c(     0,      0,      5,      3,      1,      1,      1,      1),
+  lowA1 = c(  0.00,   0.25,   0.50,   0.70,   0.90,   1.00,   1.00,   1.00),
+  uppA1 = c(  0.00,   0.50,   0.70,   0.90,   1.00,   1.00,   1.00,   1.00),
+  lowA2 = c(  0.00,   0.15,   0.30,   0.50,   0.80,   1.00,   1.00,   1.00),
+  uppA2 = c(  0.00,   0.30,   0.50,   0.80,   1.00,   1.00,   1.00,   1.00),
+  lowB1 = c( 40000,  40000,  20000,   5000,    100,      0,      0,      0),
+  uppB1 = c( 40000,  20000,   5000,    100,      0,      0,      0,      0),
+  lowB2 = c(  4000,   4000,   2000,    500,     10,      0,      0,      0),
+  uppB2 = c(  4000,   2000,    500,     10,      0,      0,      0,      0),
+  lowC  = c( 20000,  20000,  10000,   2500,    250,      0,      0,      0),
+  uppC  = c( 20000,  10000,   2500,    250,      0,      0,      0,      0),
+  lowD  = c(  2000,   2000,   1000,    250,     50,      0,      0,      0),
+  uppD  = c(  2000,   1000,    250,     50,      0,      0,      0,      0),
   distr = c("unif", "unif", "unif", "unif", "decr", "unif", "unif", "unif"),
   beta  = c(    NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA),
   stringsAsFactors = FALSE
@@ -144,15 +194,17 @@ Red List Category? (Defaults to IUCN's abbreviation.)
 DD <- "DD"
 ```
 
-**(3) Not Evaluated.** Which Red List Categories exist for species or ecosystems 
+**(3) Not Evaluated.** Which Red List Categories exist for species 
 that have _not_ been evaluated? (Defaults to IUCN's abbreviations for the Red List 
 Categories "Not Applicable" and "Not Evaluated".)
 ```{r}
 notEval <- c("NA", "NE")
 ```
 
-**(4) Downlisting.** What is added to a Red List Category to indicate downlisting?
+**(4) Downlisting.** What is added to a Red List Category to indicate downlisting? 
 (Defaults to the degree symbol.)
+If a Red List Category if followed by this symbol, it is assumed to have been 
+_downlisted_ by _one_ Red List Category.
 ```{r}
 downlistSymbol <- "°"
 ```
@@ -182,7 +234,7 @@ Severity <- data.frame(
 )
 ```
 
-**(6) Time frame** for the expected loss of species or ecosystems, in years
+**(6) Time frame** for the Expected Loss of Species, in years
 (defaults to 50 years).
 ```{r}
 TimeFrame <- 50
@@ -223,7 +275,7 @@ Check whether the data are as expected:
   cat("\nYears included in this dataset:\n")
   print(years)
   threats <- identifyThreats(RL)
-  cat("\nThreats reported in this dataset:\n")
+  cat("\nThreat factors reported in this dataset:\n")
   print(threats)
 }
 ```
@@ -239,15 +291,25 @@ LC.EX      <-      LC.EX %A% usedCategories
 
 ## Prepare the data frame for analyses
 
-**(1) Reverse uplisting**:
+**(1) Reverse downlisting**:
 ```{r}
 RL <- uplist(RL) 
 ```
+This step is only needed if the dataset contains species that have been downlisted 
+due to rescue effects in other countries. Undoing this downlisting is motivated 
+by the wish to quantify threats that can be addressed by management authorities 
+in a given country.
+
+If you want to analyse the data with downlisting retained, use instead the command 
+`RL <- downlist(RL)`.
 
 **(2) Back-cast** knowledge from the most recent Red List to earlier ones:
 ```{r}
 RL <- backCast(RL)
 ```
+This step is only needed if the dataset contains Red List Categories from 
+different Red List Assessments. It corrects earlier assessments for the 
+best available (i.e. most recent) information.
 
 **(3) Calculate extinction probabilites** for all species:
 ```{r}
@@ -263,36 +325,33 @@ RL <- addThreats(RL)
 
 ## Summarise the data
 
-Calculate RLIs for the three Red Lists 
-(corrected for knowledge in the most recent one):
+Summarise the Red Lists:
 ```{r}
-{
-  RLI21 <- RLI(RL$Categ21.21)
-  RLI15 <- RLI(RL$Categ15.21)
-  RLI10 <- RLI(RL$Categ10.21)
-  cat("Red List Index 2010: " %+% RLI10 %+% "\n")
-  cat("Red List Index 2015: " %+% RLI15 %+% "\n")
-  cat("Red List Index 2021: " %+% RLI21 %+% "\n")
-}
+tab <- summariseRL(RL)
 ```
 
-Create a list to summarise the Red Lists for 2010, 2015 and 2021:
-```{r}
-Table3 <- matrix(as.numeric(NA), 9, length(RedListCat) + 3, dimnames=list(
-  "RL" %+% c("2010°", "2010", "2010(15)", "2010(21)",
-             "2015°", "2015", "2015(21)", "2021°", "2021"),
-  c("N", RedListCat, "RLI", "Cum.ELS50")
-))
-alphabetic <- sort(RedListCat)
-```
-
-Data for Red Lists 2010 and 2015 (prior to back-casting) have to be added
-manually, because they cannot be re-created fully from the 2021 Red List data.
-Source for these data:
+In the specific case of the three Norwegian Red Lists analysed, the dataset only 
+contains the species included in the current Red List (2021). For different 
+reasons (such as taxonomic change), the earlier Red Lists contained species that 
+are not included in the most recent one. Therefore, the above summary table 
+is not entirely correct for the earlier Red Lists. This has to be corrected 
+manually by adding data for the Red Lists 2010 and 2015 (prior to back-casting).
+The sources for these data are:
 
 * [Artsdatabanken (2010)](http://www.artsportalen.artsdatabanken.no/)
 * [Artsdatabanken (2015)](https://www.artsdatabanken.no/Rodlista2015) 
+
 ```{r}
+# Create a new table for the results:
+Table3 <- matrix(as.numeric(NA), 9, length(RedListCat) + 3, dimnames=list(
+  "RL" %+% c("2010" %+% downlistSymbol, "2010", "2010(15)", "2010(21)",
+             "2015" %+% downlistSymbol, "2015", "2015(21)", 
+             "2021" %+% downlistSymbol, "2021"),
+  c("N", RedListCat, "RLI", "Cum.ELS50")
+))
+alphabetic <- sort(RedListCat)
+
+# Manually add the figures for the earlier Red Lists:
 Table3[1, match(alphabetic, colnames(Table3))] <-
   c(284, 809, 890, 16762, 2580, 6528, 1310, 127, 1265)
 Table3[2, match(alphabetic, colnames(Table3))] <-
@@ -304,23 +363,23 @@ Table3[6, match(alphabetic, colnames(Table3))] <-
 tb <- table(substr(RL$Categ21, 1, 2))
 Table3[8, match(names(tb), colnames(Table3))] <- tb
 Loss21o <- LoS(substr(RL$Categ21, 1, 2), RL$GenTime)
-```
 
-Summarise the Red Lists:
-```{r}
-tab <- summariseRL(RL)
+# Insert the previous summary into this table:
 Table3[c(4, 7, 9), colnames(tab)] <- tab[c(3, 5, 6), ]
 Table3[3, ] <- Table3[4, ] - Table3[7, ] + Table3[6, ]
 Table3[, "N"] <- apply(Table3[, RedListCat], 1, sum, na.rm=T)
-Table3[, "RLI"] <- 1 - apply(t(Table3[,LC.EX]) * 0:5, 2, sum, na.rm=T) / 
-  apply(Table3[, LC.EX], 1, sum, na.rm=T) / max(RLcateg$wt,   na.rm=T)
+Table3[, "RLI"] <- 1 - 
+  apply(t(Table3[, LC.EX]) * RLW(LC.EX), 2, sum, na.rm=T) / 
+  apply(  Table3[, LC.EX], 1, sum, na.rm=T) / max(RLW(LC.EX))
+Table3[c(4, 7, 9), colnames(tab)] <- tab[c(3, 5, 6), ]
 Table3 <- Table3[, !is.na(apply(Table3 > 0, 2, any))]
-```
+RLI21 <- RLI(RL$Categ21.21, RL$GenTime)
+RLI15 <- RLI(RL$Categ15.21, RL$GenTime)
+RLI10 <- RLI(RL$Categ10.21, RL$GenTime)
 
-Calculate means per Red List Category
-(needed to approximate species loss for data 
-that are not based on the 2021 Red List):
-```{r}
+# Calculate means per Red List Category
+# (needed to approximate species loss for data 
+#  that are not based on the 2021 Red List):
 mn10 <- mn15 <- rep(0, length(RedListCat))
 names(mn10) <- names(mn15) <- RedListCat
 for (i in RedListCat) {
@@ -337,7 +396,7 @@ Table3[8, "Cum.ELS50"] <- sum(Loss21o, na.rm=T)
 rm(alphabetic, tb, tab, mn10, mn15, Loss21o)
 ```
 
-Print the table (which underlies Table 3 of the paper):
+Print the corrected table (which underlies Table 3 of the paper):
 ```{r}
 print(Table3)
 ```
@@ -352,20 +411,35 @@ DRLI <- DeltaRLI(RL)
 print(DRLI)
 ```
 
-Estimate deltaRLI and ELS50:
+Estimate dRLI and ELS50:
 ```{r}
 drli <- dRLI(RL)
 print(drli)
 ```
 
-Confidence intervals on RLI:
+Confidence intervals on RLI (loaded from a cached version of this call):
 ```{r, eval=FALSE, echo=TRUE}
 print(confidenceRLI(RL, nsim, "Categ21"))
+# With the default `nsim`, the above line would take quite a while... 
+```
+```{r, eval=TRUE, echo=FALSE}
+# Instead, cached results are loaded:
+load("cache.rdata")
+print(conf)
 ```
 
-Confidence intervals on DeltaRLI, deltaRLI and ELS50:
+Confidence intervals on DeltaRLI, deltaRLI and ELS50 (loaded from a cached version of this call):
 ```{r, eval=FALSE, echo=TRUE}
 results <- simulateDRLI(RL, nsim)
+# With the default `nsim`, the above line would take a looong time... 
+```
+```{r, eval=TRUE, echo=FALSE}
+# Instead, cached results are loaded:
+load("cache.rdata")
+for (i in 1:length(introductions)) {
+  cat("\n\nConfidence intervals for " %+% introductions[i] %+% ":\n")
+  print(simul[[i]])
+}
 ```
 
 
@@ -373,12 +447,13 @@ results <- simulateDRLI(RL, nsim)
 ## Figures
 
 ### Figure 1
-The following script recreates Fig 1 only if the
-above default parameter values are left unchanged.
+
+The following script recreates Figure 1.
 
 Simplify the table by collapsing minor threats:
 ```{r}
 DRLI. <- DRLI
+DRLI.[, 1]  <- 0
 DRLI.[10, ] <- apply(DRLI.[c(1, 2, 5, 7, 9, 10, 11, 13), ], 2, sum)
 DRLI. <- DRLI.[c(6, 10, 3, 12, 8, 4), ]
 DRLI. <- DRLI.[, c(1:3, 3)]
@@ -391,8 +466,8 @@ Plot a graph for DeltaRLI:
 if (nchar(fig1)) {
  png(fig1, 1500, 1200, res = 180)
 }
-par(mai = c(0.96, 0.96, 0.12, 0.06), family = "sans") # xlim = c(2009.5, 2027.5)
-plot(0, 0, xlim = c(2009.5, 2029.5), ylim = c(0.9198, 0.92022),
+par(mai = c(0.96, 0.96, 0.12, 0.06), family = "sans")
+plot(0, 0, xlim = c(2009.5, 2027.5), ylim = c(0.9198, 0.92022),
   xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
   ylab = "Red List Index",
   bty = "n", cex.axis = 1.2, cex.lab = 1.8)
@@ -402,26 +477,21 @@ axis(1, c(2010, 2015, 2021),          T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
 axis(2, seq(0.9198, 0.9202, 0.00010), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
 axis(2, seq(0.9198, 0.9202, 0.00001), F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
 mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
-#x <- c(2010, 2015, 2021, 2023)
-x <- c(2010, 2015, 2021, 2022)
-#DRLI.[, 4] <- DRLI.[, 3] + c(0, 0, 0, 0, 0, 0, -0.00000887, 0)
-DRLI.[, 4] <- DRLI.[, 3] + c(0, 0, 0, 0, 0, 0, -0.00000724, 0)
+x <- c(2010, 2015, 2021, 2023)
+DRLI.[, 4] <- DRLI.[, 3] + c(0, 0, 0, 0, 0, 0, -0.00000887, 0)
 lines(x[4:1], rep(RLI10, 4), lty = "12",     lwd = 9.6, col = grey(0.84))
 lines(x[1:4], c(RLI10, RLI15, RLI21, RLI21), lwd = 9.6, col = grey(0.84))
 for (i in 2:7) {
   lines(x, RLI10 + DRLI.[i, ], lty = i - 1, lwd = 2.4)
   points(x[2:3], RLI10 + DRLI.[i, 2:3], pch = c(1, 4, 21, 24, 22, 25, 23)[i],
     cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
-  #text(2023, RLI10 + DRLI.[i, 4],
-  text(2022, RLI10 + DRLI.[i, 4],
+  text(2023, RLI10 + DRLI.[i, 4],
     c("", "land-use change", "other/unknown", "climate change", "pollution",
-      "native species", "disturbance")[i] %+% " (" %+%
-      c(rep("+", 3), rep("", 5))[i] %+% 
-      gsub("-", "−", formatC(DRLI.[i, 3], 6, format="f")) %+% ")",
+      "native species", "disturbance")[i],
     pos = 4, cex = 1.2)
 }
-text(2022, RLI21, "RLI (+0.000096)", pos = 4, cex = 1.2)
-text(2022, RLI10, "no change (+0.000000)", pos = 4, cex = 1.2)
+text(2023, RLI21, "RLI", pos = 4, cex = 1.2)
+text(2023, RLI10, "no change", pos = 4, cex = 1.2)
 text(2015.5, 0.92021, expression(bold(Delta*RLI)), cex = 1.8)
 if (nchar(fig1)) {
   dev.off()
@@ -429,59 +499,10 @@ if (nchar(fig1)) {
 ```
 
 
-### Figure S1
-The following script recreates Fig S1 only if `inferThreats == TRUE`
-and the remaining default parameter values are is left unchanged.
-
-Simplify the table by collapsing minor threats:
-```{r}
-DRLI. <- DRLI
-DRLI.[10, ] <- apply(DRLI.[c(1, 2, 5, 7, 9, 10, 11, 13), ], 2, sum)
-DRLI. <- DRLI.[c(6, 10, 3, 12, 8, 4), ]
-DRLI. <- DRLI.[, c(1:3, 3)]
-DRLI. <- rbind(0, DRLI.)
-DRLI. <- rbind(DRLI., 0)
-```
-
-Plot a graph for DeltaRLI:
-```{r}
-if (nchar(figS1)) {
- png(figS1, 1500, 1200, res = 180)
-}
-par(mai = c(0.96, 0.96, 0.12, 0.06), family = "sans") # ylim=c(0.9199, 0.92015)
-plot(0, 0, xlim = c(2009.5, 2027.5), ylim = c(0.9198, 0.92033),
-  xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
-  ylab = "Red List Index",
-  bty = "n", cex.axis = 1.2, cex.lab = 1.8)
-axis(1, c(2009, 2021.5),               F, T, tcl = 0,        lwd = 1.5, lend = 1)
-axis(1, 2009:2021,                     F, T,                 lwd = 1.5, lend = 1)
-axis(1, c(2010, 2015, 2021),           T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-axis(2, seq(0.9198, 0.9203, 0.00010), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-axis(2, seq(0.9198, 0.9203, 0.00001), F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
-mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
-x <- c(2010, 2015, 2021, 2023)
-DRLI.[,4] <- DRLI.[,3] + c(0, 0, 0, 0, 0, 0, -0.00000876, 0)
-lines(x[3:1], rep(RLI10, 3), lty = "12", lwd = 9.6, col = grey(0.84))
-lines(x[1:3], c(RLI10, RLI15, RLI21),    lwd = 9.6, col = grey(0.84))
-for (i in 2:7) {
-  lines(x, RLI10 + DRLI.[i, ], lty = i - 1, lwd = 2.4)
-  points(x[2:3], RLI10 + DRLI.[i, 2:3], pch=c(1, 4, 21, 24, 22, 25, 23)[i],
-    cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
-  text(2023, RLI10 + DRLI.[i, 4],
-    c("", "land-use change", "other/unknown", "climate change", "pollution",
-      "native species", "disturbance")[i],
-    pos = 4, cex = 1.2)
-}
-text(2015.5, 0.92032, expression(bold(Delta*RLI)), cex = 1.8)
-if (nchar(figS1)) {
-  dev.off()
-}
-```
-
 
 ### Figure 2
-The following script recreates Fig 2 only if the
-above default parameter values are left unchanged.
+
+The following script recreates Figure 2.
 
 Simplify the table by collapsing minor threats:
 ```{r}
@@ -564,8 +585,8 @@ if (nchar(fig2)) {
 
 
 ### Figure 3
-The following script recreates Fig 3 only if the
-above default parameter values are left unchanged.
+
+The following script recreates Figure 3.
 
 Plot a graph for ELS50:
 ```{r}
@@ -607,14 +628,100 @@ if (nchar(fig3)) {
 ```
 
 
-### Figure S2
-The following script recreates Fig S2 only if `inferThreats == TRUE`
-and the remaining default parameter values are left unchanged.
+
+## Analysis with DD species excluded
+
+If the above analyses have been run with Data Deficient species included, 
+they can be re-run with Data Deficient species excluded:
+```{r}
+{
+  includeDD <- FALSE
+  RL. <- calcLoss(RL)
+  RL. <- addThreats(RL.)
+  DRLI. <- DeltaRLI(RL.)
+  print(DRLI.)
+  drli. <- dRLI(RL.)
+  print(drli.)
+  includeDD <- TRUE
+}
+```
+
+
+
+## Analysis with unknown threats inferred
+
+If the above analyses have been run with unknown threats as a separate category, 
+they can be re-run with unknown threats distributed over known threats:
+```{r}
+{
+  inferThreats <- TRUE
+  RL. <- calcLoss(RL)
+  RL. <- addThreats(RL.)
+  DRLI. <- DeltaRLI(RL.)
+  print(DRLI.)
+  drli. <- dRLI(RL.)
+  print(drli.)
+  inferThreats <- FALSE
+}
+```
+
+
+### Figure S1
+The following script recreates Figure S1.
 
 Simplify the table by collapsing minor threats:
 ```{r}
-drli. <- drli$dRLI
-ELS. <- drli$ELS50
+DRLI.[,  1] <- 0
+DRLI.[10, ] <- apply(DRLI.[c(1, 2, 5, 7, 9, 10, 11, 13), ], 2, sum)
+DRLI. <- DRLI.[c(6, 10, 3, 12, 8, 4), ]
+DRLI. <- DRLI.[, c(1:3, 3)]
+DRLI. <- rbind(0, DRLI.)
+DRLI. <- rbind(DRLI., 0)
+```
+
+Plot a graph for DeltaRLI:
+```{r}
+if (nchar(figS1)) {
+ png(figS1, 1500, 1200, res = 180)
+}
+par(mai = c(0.96, 0.96, 0.12, 0.06), family = "sans") # ylim=c(0.9199, 0.92015)
+plot(0, 0, xlim = c(2009.5, 2027.5), ylim = c(0.9198, 0.92033),
+  xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
+  ylab = "Red List Index",
+  bty = "n", cex.axis = 1.2, cex.lab = 1.8)
+axis(1, c(2009, 2021.5),               F, T, tcl = 0,        lwd = 1.5, lend = 1)
+axis(1, 2009:2021,                     F, T,                 lwd = 1.5, lend = 1)
+axis(1, c(2010, 2015, 2021),           T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+axis(2, seq(0.9198, 0.9203, 0.00010), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+axis(2, seq(0.9198, 0.9203, 0.00001), F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
+mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
+x <- c(2010, 2015, 2021, 2023)
+DRLI.[,4] <- DRLI.[,3] + c(0, 0, 0, 0, 0, 0, -0.00000876, 0)
+lines(x[3:1], rep(RLI10, 3), lty = "12", lwd = 9.6, col = grey(0.84))
+lines(x[1:3], c(RLI10, RLI15, RLI21),    lwd = 9.6, col = grey(0.84))
+for (i in 2:7) {
+  lines(x, RLI10 + DRLI.[i, ], lty = i - 1, lwd = 2.4)
+  points(x[2:3], RLI10 + DRLI.[i, 2:3], pch=c(1, 4, 21, 24, 22, 25, 23)[i],
+    cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
+  text(2023, RLI10 + DRLI.[i, 4],
+    c("", "land-use change", "other/unknown", "climate change", "pollution",
+      "native species", "disturbance")[i],
+    pos = 4, cex = 1.2)
+}
+text(2015.5, 0.92032, expression(bold(Delta*RLI)), cex = 1.8)
+if (nchar(figS1)) {
+  dev.off()
+}
+```
+
+
+### Figure S2
+The following script recreates Figure S2.
+
+Simplify the table by collapsing minor threats:
+```{r}
+ELS. <- drli.$ELS50
+drli. <- drli.$dRLI
 for (i in 1:3) {
   drli.["otherthr", i] <- sum(drli.[c("otherthr", "unknownf", "alienspe", 
     "huntgath", "outsiden", "natcatas", "bycatchc", "nothreat"), i])
@@ -683,8 +790,7 @@ if (nchar(figS2)) {
 
 
 ### Figure S3
-The following script recreates Fig S3 only if `inferThreats == TRUE`
-and the remaining default parameter values are left unchanged.
+The following script recreates Figure S3.
 
 Plot a graph for ELS50:
 ```{r}
@@ -720,6 +826,31 @@ for (i in 1:6) {
 text(2015.5, 3.12, expression(bold(ELS[50])), cex = 1.8)
 if (nchar(figS3)) {
   dev.off()
+}
+```
+
+
+
+## Sensitivity analysis
+
+In a kind of sensitivity analysis it is possible to check how important the 
+weighting scheme chosen is for the (ranking of the) estimates obtained. 
+This is here tested for the Expected Loss of Species. The most relevant measure 
+is the _relative_ importance of threats, so in addition to ELS values themselves 
+we should look at the _fraction_ of the total loss of species 
+attributable to the different threats. 
+These fractions are directly comparable across weightings.
+```{r}
+for (meth in c("E", "Ev2", "Ev3", "equal-steps", "A1", "A2", "B", "C", "D")) {
+  weightingELS <- meth
+  RL. <- calcLoss(RL)
+  RL. <- addThreats(RL.)
+  drli <- sort(dRLI(RL.)$ELS50[, 3], decreasing = TRUE)
+  drli <- cbind(drli, drli / sum(drli))
+  colnames(drli) <- c("ELS" %+% TimeFrame, "fraction")
+  cat("\n\nWeighting scheme " %+% meth %+% ":\n")
+  print(drli)
+  cat("Cumulative ELS" %+% TimeFrame %+% ": " %+% sum(drli[, 1]) %+% "\n")
 }
 ```
 
