@@ -1,6 +1,6 @@
-# These functions are needed to run the analyses of the Norwegian
-# Red Lists for species described in the paper
-# "Metrics for quantifying threats to red-listed species and ecosystems"
+# These functions are needed to run the analyses of the Norwegian Red Lists
+# for species described in the paper "Metrics for quantifying how much
+# different threats contribute to red lists of species and ecosystems"
 
 
 
@@ -9,8 +9,7 @@
 # ========================
 
 # The following functions have nothing to do with Red Lists.
-# I just used them to simplify some code,
-# so they need to be defined first
+# I just used them to simplify some code, so they need to be defined first.
 
 # Tests whether the arguments are equal. Robust against rounding errors!
 "%=%" <- function(arg1, arg2) { 
@@ -337,7 +336,7 @@ LoS.A1 <- function(k, t, nsim = 0) {
 
 
 LoS.A2 <- function(k, t, nsim = 0) {
-  # Cumulative loss of species using version 2 of the "A2" weighting scheme
+  # Cumulative loss of species using the "A2" weighting scheme
   w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
                                     which(RLcateg$name == x),
                                     Inf))
@@ -353,7 +352,7 @@ LoS.A2 <- function(k, t, nsim = 0) {
 
 
 LoS.B1 <- function(k, t, nsim = 0) {
-  # Cumulative loss of species using version 2 of the "B1" weighting scheme
+  # Cumulative loss of species using the "B1" weighting scheme
   w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
                                     which(RLcateg$name == x),
                                     Inf))
@@ -370,7 +369,7 @@ LoS.B1 <- function(k, t, nsim = 0) {
 
 
 LoS.B2 <- function(k, t, nsim = 0) {
-  # Cumulative loss of species using version 2 of the "B2" weighting scheme
+  # Cumulative loss of species using the "B2" weighting scheme
   w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
                                     which(RLcateg$name == x),
                                     Inf))
@@ -387,7 +386,7 @@ LoS.B2 <- function(k, t, nsim = 0) {
 
 
 LoS.C <- function(k, t, nsim = 0) {
-  # Cumulative loss of species using version 2 of the "C" weighting scheme
+  # Cumulative loss of species using the "C" weighting scheme
   w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
                                     which(RLcateg$name == x),
                                     Inf))
@@ -404,7 +403,7 @@ LoS.C <- function(k, t, nsim = 0) {
 
 
 LoS.D <- function(k, t, nsim = 0) {
-  # Cumulative loss of species using version 2 of the "D" weighting scheme
+  # Cumulative loss of species using the "D" weighting scheme
   w <- sapply(k, function(x) ifelse(x %in% RLcateg$name,
                                     which(RLcateg$name == x),
                                     Inf))
@@ -421,6 +420,8 @@ LoS.D <- function(k, t, nsim = 0) {
 
 
 meanDist <- function(D, L, U) return(
+  # Returns the arithmetic mean of the interval between L and U,
+  # given distribution D
   ifelse(D == "unif", L * 0.50 + U * 0.50,
   ifelse(D == "incr", L * 0.25 + U * 0.75,
   ifelse(D == "decr", L * 0.75 + U * 0.25,
@@ -429,6 +430,8 @@ meanDist <- function(D, L, U) return(
 
 
 randomiseDist <- function(D, L, U, N) {
+  # Returns N random numbers within interval between L and U,
+  # given distribution D
   r <- NA
   if (D == "unif") r <- runif(N, L, U)
   if (D == "incr") r <- rIncr(N,    U)
@@ -438,6 +441,8 @@ randomiseDist <- function(D, L, U, N) {
 
 
 meanSeverity <- function(x) {
+  # Returns the arithmetic mean of severity,
+  # given a severity class
   name <- extractSeverity(x)
   m <- function(x) {
     w <- which(Severity$name == x)
@@ -457,6 +462,8 @@ meanSeverity <- function(x) {
 
 
 randomiseSeverity <- function(n, x) {
+  # Returns n random numbers of severity,
+  # given a severity class
   name <- extractSeverity(x)
   m <- function(x) {
     w <- which(Severity$name == x)
@@ -533,7 +540,7 @@ checkRL <- function(RL) {
     } else {
       cat("ERROR: The datafile contains unexpected Red List Categories:\n" %+%
             paste(sort(RLCat %-% RedListCat), collapse=", ") %+% "\n")
-    }
+    } # RL categories
     # Check the threat columns
     if (all((Threat %+% years) %in% names(RL))) {
       if (length(unlist(strsplit(unlist(strsplit(unlist(RL[, Threat %+% years]),
@@ -555,33 +562,33 @@ checkRL <- function(RL) {
                   cat("WARNING: The severity \"" %+% unknownSeverity %+%
                         "\" does not occur in the dataset!\n")
                   OK <- FALSE
-                }
+                } # unknown severity missing?
               } else {
                 cat("WARNING: The scope \"" %+% unknownScope %+%
                       "\" does not occur in the dataset!\n")
                 OK <- FALSE
-              }
+              } # unknown scope missing?
             } else {
               cat("ERROR: None of the following timings occur in the dataset:\n")
               cat(paste(inclTiming, collapse = ", ") %+% "\n")
               OK <- FALSE
-            }
+            } # timings ok?
           } else {
             cat("WARNING: The timing \"" %+% unknownTiming %+%
                   "\" does not occur in the dataset!\n")
             OK <- FALSE
-          }
+          } unknown timing missing?
         } else {
           cat("WARNING: The threat factor \"" %+% unknownThreat %+%
                 "\" does not occur in the dataset!\n")
           OK <- FALSE
-        }
-      }
+        } # unknown threat missing?
+      } # formatting ok
     } else {
       cat("ERROR: The following column name(s) were expected but not found:\n")
       cat(paste((Threat %+% sort(years)) %-% names(RL), collapse = ", ") %+% "\n")
       OK <- FALSE
-    }
+    } # threat columns 
     # Check the change columns
     if (length(years) > 1) {
       if (all((Change %+% sort(years)[-1]) %in% names(RL))) {
@@ -591,28 +598,29 @@ checkRL <- function(RL) {
           cat("ERROR: No change in Red List Category has \"" %+%
                 paste(realChange, collapse = "\" or \"") %+% "\" as a reason!\n")
           OK <- FALSE
-        }
+        } # real change missing
       } else {
         cat("ERROR: The following column name(s) were expected but not found:\n")
         cat(paste(Change %+% sort(years)[-1], collapse = ", ") %+% "\n")
         OK <- FALSE
-      }
-    }
-  }
+      } # columns missing? 
+    } # > 1 year?
+  } # years ok
   # Check the generation time column
   if (GTime %in% names(RL)) {
     cat("Generation time was found.\n")
   } else {
     cat("WARNING: The dataset lacks a column containing generation times!\n")
     OK <- FALSE
-  }
+  } # generation time
+  # Summarise checks
   if (OK) {
     cat("\nEverything looks fine so far!\n")
   } else {
     cat("\nOne or more problem(s) were found that may preclude further analyses!\n")
-  }
+  } # summary
   return(RLCat)
-}
+} # checkRL
 
 
 n0 <- function(x, symbol = downlistSymbol) {
@@ -1028,7 +1036,7 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975))
     while (sum(DDwt) < nsim) {
       DDwt[1] <- DDwt[1] + 1
     }
-  }
+  } # if DD included
   if (inferThreats) {
     #  count the occurrences of threats in order to extrapolate to unknown threats
     number <- matrix(0, length(threats), max(years), dimnames=list(threats, NULL))
@@ -1043,8 +1051,8 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975))
         if (number[p, y] > husk) { # identify the most common threat factor
           common <- p
           husk <- number[p, y]
-        }
-      }
+        } 
+      } # p in threats
       number[, y] <- round(number[, y] / sum(number[, y]) * nsim)
       w <- which(threats == common)
       while (sum(number[, y]) > nsim) {
@@ -1053,8 +1061,8 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975))
       while (sum(number[, y]) < nsim) {
         number[w, y] <- number[w, y] + 1
       }
-    }
-  }
+    } # y
+  } # if threats are inferred
   # if re.create == TRUE, the exact random numbers of the paper are re-created;
   # otherwise novel random numbers are generated
   if (re.create) {
@@ -1087,16 +1095,16 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975))
                 last   <-       sum(DDwt[1:j])
                 DDW[w] <- rep(RLW(LC.EX[j], RL[i, GTime]),       DDwt[j])
                 LSS[w] <-     LoS(LC.EX[j], RL[i, GTime], nsim = DDwt[j])
-              }
-            }
+              } # extrapolation
+            } # j
             o <- sample(1:nsim)
             DDW <- DDW[o]
             LSS <- LSS[o]
-          }
+          } # DD species
         } else { # non-DD species
           DDW <- rep(W[[y]][i], nsim)
           LSS <- LoS(RL[i, Categ %+% y %+% "." %+% max(years)], RL[i, GTime], nsim)
-        }
+        } # non-DD species
         # cumulative loss of species in a given year y
         loss[[y]] <- loss[[y]] + LSS
         # total population decline for species i
@@ -1112,12 +1120,12 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975))
             # If there is no ongoing threat for a threatened species,
             # an ongoing unknown threat is added
             P <- unknThr
-          }
+          } # ongoing threats recorded?
         } else {
           # If there is no threat at all for a threatened species,
           # an ongoing unknown threat is added
           P <- unknThr
-        }
+        } # any threats recorded?
         for (j in 1:length(P)) {
           Z <- nsim
           Q <- P[j]
@@ -1168,7 +1176,7 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975))
             DRLIp  [[y]] <- DRLIp[[y]] + ifelse(DW > 0, DW, 0)
             DRLIm  [[y]] <- DRLIm[[y]] + ifelse(DW < 0, DW, 0)
           }
-        }
+        } # estimate DeltaRLI
       } # y
     } # if in NT-RE
     cat ("\r" %+% round(100 * i / nrow(RL)) %+% "% done.")
@@ -1180,7 +1188,7 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975))
     DRLI[[y]] <- (DRLIp[[y]] + DRLIm[[y]]) / mxW / nrow(RL)
     dr  [[y]] <-               dr   [[y]]  / mxW / nrow(RL)
     drli[[y]] <-               drli [[y]]  / mxW / nrow(RL)
-  }
+  } # y
   results <- list(DeltaRLI = DRLI,
                   Cum.dRLI = dr,
                       dRLI = drli,
@@ -1188,7 +1196,7 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975))
                       ELS  = ELS)
   printResults(years, results, quantiles)
   invisible(results)
-}
+} # simulateDRLI
 
 
 printResults <- function(years, results, quantiles) {
@@ -1210,9 +1218,9 @@ printResults <- function(years, results, quantiles) {
         cat("\n\nConfidence intervals for DeltaRLI from " %+%
               y1 %+% " to " %+% y2 %+% ":\n")
         print(apply(DR, 1, quantile, quantiles))
-      }
-    }
-  }
+      } # j
+    } # i
+  } # > 1 year?
   for (y in years) {
     cat("\n\nConfidence intervals for the cumulative dRLI in " %+%
           y %+% ":\n")
@@ -1220,7 +1228,7 @@ printResults <- function(years, results, quantiles) {
     cat("\n\nConfidence intervals for the threat-wise dRLIs in " %+%
           y %+% ":\n")
     print(apply(drli[[y]], 1, quantile, quantiles))
-  }
+  } # y
   for (y in years) {
     cat("\n\nConfidence intervals for the cumulative ELS" %+% TimeFrame %+%
           " in " %+% y %+% ":\n")
@@ -1228,15 +1236,18 @@ printResults <- function(years, results, quantiles) {
     cat("\n\nConfidence intervals for the threat-wise ELS" %+% TimeFrame %+%
           " in " %+% y %+% ":\n")
     print(apply(ELS[[y]], 1, quantile, quantiles))
-  }
+  } # y
   invisible(NULL)
-}
+} # printResults
 
 
 disaggrMajorTypes <- function(RL, minor, type, id, categ) {
   # Disaggregates major ecosystem types into their respective minor ecosystem types
   for (i in rev(which(!is.na(RL[, minor]) & RL[, minor] != 1 & RL[, minor] != 0))) {
+    # check each line of the Red List dataset in which the number of minor 
+    # ecosystem types is unequal to 0 and 1
     if (RL[i, minor] < 1) {
+      # cases where one minor ecosystem type is divided into more than one line
       code <- RL[i, type]
       if (!length(which(RL[, type] == code & RL[, minor] == 1))) {
         RL <- rbind(RL, RL[i, ])
@@ -1245,6 +1256,7 @@ disaggrMajorTypes <- function(RL, minor, type, id, categ) {
         RL[n, id] <- n
       }
     } else {
+      # cases where one line comprises more than one minor ecosystem types
       code <- RL[i, type]
       if (code %contains% ",") {
         code <- unlist(strsplit(code, ","))
@@ -1262,10 +1274,10 @@ disaggrMajorTypes <- function(RL, minor, type, id, categ) {
         }
         RL[n, minor] <- 1
         RL[n, id] <- n
-      }
-    }
+      } # j
+    } # minor ecosystems per line
     RL[i, categ] <- "NA"
-  }
+  } # i
   return(RL)
-}
+} # disaggrMajorTypes
 
