@@ -2,15 +2,16 @@
 title: Threats to species
 subtitle: "Quantification of threats on the Norwegian Red Lists of species"
 author: "Hanno Sandvik"
-date: "17 April 2023"
+date: "28 April 2023"
 output:
   md_document:
     toc: yes
 ---
 
-This R code can be used to run the analyses of the Norwegian Red Lists for species 
-described in the paper "Metrics for quantifying the contributions of 
-different threats to Red Lists of species and ecosystems"
+This **R** code can be used to run the analyses of the Norwegian Red Lists 
+for species described in the paper "Metrics for quantifying how much 
+different threats contribute to red lists of species and ecosystems" 
+([Sandvik & Pedersen 2023](https://doi.org/10.1111/cobi.14105)).
 
 
 
@@ -41,7 +42,7 @@ inferThreats <- FALSE
 **(4) Weighting underlying RLI.** 
 Defines the weighting scheme for the Red List Index.
 (Defaults to "equal-steps"; other options are the IUCN Red List Criteria
-"A1", "A2", "B1", "B2", "C", "D" and "E" as well as "Ev2", "Ev3")
+"A1", "A2", "B1", "B2", "C", "D" and "E" as well as "Ev2", "Ev3".)
 ```{r}
 weightingRLI <- "equal-steps"
 ```
@@ -49,14 +50,14 @@ weightingRLI <- "equal-steps"
 **(5) Weighting underlying ELS.** 
 Defines the weighting scheme for the Expected Loss of Species.
 (Defaults to using the thresholds of the IUCN Red List Criterion E;
-other options are "A1", "A2", "B1", "B2", "C", "D", "Ev2", "Ev3" and "equal-steps")
+other options are "A1", "A2", "B1", "B2", "C", "D", "Ev2", "Ev3" and "equal-steps".)
 ```{r}
 weightingELS <- "E"
 ```
 
 **(6) Column names.** 
 Column names in the dataset which contain Red List Categories, threat factors,
-reasons for change in category, and generation time, respectively. 
+reasons for category change, and generation time, respectively. 
 The three former ones need to be followed by the year of assessment
 (for change, the year of the _second_ of the two relevant assessments).
 So if the column name containing Red List Categories is _not_ named
@@ -70,7 +71,7 @@ GTime  <- "GenTime"
 Note the following formatting requirements of these columns:
 
 * Data columns with Red List Categories must match with the constants specified (see next section).
-* Threat columns must contain text strings specifying threat. Each threat must be described as a sequence of (abbreviations for) (i) threat factor, (ii) timing, (iii) scope and (iv) severity, which are separated by _colons_; different threats to the same species are separated by _commas_.
+* Threat columns must contain text strings specifying threats. Each threat must be described as a sequence of (abbreviations for) (i) threat factor, (ii) timing, (iii) scope and (iv) severity, which are separated by _colons_; different threats to the same species are separated by _commas_.
 * Change columns are needed only if the dataset contains results from more than one Red List. It must contain no more than one reason for change in Red List Category per species.
 * Generation time, measured in _years_, must be a numerical variable.
 
@@ -96,14 +97,14 @@ May need to be adjusted for other datasets.)
 realChange      <- "realpopu"
 ```
 
-**(9) Timings to include. **What is (are) the abbreviation(s) of the timing 
+**(9) Timings to include.** What is (are) the abbreviation(s) of the timing 
 categories that should be considered (defaults to "ongoing").
 ```{r}
 inclTiming <- "ongoingt"
 ```
 If _all_ threats are to be included, irrespective of timing, this would need to be 
 replaced (in terms of the abbreviations used in this dataset) by
-`inclTiming <- c("onlypast", "suspendd", "ongoing", "onlyfutu", "unknownt")`
+`inclTiming <- c("onlypast", "suspendd", "ongoing", "onlyfutu", "unknownt")`.
 
 **(10) Number of simulations.** 
 NB: the default takes several hours!
@@ -122,7 +123,7 @@ re.create <- TRUE
 ```
 
 **(12) File names of figures.** If you want to display the figures on screen,
-keep the default. If you want to create PNG file, specify the file names
+keep the default. If you want to create PNG files, specify the file names
 (including paths).
 ```{r}
 fig1  <- ""
@@ -142,22 +143,7 @@ Changing them entails modifying some underlying assumptions.
 
 **(1) Red List Categories** and their weights, extinction probabilities etc.
 This data frame needs to contain all Red List Categories used in the 
-Red List analysed of species that have been evaluated.
-
-* The column "LC" identifies the Red List Category "Least Concern" (defaults to IUCN's abbreviation).
-* The column "EX" identified the Red List Categories for extinction (defaults to IUCN's abbreviations).
-* The column "wt" provides the Red List Weight of the Category (defaults to equal-steps weighting).
-* The columns "lowP" and "uppP" provide the lower and upper threshold values for extinction probability according to IUCN Red List Criterion E.
-* The columns "lowT" and "uppT" provide the lower and upper threshold values for extinction time frames in _years_ according to IUCN Red List Criterion E.
-* The columns "lowG" and "uppG" provide the lower and upper threshold values for extinction time in _generations_ according to IUCN Red List Criterion E.
-* The columns "lowA1" and "uppA1" provide the lower and upper threshold values for population reduction according to IUCN Red List Criterion A1.
-* The columns "lowA2" and "uppA2" provide the lower and upper threshold values for population reduction according to IUCN Red List Criterion A2.
-* The columns "lowB1" and "uppB1" provide the lower and upper threshold values for extents of occurrence (EOO) according to IUCN Red List Criterion B1.
-* The columns "lowB2" and "uppB2" provide the lower and upper threshold values for areas of occupancy (AOO) according to IUCN Red List Criterion B2.
-* The columns "lowC" and "uppC" provide the lower and upper threshold values for population size according to IUCN Red List Criterion C.
-* The columns "lowD" and "uppD" provide the lower and upper threshold values for population size according to IUCN Red List Criterion D.
-* The column "distr" provides the distribution of extinction probabilities within the interval.
-* The column "beta" is not currently needed (but may be needed if "distr" is changed).
+Red List analysed of species that have been evaluated:
 ```{r}
 RLcateg <- data.frame(
   name  = c(  "LC",   "NT",   "VU",   "EN",   "CR",   "RE",   "EW",   "EX"),
@@ -187,6 +173,27 @@ RLcateg <- data.frame(
   stringsAsFactors = FALSE
 )
 ```
+The values in the dataframe are based on [IUCN (2012a)](https://portals.iucn.org/library/node/10315), 
+[IUCN (2012b)](https://portals.iucn.org/library/node/10336), 
+[IUCN (2022)](https://www.iucnredlist.org/resources/redlistguidelines) and the 
+Norwegian guidance document ([Artsdatabanken 2020](https://artsdatabanken.no/Files/41216/)). 
+The columns have the following meanings:
+
+* The column "LC" identifies the Red List Category "Least Concern" (defaults to IUCN's abbreviation).
+* The column "EX" identified the Red List Categories for extinction (defaults to IUCN's abbreviations).
+* The column "wt" provides the Red List Weight of the Category (defaults to equal-steps weighting).
+* The columns "lowP" and "uppP" provide the lower and upper threshold values for extinction probability according to IUCN Red List Criterion E.
+* The columns "lowT" and "uppT" provide the lower and upper threshold values for extinction time frames in _years_ according to IUCN Red List Criterion E.
+* The columns "lowG" and "uppG" provide the lower and upper threshold values for extinction time in _generations_ according to IUCN Red List Criterion E.
+* The columns "lowA1" and "uppA1" provide the lower and upper threshold values for population reduction according to IUCN Red List Criterion A1.
+* The columns "lowA2" and "uppA2" provide the lower and upper threshold values for population reduction according to IUCN Red List Criterion A2.
+* The columns "lowB1" and "uppB1" provide the lower and upper threshold values for extents of occurrence (EOO) according to IUCN Red List Criterion B1.
+* The columns "lowB2" and "uppB2" provide the lower and upper threshold values for areas of occupancy (AOO) according to IUCN Red List Criterion B2.
+* The columns "lowC" and "uppC" provide the lower and upper threshold values for population size according to IUCN Red List Criterion C.
+* The columns "lowD" and "uppD" provide the lower and upper threshold values for population size according to IUCN Red List Criterion D.
+* The column "distr" provides the distribution of extinction probabilities within the interval.
+* The column "beta" is not currently needed (but may be needed if "distr" is changed).
+
 
 **(2) Data deficiency**. What is the abbreviation used for the "Data Deficient" 
 Red List Category? (Defaults to IUCN's abbreviation.)
@@ -203,7 +210,7 @@ notEval <- c("NA", "NE")
 
 **(4) Downlisting.** What is added to a Red List Category to indicate downlisting? 
 (Defaults to the degree symbol.)
-If a Red List Category if followed by this symbol, it is assumed to have been 
+If a Red List Category is followed by this symbol, it is assumed to have been 
 _downlisted_ by _one_ Red List Category.
 ```{r}
 downlistSymbol <- "°"
@@ -211,18 +218,7 @@ downlistSymbol <- "°"
 
 **(5) Severities** and their threshold values.
 This data frame needs to contain all severity categories of threats used in the 
-Red List analysed.
-The data frame defaults to the severity categories used in Norwegian Red Lists,
-where values correspond to the declines in population size over 10 years or
-3 generations (whichever is largest) caused by a threat.
-
-* The column "name" contains the abbreviations used for the severity categories.
-* The column "lower" contains the lower limit of the respective interval.
-* The column "upper" contains the upper limit of the respective interval.
-* The column "distr" contains the distribution of values within the respective 
-interval (possible values: "unif", "incr", "decr", "beta").
-* The column "beta" contains the beta parameter of a Beta distribution
-(a numeric values if `distr == "beta"`, and `NA` otherwise).
+Red List analysed:
 ```{r}
 Severity <- data.frame(
   name  = c("negldecl", "slowdecl", "rapidecl", "unknownd"),
@@ -233,6 +229,21 @@ Severity <- data.frame(
   stringsAsFactors = FALSE
 )
 ```
+The data frame defaults to the severity categories used in Norwegian Red Lists,
+where values correspond to the declines in population size over 10 years or
+3 generations (whichever is largest) caused by a threat 
+([Artsdatabanken 2020](https://artsdatabanken.no/Files/41216/); cf. 
+[IUCN 2022](https://www.iucnredlist.org/resources/threat-classification-scheme)).
+The columns have the following meanings:
+
+* The column "name" contains the abbreviations used for the severity categories.
+* The column "lower" contains the lower limit of the respective interval.
+* The column "upper" contains the upper limit of the respective interval.
+* The column "distr" contains the distribution of values within the respective 
+interval (possible values: "unif", "incr", "decr", "beta").
+* The column "beta" contains the beta parameter of a Beta distribution
+(a numeric values if `distr == "beta"`, and `NA` otherwise).
+
 
 **(6) Time frame** for the Expected Loss of Species, in years
 (defaults to 50 years).
@@ -252,10 +263,10 @@ eval(parse(text = readLines("function.R")))
 Define further required variables, 
 based on the variables and constants specified above:
 ```{r}
-LC      <- RLcateg$name[RLcateg$LC]
-extinct <- RLcateg$name[RLcateg$EX]
-LC.EX   <- RLcateg$name
-RedListCat <- c(LC.EX, DD, notEval)
+LC      <- RLcateg$name[RLcateg$LC]  # abbreviation(s) for species of Least Concern
+extinct <- RLcateg$name[RLcateg$EX]  # abbreviation(s) for extinct species
+LC.EX   <- RLcateg$name              # Red List Categories of evaluated species
+RedListCat <- c(LC.EX, DD, notEval)  # all Red List Categories
 ```
 
 
@@ -332,8 +343,8 @@ tab <- summariseRL(RL)
 
 In the specific case of the three Norwegian Red Lists analysed, the dataset only 
 contains the species included in the current Red List (2021). For different 
-reasons (such as taxonomic change), the earlier Red Lists contained species that 
-are not included in the most recent one. Therefore, the above summary table 
+reasons (such as taxonomic change), the earlier Red Lists contained species (names) 
+that are not included in the most recent one. Therefore, the above summary table 
 is not entirely correct for the earlier Red Lists. This has to be corrected 
 manually by adding data for the Red Lists 2010 and 2015 (prior to back-casting).
 The sources for these data are:
@@ -405,13 +416,13 @@ print(Table3)
 
 ## Analysis of threat factors
 
-Estimate DeltaRLI:
+Estimate ΔRLI:
 ```{r}
 DRLI <- DeltaRLI(RL)
 print(DRLI)
 ```
 
-Estimate dRLI and ELS50:
+Estimate δRLI and ELS_50_:
 ```{r}
 drli <- dRLI(RL)
 print(drli)
@@ -420,20 +431,20 @@ print(drli)
 Confidence intervals on RLI (loaded from a cached version of this call):
 ```{r, eval=FALSE, echo=TRUE}
 print(confidenceRLI(RL, nsim, "Categ21"))
-# With the default `nsim`, the above line would take quite a while... 
 ```
 ```{r, eval=TRUE, echo=FALSE}
+# With the default `nsim`, the above line would take quite a while... 
 # Instead, cached results are loaded:
 load("cache.rdata")
 print(conf)
 ```
 
-Confidence intervals on DeltaRLI, deltaRLI and ELS50 (loaded from a cached version of this call):
+Confidence intervals on ΔRLI, δRLI and ELS_50_ (loaded from a cached version of this call):
 ```{r, eval=FALSE, echo=TRUE}
 results <- simulateDRLI(RL, nsim)
-# With the default `nsim`, the above line would take a looong time... 
 ```
 ```{r, eval=TRUE, echo=FALSE}
+# With the default `nsim`, the above line would take a looong time... 
 # Instead, cached results are loaded:
 load("cache.rdata")
 for (i in 1:length(introductions)) {
@@ -461,40 +472,46 @@ DRLI. <- rbind(0, DRLI.)
 DRLI. <- rbind(DRLI., 0)
 ```
 
-Plot a graph for DeltaRLI:
+Plot a graph for ΔRLI:
 ```{r}
-if (nchar(fig1)) {
- png(fig1, 1500, 1200, res = 180)
-}
-par(mai = c(0.96, 0.96, 0.12, 0.06), family = "sans")
-plot(0, 0, xlim = c(2009.5, 2027.5), ylim = c(0.9198, 0.92022),
-  xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
-  ylab = "Red List Index",
-  bty = "n", cex.axis = 1.2, cex.lab = 1.8)
-axis(1, c(2009, 2021.5),              F, T, tcl = 0,        lwd = 1.5, lend = 1)
-axis(1, 2009:2021,                    F, T,                 lwd = 1.5, lend = 1)
-axis(1, c(2010, 2015, 2021),          T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-axis(2, seq(0.9198, 0.9202, 0.00010), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-axis(2, seq(0.9198, 0.9202, 0.00001), F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
-mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
-x <- c(2010, 2015, 2021, 2023)
-DRLI.[, 4] <- DRLI.[, 3] + c(0, 0, 0, 0, 0, 0, -0.00000887, 0)
-lines(x[4:1], rep(RLI10, 4), lty = "12",     lwd = 9.6, col = grey(0.84))
-lines(x[1:4], c(RLI10, RLI15, RLI21, RLI21), lwd = 9.6, col = grey(0.84))
-for (i in 2:7) {
-  lines(x, RLI10 + DRLI.[i, ], lty = i - 1, lwd = 2.4)
-  points(x[2:3], RLI10 + DRLI.[i, 2:3], pch = c(1, 4, 21, 24, 22, 25, 23)[i],
-    cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
-  text(2023, RLI10 + DRLI.[i, 4],
-    c("", "land-use change", "other/unknown", "climate change", "pollution",
-      "native species", "disturbance")[i],
-    pos = 4, cex = 1.2)
-}
-text(2023, RLI21, "RLI", pos = 4, cex = 1.2)
-text(2023, RLI10, "no change", pos = 4, cex = 1.2)
-text(2015.5, 0.92021, expression(bold(Delta*RLI)), cex = 1.8)
-if (nchar(fig1)) {
-  dev.off()
+{
+  xl <- c(2009.5, 2028)
+  yl <- c(0.9198, 0.92023)
+  if (nchar(fig1)) {
+    png(fig1, 1500, 1200, res = 180)
+    xl <- c(2009.5, 2027.5)
+    yl <- c(0.9198, 0.92022)
+  }
+  par(mai = c(0.96, 0.96, 0.12, 0.06), family = "sans")
+  plot(0, 0, xlim = xl, ylim = yl,
+    xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
+    ylab = "Red List Index",
+    bty = "n", cex.axis = 1.2, cex.lab = 1.8)
+  axis(1, c(2009, 2021.5),              F, T, tcl = 0,        lwd = 1.5, lend = 1)
+  axis(1, 2009:2021,                    F, T,                 lwd = 1.5, lend = 1)
+  axis(1, c(2010, 2015, 2021),          T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+  axis(2, seq(0.9198, 0.9202, 0.00010), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+  axis(2, seq(0.9198, 0.9202, 0.00001), F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
+  mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
+  x <- c(2010, 2015, 2021, 2023)
+  DRLI.[, 4] <- DRLI.[, 3] + c(0, 0, 0, 0, 0, 0, -0.00000887, 0)
+  lines(x[4:1], rep(RLI10, 4), lty = "12",     lwd = 9.6, col = grey(0.84))
+  lines(x[1:4], c(RLI10, RLI15, RLI21, RLI21), lwd = 9.6, col = grey(0.84))
+  for (i in 2:7) {
+    lines(x, RLI10 + DRLI.[i, ], lty = i - 1, lwd = 2.4)
+    points(x[2:3], RLI10 + DRLI.[i, 2:3], pch = c(1, 4, 21, 24, 22, 25, 23)[i],
+      cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
+    text(2023, RLI10 + DRLI.[i, 4],
+      c("", "land-use change", "other/unknown", "climate change", "pollution",
+        "native species", "disturbance")[i],
+      pos = 4, cex = 1.2)
+  }
+  text(2023, RLI21, "RLI", pos = 4, cex = 1.2)
+  text(2023, RLI10, "no change", pos = 4, cex = 1.2)
+  text(2015.5, 0.92021, expression(bold(Delta*RLI)), cex = 1.8)
+  if (nchar(fig1)) {
+    dev.off()
+  }
 }
 ```
 
@@ -526,60 +543,57 @@ drli. <- rbind(0, drli.)
 drli. <- rbind(0, drli.)
 ```
 
-Plot a graph for deltaRLI:
+Plot a graph for δRLI:
 ```{r}
-if (nchar(fig2)) {
- png(fig2, 1500, 1200, res=180)
-}
-par(mai=c(0.96, 0.96, 0.06, 0.06), family="sans")
-# plot(0, 0, xlim=c(2009.5, 2027.5), ylim=c(0.91, 1.002),
-plot(0, 0, xlim=c(2009.5, 2029.5), ylim=c(0.91, 1.008),
-  xaxs="i", yaxs="i", xaxt="n", yaxt="n", xlab="", ylab="Red List Index",
-  bty="n", cex.axis=1.2, cex.lab=1.8)
-axis(1, c(2009, 2021.5),     F, T, tcl=0,        lwd=1.5, lend=1)
-axis(1, 2009:2021,           F, T,               lwd=1.5, lend=1)
-axis(1, c(2010, 2015, 2021), T, T, cex.axis=1.2, lwd=1.5, lend=1)
-axis(2, seq(0.8, 1, 0.01),   F, T,               lwd=1.5, lend=1)
-axis(2, seq(0.8, 1, 0.02),   T, T, cex.axis=1.2, lwd=1.5, lend=1)
-mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex=1.8)
-x <- c(2021, 2015, 2010)
-for (i in 3:nrow(drli.)) {
-  polygon(c(x, rev(x)),
-          1 - c(apply(drli.[1:(i-1),], 2, sum), rev(apply(drli.[1:i,], 2, sum))),
-          border=NA, col=grey(1.32 - i * 0.12))
-}
-y0 <- rep(RLI21, 3)
-y2 <- 1 - (sum(drli.[1:8,1]) + sum(drli.[1:7,1])) / 2
-#y2 <- RLI21 + 0.005
-for (i in 7:3) {
-  y1 <- 1 - apply(drli.[1:i,], 2, sum)
-  lines(x, y1, lwd=2.4)
-#  lines(c(2021, 2023), c(mean(c(y0[1], y1[1])), y2), lwd=1.8)
-  lines(c(2021, 2022), c(mean(c(y0[1], y1[1])), y2), lwd=1.8)
-#   text(2023, y2, 
-  text(2022, y2, 
-    c("", "land-use change", "other/unknown", "climate change",
-      "pollution", "native species", "disturbance")[i] %+%
-      " (" %+% formatC(drli.[i + 1, 1], 4, format="f") %+% ")",
-    pos=4, cex=1.2)
-  y0 <- y1
-  y2 <- y2 + 0.005
-}
-#lines(c(2021, 2023), rep(y2, 2), lwd=1.8)
-lines(c(2021, 2022), rep(y2, 2), lwd=1.8)
-#text(2023, y2, "land-use change", pos=4, cex=1.2)
-text(2022, y2, "land-use change" %+%
-               " (" %+% formatC(drli.[3, 1], 4, format="f") %+% ")",
-     pos=4, cex=1.2)
-lines(x, rep(1, 3), lwd=4.8)
-lines(c(2021, 2022), rep(1, 2), lwd=1.8)
-text(2022, 1, "reference value", font=2, pos=4, cex=1.2)
-lines(x, c(RLI21, RLI15, RLI10), lwd=4.8)
-lines(c(2021, 2022), c(RLI21, y2 - 0.03), lwd=1.8)
-text(2022, y2 - 0.03, "RLI", font=2, pos=4, cex=1.2)
-text(2015.5, 1.005, expression(bold(delta*RLI)), cex = 1.8)
-if (nchar(fig2)) {
-  dev.off()
+{
+  xl <- c(2009.5, 2028)
+  yl <- c(0.91, 1.008)
+  if (nchar(fig2)) {
+    png(fig2, 1500, 1200, res=180)
+    xl <- c(2009.5, 2027.5)
+    yl <- c(0.91, 1.002)
+  }
+  par(mai=c(0.96, 0.96, 0.06, 0.06), family="sans")
+  plot(0, 0, xlim = xl, ylim = yl, xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n",
+    xlab="", ylab = "Red List Index", bty = "n", cex.axis = 1.2, cex.lab = 1.8)
+  axis(1, c(2009, 2021.5),     F, T, tcl=0,        lwd=1.5, lend=1)
+  axis(1, 2009:2021,           F, T,               lwd=1.5, lend=1)
+  axis(1, c(2010, 2015, 2021), T, T, cex.axis=1.2, lwd=1.5, lend=1)
+  axis(2, seq(0.8, 1, 0.01),   F, T,               lwd=1.5, lend=1)
+  axis(2, seq(0.8, 1, 0.02),   T, T, cex.axis=1.2, lwd=1.5, lend=1)
+  mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex=1.8)
+  x <- c(2021, 2015, 2010)
+  for (i in 3:nrow(drli.)) {
+    polygon(c(x, rev(x)),
+            1 - c(apply(drli.[1:(i-1),], 2, sum), rev(apply(drli.[1:i,], 2, sum))),
+            border=NA, col=grey(1.32 - i * 0.12))
+  }
+  y0 <- rep(RLI21, 3)
+  y2 <- 1 - (sum(drli.[1:8,1]) + sum(drli.[1:7,1])) / 2
+  #y2 <- RLI21 + 0.005
+  for (i in 7:3) {
+    y1 <- 1 - apply(drli.[1:i,], 2, sum)
+    lines(x, y1, lwd=2.4)
+    lines(c(2021, 2023), c(mean(c(y0[1], y1[1])), y2), lwd=1.8)
+    text(2023, y2, 
+      c("", "land-use change", "other/unknown", "climate change",
+        "pollution", "native species", "disturbance")[i],
+      pos=4, cex=1.2)
+    y0 <- y1
+    y2 <- y2 + 0.005
+  }
+  lines(c(2021, 2023), rep(y2, 2), lwd=1.8)
+  text(2023, y2, "land-use change", pos=4, cex=1.2)
+  lines(x, rep(1, 3), lwd=4.8)
+  lines(c(2021, 2023), rep(1, 2), lwd=1.8)
+  text(2023, 1, "reference value", font=2, pos=4, cex=1.2)
+  lines(x, c(RLI21, RLI15, RLI10), lwd=4.8)
+  lines(c(2021, 2023), c(RLI21, y2 - 0.03), lwd=1.8)
+  text(2023, y2 - 0.03, "RLI", font=2, pos=4, cex=1.2)
+  text(2015.5, 1.005, expression(bold(delta*RLI)), cex = 1.8)
+  if (nchar(fig2)) {
+    dev.off()
+  }
 }
 ```
 
@@ -588,42 +602,44 @@ if (nchar(fig2)) {
 
 The following script recreates Figure 3.
 
-Plot a graph for ELS50:
+Plot a graph for ELS_50_:
 ```{r}
-if (nchar(fig3)) {
- png(fig3, 1500, 1200, res = 180)
-}
-par(mai = c(0.96, 0.96, 0.06, 0.06), family = "sans")
-# plot(0, 0, xlim=c(2009.5, 2027.5), ylim=c(lg(8), 3), 
-plot(0, 0, xlim=c(2009.5, 2029.5), ylim=c(lg(8), 3.1), 
-     xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
-     ylab = "Expected loss of species",
-     bty = "n", cex.axis = 1.2, cex.lab = 1.8)
-axis(1, c(2009, 2021.5),          F, T, tcl = 0,        lwd = 1.5, lend = 1)
-axis(1, 2009:2021,                F, T,                 lwd = 1.5, lend = 1)
-axis(1, c(2010, 2015, 2021),      T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-axis(2, 0:3, c(1, 10, 100, 1000), T,    cex.axis = 1.2, lwd = 1.5, lend = 1)
-axis(2, lg(c(2:9, seq(20, 90, 10), seq(200, 900, 100))),
-                                  F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
-mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
-# x <- c(2010, 2015, 2021, 2023)
-x <- c(2010, 2015, 2021, 2022)
-ELS.[3, 4] <- 10^(1/3 * lg(ELS.[4, 4]) + 2/3 * lg(ELS.[6, 4]))
-ELS.[5, 4] <- 10^(2/3 * lg(ELS.[4, 4]) + 1/3 * lg(ELS.[6, 4]))
-for (i in 1:6) {
-  lines (x,      lg(ELS.[i, ]), lty = i, lwd = 2.4)
-  points(x[1:3], lg(ELS.[i, 1:3]), pch = c(4, 21, 24, 22, 25, 23)[i],
-    cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
-# text(2023, lg(ELS.[i, 4]), 
-  text(2022, lg(ELS.[i, 4]), 
-    c("land-use change", "other/unknown", "climate change",
-      "pollution", "native species", "disturbance")[i] %+%
-      " (" %+% round(ELS.[i, 3]) %+% ")",
-    pos = 4, cex = 1.2)
-}
-text(2015.5, 3.01, expression(bold(ELS[50])), cex = 1.8)
-if (nchar(fig3)) {
-  dev.off()
+{
+  xl <- c(2009.5, 2028)
+  yl <- c(lg(8), 3.1)
+  if (nchar(fig3)) {
+    png(fig3, 1500, 1200, res = 180)
+    xl <- c(2009.5, 2027.5)
+    yl <- c(lg(8), 3)
+  }
+  par(mai = c(0.96, 0.96, 0.06, 0.06), family = "sans")
+  plot(0, 0, xlim = xl, ylim = yl, 
+       xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
+       ylab = "Expected loss of species",
+       bty = "n", cex.axis = 1.2, cex.lab = 1.8)
+  axis(1, c(2009, 2021.5),          F, T, tcl = 0,        lwd = 1.5, lend = 1)
+  axis(1, 2009:2021,                F, T,                 lwd = 1.5, lend = 1)
+  axis(1, c(2010, 2015, 2021),      T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+  axis(2, 0:3, c(1, 10, 100, 1000), T,    cex.axis = 1.2, lwd = 1.5, lend = 1)
+  axis(2, lg(c(2:9, seq(20, 90, 10), seq(200, 900, 100))),
+                                    F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
+  mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
+  x <- c(2010, 2015, 2021, 2023)
+  ELS.[3, 4] <- 10^(1/3 * lg(ELS.[4, 4]) + 2/3 * lg(ELS.[6, 4]))
+  ELS.[5, 4] <- 10^(2/3 * lg(ELS.[4, 4]) + 1/3 * lg(ELS.[6, 4]))
+  for (i in 1:6) {
+    lines (x,      lg(ELS.[i, ]), lty = i, lwd = 2.4)
+    points(x[1:3], lg(ELS.[i, 1:3]), pch = c(4, 21, 24, 22, 25, 23)[i],
+      cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
+    text(2023, lg(ELS.[i, 4]), 
+      c("land-use change", "other/unknown", "climate change",
+        "pollution", "native species", "disturbance")[i],
+      pos = 4, cex = 1.2)
+  }
+  text(2015.5, 3.01, expression(bold(ELS[50])), cex = 1.8)
+  if (nchar(fig3)) {
+    dev.off()
+  }
 }
 ```
 
@@ -638,10 +654,14 @@ they can be re-run with Data Deficient species excluded:
   includeDD <- FALSE
   RL. <- calcLoss(RL)
   RL. <- addThreats(RL.)
+  cat("\nDeltaRLI excluding DD species:\n")
   DRLI. <- DeltaRLI(RL.)
   print(DRLI.)
   drli. <- dRLI(RL.)
-  print(drli.)
+  cat("\ndRLI excluding DD species:\n")
+  print(drli.$dRLI)
+  cat("\nELS50 excluding DD species:\n")
+  print(drli.$ELS50)
   includeDD <- TRUE
 }
 ```
@@ -657,10 +677,14 @@ they can be re-run with unknown threats distributed over known threats:
   inferThreats <- TRUE
   RL. <- calcLoss(RL)
   RL. <- addThreats(RL.)
+  cat("\nDeltaRLI excluding DD species:\n")
   DRLI. <- DeltaRLI(RL.)
   print(DRLI.)
   drli. <- dRLI(RL.)
-  print(drli.)
+  cat("\ndRLI excluding DD species:\n")
+  print(drli.$dRLI)
+  cat("\nELS50 excluding DD species:\n")
+  print(drli.$ELS50)
   inferThreats <- FALSE
 }
 ```
@@ -679,38 +703,44 @@ DRLI. <- rbind(0, DRLI.)
 DRLI. <- rbind(DRLI., 0)
 ```
 
-Plot a graph for DeltaRLI:
+Plot a graph for ΔRLI:
 ```{r}
-if (nchar(figS1)) {
- png(figS1, 1500, 1200, res = 180)
-}
-par(mai = c(0.96, 0.96, 0.12, 0.06), family = "sans") # ylim=c(0.9199, 0.92015)
-plot(0, 0, xlim = c(2009.5, 2027.5), ylim = c(0.9198, 0.92033),
-  xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
-  ylab = "Red List Index",
-  bty = "n", cex.axis = 1.2, cex.lab = 1.8)
-axis(1, c(2009, 2021.5),               F, T, tcl = 0,        lwd = 1.5, lend = 1)
-axis(1, 2009:2021,                     F, T,                 lwd = 1.5, lend = 1)
-axis(1, c(2010, 2015, 2021),           T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-axis(2, seq(0.9198, 0.9203, 0.00010), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-axis(2, seq(0.9198, 0.9203, 0.00001), F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
-mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
-x <- c(2010, 2015, 2021, 2023)
-DRLI.[,4] <- DRLI.[,3] + c(0, 0, 0, 0, 0, 0, -0.00000876, 0)
-lines(x[3:1], rep(RLI10, 3), lty = "12", lwd = 9.6, col = grey(0.84))
-lines(x[1:3], c(RLI10, RLI15, RLI21),    lwd = 9.6, col = grey(0.84))
-for (i in 2:7) {
-  lines(x, RLI10 + DRLI.[i, ], lty = i - 1, lwd = 2.4)
-  points(x[2:3], RLI10 + DRLI.[i, 2:3], pch=c(1, 4, 21, 24, 22, 25, 23)[i],
-    cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
-  text(2023, RLI10 + DRLI.[i, 4],
-    c("", "land-use change", "other/unknown", "climate change", "pollution",
-      "native species", "disturbance")[i],
-    pos = 4, cex = 1.2)
-}
-text(2015.5, 0.92032, expression(bold(Delta*RLI)), cex = 1.8)
-if (nchar(figS1)) {
-  dev.off()
+{
+  xl <- c(2009.5, 2028)
+  yl <- c(0.9198, 0.92034)
+  if (nchar(figS1)) {
+    png(figS1, 1500, 1200, res = 180)
+    xl <- c(2009.5, 2027.5)
+    yl <- c(0.9198, 0.92033)
+  }
+  par(mai = c(0.96, 0.96, 0.12, 0.06), family = "sans") # ylim=c(0.9199, 0.92015)
+  plot(0, 0, xlim = xl, ylim = yl,
+    xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
+    ylab = "Red List Index",
+    bty = "n", cex.axis = 1.2, cex.lab = 1.8)
+  axis(1, c(2009, 2021.5),              F, T, tcl = 0,        lwd = 1.5, lend = 1)
+  axis(1, 2009:2021,                    F, T,                 lwd = 1.5, lend = 1)
+  axis(1, c(2010, 2015, 2021),          T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+  axis(2, seq(0.9198, 0.9203, 0.00010), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+  axis(2, seq(0.9198, 0.9203, 0.00001), F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
+  mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
+  x <- c(2010, 2015, 2021, 2023)
+  DRLI.[,4] <- DRLI.[,3] + c(0, 0, 0, 0, 0, 0, -0.00000876, 0)
+  lines(x[3:1], rep(RLI10, 3), lty = "12", lwd = 9.6, col = grey(0.84))
+  lines(x[1:3], c(RLI10, RLI15, RLI21),    lwd = 9.6, col = grey(0.84))
+  for (i in 2:7) {
+    lines(x, RLI10 + DRLI.[i, ], lty = i - 1, lwd = 2.4)
+    points(x[2:3], RLI10 + DRLI.[i, 2:3], pch=c(1, 4, 21, 24, 22, 25, 23)[i],
+      cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
+    text(2023, RLI10 + DRLI.[i, 4],
+      c("", "land-use change", "other/unknown", "climate change", "pollution",
+        "native species", "disturbance")[i],
+      pos = 4, cex = 1.2)
+  }
+  text(2015.5, 0.92032, expression(bold(Delta*RLI)), cex = 1.8)
+  if (nchar(figS1)) {
+    dev.off()
+  }
 }
 ```
 
@@ -743,48 +773,54 @@ drli. <- rbind(0, drli.)
 drli. <- rbind(0, drli.)
 ```
 
-Plot a graph for deltaRLI:
+Plot a graph for δRLI:
 ```{r}
-if (nchar(figS2)) {
- png(figS2, 1500, 1200, res = 180)
-}
-par(mai = c(0.96, 0.96, 0.06, 0.06), family = "sans")
-plot(0, 0, xlim = c(2009.5, 2027.5), ylim = c(0.91, 1.008),
-  xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
-  ylab = "Red List Index",
-  bty = "n", cex.axis = 1.2, cex.lab = 1.8)
-axis(1, c(2009, 2021.5),     F, T, tcl = 0,        lwd = 1.5, lend = 1)
-axis(1, 2009:2021,           F, T,                 lwd = 1.5, lend = 1)
-axis(1, c(2010, 2015, 2021), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-axis(2, seq(0.8, 1, 0.01),   F, T,                 lwd = 1.5, lend = 1)
-axis(2, seq(0.8, 1, 0.02),   T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
-x <- c(2021, 2015, 2010)
-for (i in 3:nrow(drli.)) {
-  polygon(c(x, rev(x)),
-          1 - c(apply(drli.[1:(i-1), ], 2, sum), rev(apply(drli.[1:i, ], 2, sum))),
-          border = NA, col = grey(1.32 - i * 0.12))
-}
-y0 <- rep(RLI21, 3)
-y2 <- 1 - (sum(drli.[1:8, 1]) + sum(drli.[1:7, 1])) / 2
-for (i in 7:3) {
-  y1 <- 1 - apply(drli.[1:i, ], 2, sum)
-  lines(x, y1, lwd = 2.4)
-  lines(c(2021, 2023), c(mean(c(y0[1], y1[1])), y2), lwd = 1.8)
-  text(2023, y2, 
-    c("", "land-use change", "other/unknown", "climate change",
-      "pollution", "native species", "disturbance")[i],
-    pos = 4, cex = 1.2)
-  y0 <- y1
-  y2 <- y2 + 0.005
-}
-lines(c(2021, 2023), rep(y2, 2), lwd = 1.8)
-text(2023, y2, "land-use change", pos = 4, cex = 1.2)
-lines(x, rep(1,3), lwd = 4.8)
-lines(x, c(RLI21, RLI15, RLI10), lwd = 4.8)
-text(2015.5, 1.005, expression(bold(delta*RLI)), cex = 1.8)
-if (nchar(figS2)) {
-  dev.off()
+{
+  xl <- c(2009.5, 2028)
+  yl <- c(0.91, 1.008)
+  if (nchar(figS2)) {
+    png(figS2, 1500, 1200, res = 180)
+    xl <- c(2009.5, 2027.5)
+    yl <- c(0.91, 1.008)
+  }
+  par(mai = c(0.96, 0.96, 0.06, 0.06), family = "sans")
+  plot(0, 0, xlim = xl, ylim = yl,
+    xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
+    ylab = "Red List Index",
+    bty = "n", cex.axis = 1.2, cex.lab = 1.8)
+  axis(1, c(2009, 2021.5),     F, T, tcl = 0,        lwd = 1.5, lend = 1)
+  axis(1, 2009:2021,           F, T,                 lwd = 1.5, lend = 1)
+  axis(1, c(2010, 2015, 2021), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+  axis(2, seq(0.8, 1, 0.01),   F, T,                 lwd = 1.5, lend = 1)
+  axis(2, seq(0.8, 1, 0.02),   T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+  mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
+  x <- c(2021, 2015, 2010)
+  for (i in 3:nrow(drli.)) {
+    polygon(c(x, rev(x)),
+            1 - c(apply(drli.[1:(i-1),], 2, sum), rev(apply(drli.[1:i,], 2, sum))),
+            border = NA, col = grey(1.32 - i * 0.12))
+  }
+  y0 <- rep(RLI21, 3)
+  y2 <- 1 - (sum(drli.[1:8, 1]) + sum(drli.[1:7, 1])) / 2
+  for (i in 7:3) {
+    y1 <- 1 - apply(drli.[1:i, ], 2, sum)
+    lines(x, y1, lwd = 2.4)
+    lines(c(2021, 2023), c(mean(c(y0[1], y1[1])), y2), lwd = 1.8)
+    text(2023, y2, 
+      c("", "land-use change", "other/unknown", "climate change",
+        "pollution", "native species", "disturbance")[i],
+      pos = 4, cex = 1.2)
+    y0 <- y1
+    y2 <- y2 + 0.005
+  }
+  lines(c(2021, 2023), rep(y2, 2), lwd = 1.8)
+  text(2023, y2, "land-use change", pos = 4, cex = 1.2)
+  lines(x, rep(1,3), lwd = 4.8)
+  lines(x, c(RLI21, RLI15, RLI10), lwd = 4.8)
+  text(2015.5, 1.005, expression(bold(delta*RLI)), cex = 1.8)
+  if (nchar(figS2)) {
+    dev.off()
+  }
 }
 ```
 
@@ -792,40 +828,46 @@ if (nchar(figS2)) {
 ### Figure S3
 The following script recreates Figure S3.
 
-Plot a graph for ELS50:
+Plot a graph for ELS_50_:
 ```{r}
-if (nchar(figS3)) {
- png(figS3, 1500, 1200, res = 180)
-}
-par(mai = c(0.96, 0.96, 0.06, 0.06), family = "sans")
-plot(0, 0, xlim = c(2009.5, 2027.5), ylim = c(1, 3.2),
-  xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "",
-  ylab="Expected loss of species",
-  bty = "n", cex.axis = 1.2, cex.lab = 1.8)
-axis(1, c(2009, 2021.5),          F, T, tcl = 0,        lwd = 1.5, lend = 1)
-axis(1, 2009:2021,                F, T,                 lwd = 1.5, lend = 1)
-axis(1, c(2010, 2015, 2021),      T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-axis(2, c(1, lg(1200)),           F, T, tcl = 0,        lwd = 1.5, lend = 1)
-axis(2, 0:3, c(1, 10, 100, 1000), T,    cex.axis = 1.2, lwd = 1.5, lend = 1)
-axis(2, lg(c(2:9, seq(20, 90, 10), seq(200, 900, 100))),
-                                  F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
-mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
-x <- c(2010, 2015, 2021, 2023)
-ELS.[2, 4] <- 10^(3/4 * lg(ELS.[4, 4]) + 1/4 * lg(ELS.[6, 4]))
-ELS.[5, 4] <- 10^(2/4 * lg(ELS.[4, 4]) + 2/4 * lg(ELS.[6, 4]))
-ELS.[3, 4] <- 10^(1/4 * lg(ELS.[4, 4]) + 3/4 * lg(ELS.[6, 4]))
-for (i in 1:6) {
-  lines (x,      lg(ELS.[i, ]), lty = i, lwd = 2.4)
-  points(x[1:3], lg(ELS.[i, 1:3]), pch = c(4, 21, 24, 22, 25, 23)[i],
-    cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
-  text(2023, lg(ELS.[i, 4]), 
-    c("land-use change", "other/unknown", "climate change",
-      "pollution", "native species", "disturbance")[i],
-    pos = 4, cex = 1.2)
-}
-text(2015.5, 3.12, expression(bold(ELS[50])), cex = 1.8)
-if (nchar(figS3)) {
-  dev.off()
+{
+  xl <- c(2009.5, 2028)
+  yl <- c(lg(8), 3.25)
+  if (nchar(figS3)) {
+    png(figS3, 1500, 1200, res = 180)
+    xl <- c(2009.5, 2027.5)
+    yl <- c(lg(8), 3.1)
+  }
+  par(mai = c(0.96, 0.96, 0.06, 0.06), family = "sans")
+  plot(0, 0, xlim = xl, ylim = yl,
+    xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "",
+    ylab="Expected loss of species",
+    bty = "n", cex.axis = 1.2, cex.lab = 1.8)
+  axis(1, c(2009, 2021.5),          F, T, tcl = 0,        lwd = 1.5, lend = 1)
+  axis(1, 2009:2021,                F, T,                 lwd = 1.5, lend = 1)
+  axis(1, c(2010, 2015, 2021),      T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+  axis(2, c(1, lg(1200)),           F, T, tcl = 0,        lwd = 1.5, lend = 1)
+  axis(2, 0:3, c(1, 10, 100, 1000), T,    cex.axis = 1.2, lwd = 1.5, lend = 1)
+  axis(2, lg(c(2:9, seq(20, 90, 10), seq(200, 900, 100))),
+                                    F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
+  mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
+  x <- c(2010, 2015, 2021, 2023)
+  ELS.[2, 4] <- 10^(3/4 * lg(ELS.[4, 4]) + 1/4 * lg(ELS.[6, 4]))
+  ELS.[5, 4] <- 10^(2/4 * lg(ELS.[4, 4]) + 2/4 * lg(ELS.[6, 4]))
+  ELS.[3, 4] <- 10^(1/4 * lg(ELS.[4, 4]) + 3/4 * lg(ELS.[6, 4]))
+  for (i in 1:6) {
+    lines (x,      lg(ELS.[i, ]), lty = i, lwd = 2.4)
+    points(x[1:3], lg(ELS.[i, 1:3]), pch = c(4, 21, 24, 22, 25, 23)[i],
+      cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
+    text(2023, lg(ELS.[i, 4]), 
+      c("land-use change", "other/unknown", "climate change",
+        "pollution", "native species", "disturbance")[i],
+      pos = 4, cex = 1.2)
+  }
+  text(2015.5, 3.12, expression(bold(ELS[50])), cex = 1.8)
+  if (nchar(figS3)) {
+    dev.off()
+  }
 }
 ```
 

@@ -577,7 +577,7 @@ checkRL <- function(RL) {
             cat("WARNING: The timing \"" %+% unknownTiming %+%
                   "\" does not occur in the dataset!\n")
             OK <- FALSE
-          } unknown timing missing?
+          } # unknown timing missing?
         } else {
           cat("WARNING: The threat factor \"" %+% unknownThreat %+%
                 "\" does not occur in the dataset!\n")
@@ -970,7 +970,8 @@ m <- function(x) matrix(rep(x, each=length(threats)), length(threats), length(x)
 
 
 confidenceRLI <- function(RL, nsim, column,
-                          quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
+                          quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975),
+                          showProgress = TRUE) {
   # Estimates confidence intervals on the RLI itself
   rlcat <- rlcat. <- n0(RL[, column])
   rli <- L <- 0
@@ -986,7 +987,7 @@ confidenceRLI <- function(RL, nsim, column,
     L[i] <- sum(L[1:i])
   }
   L <- c(0, L)
-  cat("\n")
+  if (showProgress) cat("\n")
   for (i in 1:nsim) {
     # random assignment of DD species to other Red List Categories
     rlcat <- rlcat.
@@ -995,14 +996,15 @@ confidenceRLI <- function(RL, nsim, column,
       rlcat[w][which(zf >= L[j] & zf <= L[j + 1])] <- LC.EX[j]
     } # j
     rli[i] <- RLI(rlcat, RL[, GTime])
-    cat ("\r" %+% round(100*i/nsim) %+% "% done.")
+    if (showProgress) cat ("\r" %+% round(100*i/nsim) %+% "% done.")
   } # i
-  cat("\n\n")
+  if (showProgress) cat("\n\n")
   return(quantile(rli, quantiles))
 } # confidenceRLI
 
 
-simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975)) {
+simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975),
+                         showProgress = TRUE) {
   # Estimates confidence intervals on DeltaRLI, dRLI and ELS50
   years <- sort(identifyYears(RL))
   C <- Categ %+% max(years) %+% "." %+% max(years)
@@ -1078,7 +1080,7 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975))
                    unknownScope,
                    unknownSeverity,
                    sep = ":")
-  cat("\n\n\n")
+  if (showProgress) cat("\n\n\n")
   for (i in 1:nrow(RL)) {
     C <- Categ %+% years %+% "." %+% max(years)
     if (any(isConcern(RL[i, C])) | any(isDD(RL[i, C]))) {
@@ -1179,9 +1181,9 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975))
         } # estimate DeltaRLI
       } # y
     } # if in NT-RE
-    cat ("\r" %+% round(100 * i / nrow(RL)) %+% "% done.")
+    if (showProgress) cat ("\r" %+% round(100 * i / nrow(RL)) %+% "% done.")
   } # i
-  cat("\n\n\n")
+  if (showProgress) cat("\n\n\n")
   # prepare results for output
   mxW <- RLW(extinct[1])
   for (y in years) {
