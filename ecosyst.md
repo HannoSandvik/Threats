@@ -10,23 +10,27 @@
     data</a>
 -   <a href="#analysis-of-threat-factors"
     id="toc-analysis-of-threat-factors">Analysis of threat factors</a>
--   <a href="#figure" id="toc-figure">Figure</a>
+-   <a href="#figure-4" id="toc-figure-4">Figure 4</a>
 -   <a href="#disaggregation" id="toc-disaggregation">Disaggregation</a>
     -   <a href="#figure-s4" id="toc-figure-s4">Figure S4</a>
 
-This R code can be used to run the analyses of the Norwegian Red Lists
-for ecosystems and land-cover types described in the paper “Metrics for
-quantifying the contributions of different threats to Red Lists of
-species and ecosystems”
+This **R** code can be used to run the analyses of the Norwegian Red
+Lists for ecosystems and land-cover types described in the paper
+“Metrics for quantifying how much different threats contribute to red
+lists of species and ecosystems” ([Sandvik & Pedersen
+2023](https://doi.org/10.1111/cobi.14105)).
 
 ## Variables
 
 The following variables can be used to adjust the output.
 
-**(1) Name of the data file.** If you haven’t saved the data file to
-your root directory, the file path needs to be included in the file
-name.
+**(1) Name of the data file.** The defaults downloads the Norwegian Red
+List data for ecosystems from
+[doi:10.5281/zenodo.7893216](https://doi.org/10.5281/zenodo.7893216). To
+analyse other Red Lists, use `url = ""` and provide the file name of the
+dataset as `file` (including file path, if needed).
 
+    url  <- "https://zenodo.org/record/7893216/files/ecosyst.csv"
     file <- "ecosyst.csv"
 
 **(2) Handling of DD species.** Decides whether Data Deficient
@@ -42,30 +46,30 @@ distribution of the known threat factors.
     inferThreats <- FALSE
 
 **(4) Disaggregation.** Decides whether ecosystem major types should be
-disaggregated into their minor types
+disaggregated into their minor types.
 
     disaggregate <- FALSE
 
 **(5) Weighting underlying RLI.** Defines the weighting scheme for the
 Red List Index. (Defaults to “equal-steps”; other options are the IUCN
 Red List Criteria “A1”, “A2”, “A3”, “B1”, “B2”, “C1”, “C2”, “C3”, “D1”,
-“D2”, “D3” and “E” as well as “Ev2”, “Ev3”)
+“D2”, “D3” and “E” as well as “Ev2”, “Ev3”.)
 
     weightingRLI <- "equal-steps"
 
 **(6) Weighting underlying ELS.** Defines the weighting scheme for the
 Expected Loss of Systems. (Defaults to using the thresholds of the IUCN
 Red List Criterion E; other options are “A1”, “A2”, “A3”, “B1”, “B2”,
-“C1”, “C2”, “C3”, “D1”, “D2”, “D3”, “Ev2”, “Ev3” and “equal-steps”)
+“C1”, “C2”, “C3”, “D1”, “D2”, “D3”, “Ev2”, “Ev3” and “equal-steps”.)
 
     weightingELS <- "E"
 
 **(7) Column names.** Column names in the dataset which contain Red List
-Categories, threat factors, reasons for change in category, and
-generation time, respectively. The three former ones need to be followed
-by the year of assessment (for change, the year of the *second* of the
-two relevant assessments). So if the column name containing Red List
-Categories is *not* named something like “Categ21” or “Categ2021”, this
+Categories, threat factors, reasons for category change, and generation
+time, respectively. The three former ones need to be followed by the
+year of assessment (for change, the year of the *second* of the two
+relevant assessments). So if the column name containing Red List
+Categories is *not* named something like “Categ18” or “Categ2018”, this
 needs to be adjusted here!
 
     Categ  <- "Categ"
@@ -87,7 +91,7 @@ Note the following formatting requirements of these columns:
     change in Red List Category per ecosystem.
 
 **(8) Abbreviations used.** What are the abbreviations used for unknown
-threats and for real status change? The three former can occur in the
+threats and for real status change? The four “unknowns” can occur in the
 `Threat` column(s), see previous item. (Defaults to the abbreviations
 used in the dataset analysed in the paper. May need to be adjusted for
 other datasets.) The latter is only needed if Red List Categories are to
@@ -100,7 +104,7 @@ be “back-cast” to earlier Red List assessments. It must occur in the
     unknownSeverity <- "unknownd"
     realChange      <- "realchng"
 
-**(9) Timings to include. **What is (are) the abbreviation(s) of the
+**(9) Timings to include.** What is (are) the abbreviation(s) of the
 timing categories that should be considered (defaults to “ongoing”).
 
     inclTiming <- "ongoingt"
@@ -108,7 +112,7 @@ timing categories that should be considered (defaults to “ongoing”).
 If *all* threats are to be included, irrespective of timing, this would
 need to be replaced (in terms of the abbreviations used in this dataset)
 by
-`inclTiming <- c("onlypast", "suspendd", "ongoing", "onlyfutu", "unknownt")`
+`inclTiming <- c("onlypast", "suspendd", "ongoing", "onlyfutu", "unknownt")`.
 
 **(10) Number of simulations.** NB: the default takes a while. For
 exploration purposes, `nsim <- 1000` will suffice.
@@ -122,7 +126,7 @@ TRUE) or be based on novel random numbers (if FALSE)
     re.create <- TRUE
 
 **(12) File names of figures.** If you want to display the figures on
-screen, keep the default. If you want to create PNG file, specify the
+screen, keep the default. If you want to create PNG files, specify the
 file names (including paths).
 
     fig4  <- ""
@@ -135,49 +139,7 @@ modifying some underlying assumptions.
 
 **(1) Red List Categories** and their weights, extinction probabilities
 etc. This data frame needs to contain all Red List Categories used in
-the Red List analysed of species that have been evaluated.
-
--   The column “LC” identifies the Red List Category “Least Concern”
-    (defaults to IUCN’s abbreviation).
--   The column “EX” identified the Red List Categories for extinction
-    (defaults to IUCN’s abbreviations).
--   The column “wt” provides the Red List Weight of the Category
-    (defaults to equal-steps weighting).
--   The columns “lowP” and “uppP” provide the lower and upper threshold
-    values for extinction probability according to IUCN Red List
-    Criterion E.
--   The columns “lowT” and “uppT” provide the lower and upper threshold
-    values for extinction time frames in *years* according to IUCN Red
-    List Criterion E.
--   The columns “lowG” and “uppG” are not used for ecosystems.
--   The columns “lowA1” and “uppA1” provide the lower and upper
-    threshold values for reduction in geographic distribution according
-    to IUCN Red List Criterion A1.
--   The columns “lowA2” and “uppA2” provide the lower and upper
-    threshold values for reduction in geographic distribution to IUCN
-    Red List Criterion A2. (Note that A3 is not implemented.)
--   The columns “lowB1” and “uppB1” provide the lower and upper
-    threshold values for extents of occurrence (EOO) according to IUCN
-    Red List Criterion B1.
--   The columns “lowB2” and “uppB2” provide the lower and upper
-    threshold values for areas of occupancy (AOO) according to IUCN Red
-    List Criterion B2.
--   The columns “lowC” and “uppC” provide the lower and upper threshold
-    values for environmental degradation according to IUCN Red List
-    Criteria C1 and C2 (estimated as the *product* of *extent* and
-    *relative severity* over a 50-year period; note that C3 is not
-    implemented).
--   The columns “lowD” and “uppD” provide the lower and upper threshold
-    values for disruption of biotic processes or interactions according
-    to IUCN Red List Criteria D1 and D2 (estimated as the *product* of
-    *extent* and *relative severity* over a 50-year period; note that D3
-    is not implemented).
--   The column “distr” provides the distribution of extinction
-    probabilities within the interval.
--   The column “beta” is not currently needed (but may be needed if
-    “distr” is changed).
-
-<!-- -->
+the Red List analysed of ecosystems that have been evaluated:
 
     RLcateg <- data.frame(
       name  = c(  "LC",   "NT",   "VU",   "EN",   "CR",   "CO"),
@@ -207,6 +169,54 @@ the Red List analysed of species that have been evaluated.
       stringsAsFactors = FALSE
     )
 
+The values in the dataframe are based on [IUCN
+(2016)](https://doi.org/10.2305/IUCN.CH.2016.RLE.2.en), [Bland et
+al. (2017)](https://doi.org/10.2305/IUCN.CH.2016.RLE.3.en) and the
+Norwegian guidance document ([Artsdatabanken
+2018](https://artsdatabanken.no/Files/27210/)). The columns have the
+following meanings:
+
+-   The column “LC” identifies the Red List Category “Least Concern”
+    (defaults to IUCN’s abbreviation).
+-   The column “EX” identified the Red List Categories for ecosystem
+    collapse (defaults to IUCN’s abbreviations).
+-   The column “wt” provides the Red List Weight of the Category
+    (defaults to equal-steps weighting).
+-   The columns “lowP” and “uppP” provide the lower and upper threshold
+    values for extinction probability according to IUCN Red List
+    Criterion E.
+-   The columns “lowT” and “uppT” provide the lower and upper threshold
+    values for extinction time frames in *years* according to IUCN Red
+    List Criterion E.
+-   The columns “lowG” and “uppG” are not used for ecosystems but should
+    contain zeros.
+-   The columns “lowA1” and “uppA1” provide the lower and upper
+    threshold values for reduction in geographic distribution according
+    to IUCN Red List Criterion A1.
+-   The columns “lowA2” and “uppA2” provide the lower and upper
+    threshold values for reduction in geographic distribution to IUCN
+    Red List Criterion A2. (Note that A3 is not implemented.)
+-   The columns “lowB1” and “uppB1” provide the lower and upper
+    threshold values for extents of occurrence (EOO) according to IUCN
+    Red List Criterion B1.
+-   The columns “lowB2” and “uppB2” provide the lower and upper
+    threshold values for areas of occupancy (AOO) according to IUCN Red
+    List Criterion B2.
+-   The columns “lowC” and “uppC” provide the lower and upper threshold
+    values for environmental degradation according to IUCN Red List
+    Criteria C1 and C2 (estimated as the *product* of *extent* and
+    *relative severity* over a 50-year period; note that C3 is not
+    implemented).
+-   The columns “lowD” and “uppD” provide the lower and upper threshold
+    values for disruption of biotic processes or interactions according
+    to IUCN Red List Criteria D1 and D2 (estimated as the *product* of
+    *extent* and *relative severity* over a 50-year period; note that D3
+    is not implemented).
+-   The column “distr” provides the distribution of extinction
+    probabilities within the interval.
+-   The column “beta” is not currently needed (but may be needed if
+    “distr” is changed).
+
 **(2) Data deficiency**. What is the abbreviation used for the “Data
 Deficient” Red List Category? (Defaults to IUCN’s abbreviation.)
 
@@ -227,9 +237,23 @@ followed by this symbol, it is assumed to have been *downlisted* by
 
 **(5) Severities** and their threshold values. This data frame needs to
 contain all severity categories of threats used in the Red List
-analysed. The data frame defaults to the severity categories used in
-Norwegian Red Lists, where values correspond to the declines in area of
-occupancy over 50 years caused by a threat.
+analysed:
+
+    Severity <- data.frame(
+      name  = c("negldecl", "slowdecl", "rapidecl", "unknownd"),
+      lower = c(      0.00,       0.02,       0.20,       0.00),
+      upper = c(      0.02,       0.20,       1.00,       1.00),
+      distr = c(    "incr",     "unif",     "decr",     "beta"),
+      beta  = c(        NA,         NA,         NA,         20),
+      stringsAsFactors = FALSE
+    )
+
+The data frame defaults to the severity categories used in Norwegian Red
+Lists, where values correspond to the declines in area of occupancy over
+50 years caused by a threat ([Artsdatabanken
+2018](https://artsdatabanken.no/Files/27210/); cf.  [IUCN
+2022](https://www.iucnredlist.org/resources/threat-classification-scheme)).
+The columns have the following meanings:
 
 -   The column “name” contains the abbreviations used for the severity
     categories.
@@ -242,17 +266,6 @@ occupancy over 50 years caused by a threat.
     “beta”).
 -   The column “beta” contains the beta parameter of a Beta distribution
     (a numeric values if `distr == "beta"`, and `NA` otherwise).
-
-<!-- -->
-
-    Severity <- data.frame(
-      name  = c("negldecl", "slowdecl", "rapidecl", "unknownd"),
-      lower = c(      0.00,       0.02,       0.20,       0.00),
-      upper = c(      0.02,       0.20,       1.00,       1.00),
-      distr = c(    "incr",     "unif",     "decr",     "beta"),
-      beta  = c(        NA,         NA,         NA,         20),
-      stringsAsFactors = FALSE
-    )
 
 **(6) Time frame** for the Expected Loss of Systems, in years (defaults
 to 50 years).
@@ -268,17 +281,32 @@ Load the set of functions belonging to this depository:
 Define further required variables, based on the variables and constants
 specified above:
 
-    LC      <- RLcateg$name[RLcateg$LC]
-    extinct <- RLcateg$name[RLcateg$EX]
-    LC.EX   <- RLcateg$name
-    RedListCat <- c(LC.EX, DD, notEval)
+    LC      <- RLcateg$name[RLcateg$LC]  # abbreviation(s) for systems of Least Concern
+    extinct <- RLcateg$name[RLcateg$EX]  # abbreviation(s) for collapsed systems
+    LC.EX   <- RLcateg$name              # Red List Categories of evaluated systems
+    RedListCat <- c(LC.EX, DD, notEval)  # all Red List Categories
 
 ## Read and check the data
 
 Read the dataset “Norwegian Red List for ecosystems and land-cover
 types”:
 
-    RL <- read.csv2(file, as.is=TRUE, dec=".", na.strings="n/a", encoding="latin1")
+    {
+      foundFile <- FALSE
+      if (file.exists(file)) {
+        foundFile <- TRUE
+      } else {
+        if (nchar(url)) {
+          downl <- try(download.file(url, file))
+          foundFile <- !inherits(downl, "try-error")
+        }
+      }
+      if (foundFile) {
+        RL <- read.csv2(file, as.is=TRUE, dec=".", na.strings="n/a", encoding="latin1")
+      } else {
+        cat("The datafile was not found.\n")
+      }
+    }
 
 Check whether the data are as expected:
 
@@ -302,8 +330,7 @@ Check whether the data are as expected:
     ## [1] 18
     ## 
     ## Threat factors reported in this dataset:
-    ##  [1] "alienspe" "climatec" "disturba" "huntgath" "landusec" "natcatas" "nativesp" "otherthr" "pollutio"
-    ## [10] "unknownf"
+    ##  [1] "alienspe" "climatec" "disturba" "huntgath" "landusec" "natcatas" "nativesp" "otherthr" "pollutio" "unknownf"
 
 We can ignore these two warnings in this case.
 
@@ -346,7 +373,7 @@ of ecosystems.
 
 ## Summarise the data
 
-Summarise the Red Lists:
+Summarise the Red List:
 
     tab <- summariseRL(RL, exclude = NULL)
 
@@ -355,7 +382,7 @@ Summarise the Red Lists:
 
 ## Analysis of threat factors
 
-Estimate DeltaRLI:
+Estimate ΔRLI:
 
     DRLI <- DeltaRLI(RL)
 
@@ -365,7 +392,7 @@ Estimate DeltaRLI:
 
     ## [1] NA
 
-Estimate dRLI and ELS50:
+Estimate δRLI and ELS\_50\_:
 
     drli <- dRLI(RL)
     print(drli)
@@ -399,21 +426,14 @@ Estimate dRLI and ELS50:
 Confidence intervals on RLI (loaded from a cached version of this call):
 
     print(confidenceRLI(RL, nsim, "Categ18"))
-    # With the default `nsim`, the above line would take quite a while... 
 
     ##      2.5%       25%       50%       75%     97.5% 
     ## 0.8009524 0.8047619 0.8066667 0.8085714 0.8123810
 
-Confidence intervals on DeltaRLI, deltaRLI and ELS50:
+Confidence intervals on ΔRLI, δRLI and ELS\_50\_:
 
     results <- simulateDRLI(RL, nsim)
 
-    ## 
-    ## 
-    ## 
-    ## 0% done.1% done.1% done.2% done.2% done.3% done.3% done.4% done.4% done.5% done.5% done.6% done.6% done.7% done.7% done.8% done.8% done.9% done.9% done.10% done.10% done.10% done.11% done.11% done.12% done.12% done.13% done.13% done.14% done.14% done.15% done.15% done.16% done.16% done.17% done.17% done.18% done.18% done.19% done.19% done.20% done.20% done.20% done.21% done.21% done.22% done.22% done.23% done.23% done.24% done.24% done.25% done.25% done.26% done.26% done.27% done.27% done.28% done.28% done.29% done.29% done.30% done.30% done.30% done.31% done.31% done.32% done.32% done.33% done.33% done.34% done.34% done.35% done.35% done.36% done.36% done.37% done.37% done.38% done.38% done.39% done.39% done.40% done.40% done.40% done.41% done.41% done.42% done.42% done.43% done.43% done.44% done.44% done.45% done.45% done.46% done.46% done.47% done.47% done.48% done.48% done.49% done.49% done.50% done.50% done.50% done.51% done.51% done.52% done.52% done.53% done.53% done.54% done.54% done.55% done.55% done.56% done.56% done.57% done.57% done.58% done.58% done.59% done.59% done.60% done.60% done.60% done.61% done.61% done.62% done.62% done.63% done.63% done.64% done.64% done.65% done.65% done.66% done.66% done.67% done.67% done.68% done.68% done.69% done.69% done.70% done.70% done.70% done.71% done.71% done.72% done.72% done.73% done.73% done.74% done.74% done.75% done.75% done.76% done.76% done.77% done.77% done.78% done.78% done.79% done.79% done.80% done.80% done.80% done.81% done.81% done.82% done.82% done.83% done.83% done.84% done.84% done.85% done.85% done.86% done.86% done.87% done.87% done.88% done.88% done.89% done.89% done.90% done.90% done.90% done.91% done.91% done.92% done.92% done.93% done.93% done.94% done.94% done.95% done.95% done.96% done.96% done.97% done.97% done.98% done.98% done.99% done.99% done.100% done.100% done.
-    ## 
-    ## 
     ## 
     ## 
     ## Confidence intervals for the cumulative dRLI in 18:
@@ -422,18 +442,12 @@ Confidence intervals on DeltaRLI, deltaRLI and ELS50:
     ## 
     ## 
     ## Confidence intervals for the threat-wise dRLIs in 18:
-    ##          alienspe   climatec   disturba     huntgath   landusec     natcatas    nativesp    otherthr   pollutio
-    ## 2.5%  0.006758343 0.03656412 0.01675931 6.795494e-06 0.08584420 7.156479e-05 0.005126745 0.006181287 0.01228131
-    ## 25%   0.007687161 0.03829361 0.01794484 1.435925e-05 0.08836223 1.575950e-04 0.005738308 0.007383997 0.01391030
-    ## 50%   0.008198793 0.03922720 0.01857568 1.809884e-05 0.08982168 2.262735e-04 0.006108323 0.008218062 0.01481735
-    ## 75%   0.008730884 0.04017614 0.01921618 2.160334e-05 0.09136730 3.189405e-04 0.006474419 0.009310056 0.01576807
-    ## 97.5% 0.009767632 0.04203056 0.02042585 2.976382e-05 0.09443842 5.457735e-04 0.007113675 0.011246090 0.01767791
-    ##          unknownf
-    ## 2.5%  0.004761905
-    ## 25%   0.005714286
-    ## 50%   0.007619048
-    ## 75%   0.008571429
-    ## 97.5% 0.011428571
+    ##          alienspe   climatec   disturba     huntgath   landusec     natcatas    nativesp    otherthr   pollutio    unknownf
+    ## 2.5%  0.006758343 0.03656412 0.01675931 6.795494e-06 0.08584420 7.156479e-05 0.005126745 0.006181287 0.01228131 0.004761905
+    ## 25%   0.007687161 0.03829361 0.01794484 1.435925e-05 0.08836223 1.575950e-04 0.005738308 0.007383997 0.01391030 0.005714286
+    ## 50%   0.008198793 0.03922720 0.01857568 1.809884e-05 0.08982168 2.262735e-04 0.006108323 0.008218062 0.01481735 0.007619048
+    ## 75%   0.008730884 0.04017614 0.01921618 2.160334e-05 0.09136730 3.189405e-04 0.006474419 0.009310056 0.01576807 0.008571429
+    ## 97.5% 0.009767632 0.04203056 0.02042585 2.976382e-05 0.09443842 5.457735e-04 0.007113675 0.011246090 0.01767791 0.011428571
     ## 
     ## 
     ## Confidence intervals for the cumulative ELS50 in 18:
@@ -449,7 +463,7 @@ Confidence intervals on DeltaRLI, deltaRLI and ELS50:
     ## 75%   0.7972969 3.377408 1.946892 0.0008328888 8.565619 0.021298477 0.6052429 0.6120342 1.449206 0.6085508
     ## 97.5% 0.9576001 3.713596 2.192874 0.0012638595 9.177311 0.042441397 0.7098457 0.9837090 1.727132 1.0811737
 
-## Figure
+## Figure 4
 
 The following script recreates Figure 4.
 
@@ -457,104 +471,108 @@ Simplify the data by collapsing minor threats:
 
     drli. <- drli$dRLI[, 1]
     ELS.  <- drli$ELS50[,1]
-    drli.["otherthr"] <- sum(drli.[c("otherthr", "unknownf", "natcatas", 
-                                     "alienspe", "huntgath")])
-    ELS. ["otherthr"] <- sum(ELS. [c("otherthr", "unknownf", "natcatas", 
-                                     "alienspe", "huntharv")])
-    drli. <-     drli.[-which(names(drli.) %in% c("unknownf", "natcatas", 
-                                                  "alienspe", "huntgath"))]
-    ELS.  <-     ELS.[-which(names(ELS.) %in% c("unknownf", "natcatas", 
-                                                "alienspe", "huntgath"))]
+    drli.["otherthr"] <- sum(drli.[c("alienspe", "huntgath", "natcatas",
+                                     "nativesp", "otherthr", "unknownf")])
+    ELS. ["otherthr"] <- sum(ELS. [c("alienspe", "huntgath", "natcatas",
+                                     "nativesp", "otherthr", "unknownf")])
+    drli. <-     drli.[-which(names(drli.) %in% c("alienspe", "huntgath", "natcatas",
+                                                  "nativesp", "unknownf"))]
+    ELS.  <-     ELS. [-which(names(ELS.)  %in% c("alienspe", "huntgath", "natcatas",
+                                                  "nativesp", "unknownf"))]
     ELS.  <- ELS.[order(drli., decreasing=T)]
     drli. <- drli.[order(drli., decreasing=T)]
 
-Plot a graph for dRLI:
+Plot a graph for δRLI:
 
-    xl <- c(6, 30)
-    yl <- c(0.79, 1.02)
-    if (nchar(fig4)) {
-      png(fig4, 1500, 1200, res=180)
-      xl <- c(7, 24)
-      yl <- c(0.795, 1.01)
+    {
+      xl <- c(6, 30)
+      yl <- c(0.79, 1.02)
+      if (nchar(fig4)) {
+        png(fig4, 1500, 1200, res=180)
+        xl <- c(7, 24)
+        yl <- c(0.795, 1.01)
+      }
+      par(mai=c(0.06, 0.96, 0.06, 0.06), family="sans")
+      plot(0, 0, xlim=xl, ylim=yl, xaxs="i", yaxs="i", xaxt="n", yaxt="n",
+           xlab="", ylab="Red List Index", bty="n", cex.axis=1.2, cex.lab=1.8)
+      axis(2, seq(0.7, 1, 0.1), F, T, lwd=1.5, lend=1)
+      axis(2, seq(0.7, 1, 0.05), T, F, cex.axis=1.2, lwd=1.5, lend=1)
+      axis(2, seq(0.7, 1, 0.01), F, T, tcl=-0.25, lwd=1.5, lend=1)
+      rect(11, 0, 14, 1, col=grey(0.96))
+      for (i in 5:1) {
+        rect(11, 1 - sum(drli.[i:1]), 14, 1, lwd=1.2, col=grey(0.96 - i * 0.12))
+      }
+      rect(11, 0, 14, 1, lwd=2.4, col=NA)
+      x1 <- 7.4; x2 <- 10.6
+      rli <- RLI(RL$Categ18)
+      lines(c(x1, x2), rep(rli, 2), lwd=2.4)
+      lines(c(x1, x2), rep(1, 2), lwd=2.4)
+      polygon(x1 + c(-0.2,  0.1,  0.1), rli + c(0, 0.002, -0.002), col="black")
+      polygon(x2 + c( 0.2, -0.1, -0.1), rli + c(0, 0.002, -0.002), col="black")
+      polygon(x1 + c(-0.2,  0.1,  0.1),  1  + c(0, 0.002, -0.002), col="black")
+      polygon(x2 + c( 0.2, -0.1, -0.1),  1  + c(0, 0.002, -0.002), col="black")
+      text(mean(c(x1, x2)), 1, "reference value", pos=3, cex=1.2)
+      text(mean(c(x1, x2)), 1, "1.0000", pos=1, cex=1.2)
+      text(mean(c(x1, x2)), rli, "RLI 2018", pos=3, cex=1.2)
+      text(mean(c(x1, x2)), rli, "0.8069", pos=1, cex=1.2)
+      text(15, 1 - 0.5 * sum(        0) - 0.5 * sum(drli.[1:1]),
+           expression(paste("Land-use change (", bold("8.3"), " ecosystems lost)")), 
+           pos=4, cex=1.2)
+      text(15, 1 - 0.5 * sum(drli.[1:1]) - 0.5 * sum(drli.[1:2]),
+           expression(paste("Climate change (", bold("3.2"), " ecosystems lost)")), 
+           pos=4, cex=1.2)
+      text(15, 1 - 0.5 * sum(drli.[1:2]) - 0.5 * sum(drli.[1:3]),
+           expression(paste("Other threats (", bold("2.3"), " ecosystems lost)")), 
+           pos=4, cex=1.2)
+      text(15, 1 - 0.5 * sum(drli.[1:3]) - 0.5 * sum(drli.[1:4]),
+           expression(paste("Human disturbance (", bold("1.8"), " ecosystems lost)")), 
+           pos=4, cex=1.2)
+      text(15, 1 - 0.5 * sum(drli.[1:4]) - 0.5 * sum(drli.[1:5]),
+           expression(paste("Pollution (", bold("1.4"), " ecosystems lost)")), 
+           pos=4, cex=1.2)
+      text(15, 1 - 0.5 * sum(drli.[1:5]) - 0.5 * 0.205,
+           expression(paste(bold("212"), " ecosystems ", italic("not"), " lost")), 
+           pos=4, cex=1.2)
+      lines(14:15, rep(1 - 0.5 * sum(         0) - 0.5 * sum(drli.[1:1]), 2), lwd=1.2)
+      lines(14:15, rep(1 - 0.5 * sum(drli.[1:1]) - 0.5 * sum(drli.[1:2]), 2), lwd=1.2)
+      lines(14:15, rep(1 - 0.5 * sum(drli.[1:2]) - 0.5 * sum(drli.[1:3]), 2), lwd=1.2)
+      lines(14:15, rep(1 - 0.5 * sum(drli.[1:3]) - 0.5 * sum(drli.[1:4]), 2), lwd=1.2)
+      lines(14:15, rep(1 - 0.5 * sum(drli.[1:4]) - 0.5 * sum(drli.[1:5]), 2), lwd=1.2)
+      lines(14:15, rep(1 - 0.5 * sum(drli.[1:5]) - 0.5 * sum(     0.205), 2), lwd=1.2)
+      if (nchar(fig4)) {
+        dev.off()
+      }
     }
-    par(mai=c(0.06, 0.96, 0.06, 0.06), family="sans")
-    plot(0, 0, xlim=xl, ylim=yl, xaxs="i", yaxs="i", xaxt="n", yaxt="n",
-         xlab="", ylab="Red List Index", bty="n", cex.axis=1.2, cex.lab=1.8)
-    axis(2, seq(0.7, 1, 0.1), F, T, lwd=1.5, lend=1)
-    axis(2, seq(0.7, 1, 0.05), T, F, cex.axis=1.2, lwd=1.5, lend=1)
-    axis(2, seq(0.7, 1, 0.01), F, T, tcl=-0.25, lwd=1.5, lend=1)
-    rect(11, 0, 14, 1, col=grey(0.96))
-    for (i in 5:1) {
-      rect(11, 1 - sum(drli.[i:1]), 14, 1, lwd=1.2, col=grey(0.96 - i * 0.12))
-    }
-    rect(11, 0, 14, 1, lwd=2.4, col=NA)
-    x1 <- 7.4; x2 <- 10.6
-    rli <- RLI(RL$Categ18)
-    lines(c(x1, x2), rep(rli, 2), lwd=2.4)
-    lines(c(x1, x2), rep(1, 2), lwd=2.4)
-    polygon(x1 + c(-0.2, 0.1, 0.1), rli + c(0, 0.002, -0.002), col="black")
-    polygon(x2 + c(0.2, -0.1, -0.1), rli + c(0, 0.002, -0.002), col="black")
-    polygon(x1 + c(-0.2, 0.1, 0.1), 1 + c(0, 0.002, -0.002), col="black")
-    polygon(x2 + c(0.2, -0.1, -0.1), 1 + c(0, 0.002, -0.002), col="black")
-    text(mean(c(x1, x2)), 1, "reference value", pos=3, cex=1.2)
-    text(mean(c(x1, x2)), 1, "1.0000", pos=1, cex=1.2)
-    text(mean(c(x1, x2)), rli, "RLI 2018", pos=3, cex=1.2)
-    text(mean(c(x1, x2)), rli, "0.8069", pos=1, cex=1.2)
-    text(15, 1 - 0.5 * sum(        0) - 0.5 * sum(drli.[1:1]),
-         expression(paste("Land-use change (", bold("8.3"), " ecosystems lost)")), 
-         pos=4, cex=1.2)
-    text(15, 1 - 0.5 * sum(drli.[1:1]) - 0.5 * sum(drli.[1:2]),
-         expression(paste("Climate change (", bold("3.2"), " ecosystems lost)")), 
-         pos=4, cex=1.2)
-    text(15, 1 - 0.5 * sum(drli.[1:2]) - 0.5 * sum(drli.[1:3]),
-         expression(paste("Other threats (", bold("2.3"), " ecosystems lost)")), 
-         pos=4, cex=1.2)
-    text(15, 1 - 0.5 * sum(drli.[1:3]) - 0.5 * sum(drli.[1:4]),
-         expression(paste("Human disturbance (", bold("1.8"), " ecosystems lost)")), 
-         pos=4, cex=1.2)
-    text(15, 1 - 0.5 * sum(drli.[1:4]) - 0.5 * sum(drli.[1:5]),
-         expression(paste("Pollution (", bold("1.4"), " ecosystems lost)")), 
-         pos=4, cex=1.2)
-    text(15, 1 - 0.5 * sum(drli.[1:5]) - 0.5 * 0.205,
-         expression(paste(bold("212"), " ecosystems ", italic("not"), " lost")), 
-         pos=4, cex=1.2)
-    lines(c(14,15), rep(1 - 0.5 * sum(         0) - 0.5 * sum(drli.[1:1]), 2), lwd=1.2)
-    lines(c(14,15), rep(1 - 0.5 * sum(drli.[1:1]) - 0.5 * sum(drli.[1:2]), 2), lwd=1.2)
-    lines(c(14,15), rep(1 - 0.5 * sum(drli.[1:2]) - 0.5 * sum(drli.[1:3]), 2), lwd=1.2)
-    lines(c(14,15), rep(1 - 0.5 * sum(drli.[1:3]) - 0.5 * sum(drli.[1:4]), 2), lwd=1.2)
-    lines(c(14,15), rep(1 - 0.5 * sum(drli.[1:4]) - 0.5 * sum(drli.[1:5]), 2), lwd=1.2)
-    lines(c(14,15), rep(1 - 0.5 * sum(drli.[1:5]) - 0.5 * sum(     0.205), 2), lwd=1.2)
 
-![](ecosyst_files/figure-markdown_strict/unnamed-chunk-72-1.png)
-
-    if (nchar(fig4)) {
-      dev.off()
-    }
+![](ecosyst_files/figure-markdown_strict/unnamed-chunk-73-1.png)
 
 ## Disaggregation
 
 The ecosystems assessed for the Norwegian Red List are at different
-levels of the underlying EcoSyst framework. The following analyses show
-the results obtained when major ecosystem types are disaggregated into
-their subordinated minor ecosystem types:
+levels of the underlying [EcoSyst](https://doi.org/10.1111/geb.13164)
+framework. The following analyses show the results obtained when major
+ecosystem types are disaggregated into their subordinated minor
+ecosystem types:
 
     {
       RL. <- disaggrMajorTypes(RL, minor = "MnTypes", type = "TypeCode", 
-                                 id = "FileID", categ = "Categ18.18")
-      RL. <- calcLoss(RL.)
-      RL. <- addThreats(RL.)
+                               id = "FileID", categ = "Categ18.18")
+      RL. <-    calcLoss(RL.)
+      RL. <-  addThreats(RL.)
+      cat("Summary table:\n")
       tab <- summariseRL(RL.)
-      DRLI. <- DeltaRLI(RL.)
-      print(DRLI.)
       drli. <- dRLI(RL.)
-      print(drli.)
+      cat("\ndRLI after disaggregation into minor types:\n")
+      print(drli.$dRLI)
+      cat("\nELS50 after disaggregation into minor types:\n")
+      print(drli.$ELS50)
     }
 
+    ## Summary table:
     ##        N  LC NT  VU EN CR DD       RLI Cum.ELS50
     ## RL18 760 506 70 124 35  4 21 0.8811908    33.624
-    ## DeltaRLI can only be estimated if there are at least two Red Lists.
-    ## [1] NA
-    ## $dRLI
+    ## 
+    ## dRLI after disaggregation into minor types:
     ##                  RL18
     ## alienspe 7.208655e-03
     ## climatec 2.937604e-02
@@ -567,7 +585,7 @@ their subordinated minor ecosystem types:
     ## pollutio 9.790767e-03
     ## unknownf 3.874368e-03
     ## 
-    ## $ELS50
+    ## ELS50 after disaggregation into minor types:
     ##                  RL18
     ## alienspe  2.250704490
     ## climatec  7.570356533
@@ -588,73 +606,78 @@ Simplify the data by collapsing minor threats:
 
     ELS.  <- drli.$ELS50[,1]
     drli. <- drli.$dRLI[, 1]
-    ELS. ["otherthr"] <- sum(ELS. [c("otherthr", "unknownf", "natcatas", 
-                                     "alienspe", "huntharv", "nativesp")])
-    drli.["otherthr"] <- sum(drli.[c("otherthr", "unknownf", "natcatas", 
-                                     "alienspe", "huntgath", "nativesp")])
-    ELS.  <-  ELS.[-which(names(ELS.) %in% c("unknownf", "natcatas", "alienspe",
-                                                "huntgath", "nativesp"))]
-    drli. <- drli.[-which(names(drli.) %in% c("unknownf", "natcatas", "alienspe",
-                                                  "huntgath", "nativesp"))]
+    ELS. ["otherthr"] <- sum(ELS. [c("alienspe", "huntgath", "natcatas",
+                                     "nativesp", "otherthr", "unknownf")])
+    drli.["otherthr"] <- sum(drli.[c("alienspe", "huntgath", "natcatas",
+                                     "nativesp", "otherthr", "unknownf")])
+    ELS.  <-     ELS. [-which(names(ELS.)  %in% c("alienspe", "huntgath", "natcatas",
+                                                  "nativesp", "unknownf"))]
+    drli. <-     drli.[-which(names(drli.) %in% c("alienspe", "huntgath", "natcatas",
+                                                  "nativesp", "unknownf"))]
     ELS.  <- ELS. [c(3, 1, 4, 2, 5)]
     drli. <- drli.[c(3, 1, 4, 2, 5)]
 
-Plot a graph for dRLI:
+Plot a graph for δRLI:
 
-    if (nchar(figS4)) {
-      png("c:\\art\\threats\\figS4.png", 1500, 1200, res=180)
+    {
+      xl <- c(6.5, 26.5)
+      yl <- c(0.792, 1.02)
+      if (nchar(figS4)) {
+        png("c:\\art\\threats\\figS4.png", 1500, 1200, res=180)
+        xl <- c(7, 24)
+        yl <- c(0.795, 1.01)
+      }
+      par(mai=c(0.06, 0.96, 0.06, 0.06), family="sans")
+      plot(0, 0, xlim=xl, ylim=yl, 
+           xaxs="i", yaxs="i", xaxt="n", yaxt="n",
+           xlab="", ylab="Red List Index", bty="n", cex.axis=1.2, cex.lab=1.8)
+      axis(2, seq(0.7, 1, 0.10), F, T, lwd=1.5, lend=1)
+      axis(2, seq(0.7, 1, 0.05), T, F, cex.axis=1.2, lwd=1.5, lend=1)
+      axis(2, seq(0.7, 1, 0.01), F, T, tcl=-0.25, lwd=1.5, lend=1)
+      rect(11, 0, 14, 1, col=grey(0.96))
+      for (i in 5:1) {
+        rect(11, 1 - sum(drli.[i:1]), 14, 1, lwd=1.2, col=grey(0.96 - i * 0.12))
+      }
+      rect(11, 0, 14, 1, lwd=2.4, col=NA)
+      x1 <- 7.4; x2 <- 10.6
+      rli <- RLI(RL.$Categ18.18)
+      lines(c(x1, x2), rep(rli, 2), lwd=2.4)
+      lines(c(x1, x2), rep(1, 2), lwd=2.4)
+      polygon(x1 + c(-0.2,  0.1,  0.1), rli + c(0, 0.002, -0.002), col="black")
+      polygon(x2 + c( 0.2, -0.1, -0.1), rli + c(0, 0.002, -0.002), col="black")
+      polygon(x1 + c(-0.2,  0.1,  0.1),  1  + c(0, 0.002, -0.002), col="black")
+      polygon(x2 + c( 0.2, -0.1, -0.1),  1  + c(0, 0.002, -0.002), col="black")
+      text(mean(c(x1, x2)), 1, "reference value", pos=3, cex=1.2)
+      text(mean(c(x1, x2)), 1, "1.0000", pos=1, cex=1.2)
+      text(mean(c(x1, x2)), rli, "RLI 2018", pos=3, cex=1.2)
+      text(mean(c(x1, x2)), rli, "0.8812", pos=1, cex=1.2)
+      text(15, 1 - 0.5 * sum(         0) - 0.5 * sum(drli.[1:1]),
+           expression(paste("Land-use change (", bold("17"), " ecosystems lost)")),
+           pos=4, cex=1.2)
+      text(15, 1 - 0.5 * sum(drli.[1:1]) - 0.5 * sum(drli.[1:2]),
+           expression(paste("Climate change (", bold("8"), " ecosystems lost)")), 
+           pos=4, cex=1.2)
+      text(15, 1 - 0.5 * sum(drli.[1:2]) - 0.5 * sum(drli.[1:3]),
+           expression(paste("Other threats (", bold("4"), " ecosystems lost)")), 
+           pos=4, cex=1.2)
+      text(15, 1 - 0.5 * sum(drli.[1:3]) - 0.5 * sum(drli.[1:4]),
+           expression(paste("Human disturbance (", bold("2"), " ecosystems lost)")), 
+           pos=4, cex=1.2)
+      text(15, 1 - 0.5 * sum(drli.[1:4]) - 0.5 * sum(drli.[1:5]),
+           expression(paste("Pollution (", bold("3"), " ecosystems lost)")), 
+           pos=4, cex=1.2)
+      text(15, 1 - 0.5 * sum(drli.[1:5]) - 0.5 * 0.205,
+           expression(paste(bold("774"), " ecosystems ", italic("not"), " lost")), 
+           pos=4, cex=1.2)
+      lines(14:15, rep(1 - 0.5 * sum(         0) - 0.5 * sum(drli.[1:1]), 2), lwd=1.2)
+      lines(14:15, rep(1 - 0.5 * sum(drli.[1:1]) - 0.5 * sum(drli.[1:2]), 2), lwd=1.2)
+      lines(14:15, rep(1 - 0.5 * sum(drli.[1:2]) - 0.5 * sum(drli.[1:3]), 2), lwd=1.2)
+      lines(14:15, rep(1 - 0.5 * sum(drli.[1:3]) - 0.5 * sum(drli.[1:4]), 2), lwd=1.2)
+      lines(14:15, rep(1 - 0.5 * sum(drli.[1:4]) - 0.5 * sum(drli.[1:5]), 2), lwd=1.2)
+      lines(14:15, rep(1 - 0.5 * sum(drli.[1:5]) - 0.5 * sum(     0.205), 2), lwd=1.2)
+      if (nchar(figS4)) {
+        dev.off()
+      }
     }
-    par(mai=c(0.06, 0.96, 0.06, 0.06), family="sans")
-    plot(0, 0, xlim=c(7, 24), ylim=c(0.795, 1.01), 
-         xaxs="i", yaxs="i", xaxt="n", yaxt="n",
-         xlab="", ylab="Red List Index", bty="n", cex.axis=1.2, cex.lab=1.8)
-    axis(2, seq(0.7, 1, 0.1), F, T, lwd=1.5, lend=1)
-    axis(2, seq(0.7, 1, 0.05), T, F, cex.axis=1.2, lwd=1.5, lend=1)
-    axis(2, seq(0.7, 1, 0.01), F, T, tcl=-0.25, lwd=1.5, lend=1)
-    rect(11, 0, 14, 1, col=grey(0.96))
-    for (i in 5:1) {
-      rect(11, 1 - sum(drli.[i:1]), 14, 1, lwd=1.2, col=grey(0.96 - i * 0.12))
-    }
-    rect(11, 0, 14, 1, lwd=2.4, col=NA)
-    x1 <- 7.4; x2 <- 10.6
-    rli <- RLI(RL.$Categ18.18)
-    lines(c(x1, x2), rep(rli, 2), lwd=2.4)
-    lines(c(x1, x2), rep(1, 2), lwd=2.4)
-    polygon(x1 + c(-0.2, 0.1, 0.1), rli + c(0, 0.002, -0.002), col="black")
-    polygon(x2 + c(0.2, -0.1, -0.1), rli + c(0, 0.002, -0.002), col="black")
-    polygon(x1 + c(-0.2, 0.1, 0.1), 1 + c(0, 0.002, -0.002), col="black")
-    polygon(x2 + c(0.2, -0.1, -0.1), 1 + c(0, 0.002, -0.002), col="black")
-    text(mean(c(x1, x2)), 1, "reference value", pos=3, cex=1.2)
-    text(mean(c(x1, x2)), 1, "1.0000", pos=1, cex=1.2)
-    text(mean(c(x1, x2)), rli, "RLI 2018", pos=3, cex=1.2)
-    text(mean(c(x1, x2)), rli, "0.8812", pos=1, cex=1.2)
-    text(15, 1 - 0.5 * sum(         0) - 0.5 * sum(drli.[1:1]),
-         expression(paste("Land-use change (", bold("17"), " ecosystems lost)")),
-         pos=4, cex=1.2)
-    text(15, 1 - 0.5 * sum(drli.[1:1]) - 0.5 * sum(drli.[1:2]),
-         expression(paste("Climate change (", bold("8"), " ecosystems lost)")), 
-         pos=4, cex=1.2)
-    text(15, 1 - 0.5 * sum(drli.[1:2]) - 0.5 * sum(drli.[1:3]),
-         expression(paste("Other threats (", bold("4"), " ecosystems lost)")), 
-         pos=4, cex=1.2)
-    text(15, 1 - 0.5 * sum(drli.[1:3]) - 0.5 * sum(drli.[1:4]),
-         expression(paste("Human disturbance (", bold("2"), " ecosystems lost)")), 
-         pos=4, cex=1.2)
-    text(15, 1 - 0.5 * sum(drli.[1:4]) - 0.5 * sum(drli.[1:5]),
-         expression(paste("Pollution (", bold("3"), " ecosystems lost)")), 
-         pos=4, cex=1.2)
-    text(15, 1 - 0.5 * sum(drli.[1:5]) - 0.5 * 0.205,
-         expression(paste(bold("774"), " ecosystems ", italic("not"), " lost")), 
-         pos=4, cex=1.2)
-    lines(c(14,15), rep(1 - 0.5 * sum(         0) - 0.5 * sum(drli.[1:1]), 2), lwd=1.2)
-    lines(c(14,15), rep(1 - 0.5 * sum(drli.[1:1]) - 0.5 * sum(drli.[1:2]), 2), lwd=1.2)
-    lines(c(14,15), rep(1 - 0.5 * sum(drli.[1:2]) - 0.5 * sum(drli.[1:3]), 2), lwd=1.2)
-    lines(c(14,15), rep(1 - 0.5 * sum(drli.[1:3]) - 0.5 * sum(drli.[1:4]), 2), lwd=1.2)
-    lines(c(14,15), rep(1 - 0.5 * sum(drli.[1:4]) - 0.5 * sum(drli.[1:5]), 2), lwd=1.2)
-    lines(c(14,15), rep(1 - 0.5 * sum(drli.[1:5]) - 0.5 * sum(     0.205), 2), lwd=1.2)
 
-![](ecosyst_files/figure-markdown_strict/unnamed-chunk-75-1.png)
-
-    if (nchar(figS4)) {
-      dev.off()
-    }
+![](ecosyst_files/figure-markdown_strict/unnamed-chunk-76-1.png)

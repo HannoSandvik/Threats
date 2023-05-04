@@ -2,7 +2,7 @@
 title: Threats to ecosystems
 subtitle: "Quantification of threats on the Norwegian Red Lists of ecosystems"
 author: "Hanno Sandvik"
-date: "29 April 2023"
+date: "3 May 2023"
 output:
   md_document:
     toc: yes
@@ -19,9 +19,12 @@ how much different threats contribute to red lists of species and ecosystems"
 
 The following variables can be used to adjust the output.
 
-**(1) Name of the data file.** If you haven't saved the data file to 
-your root directory, the file path needs to be included in the file name.
+**(1) Name of the data file.** The defaults downloads the Norwegian Red List data 
+for ecosystems from [doi:10.5281/zenodo.7893216](https://doi.org/10.5281/zenodo.7893216). 
+To analyse other Red Lists, use `url = ""` and provide the file name of the 
+dataset as `file` (including file path, if needed).
 ```{r}
+url  <- "https://zenodo.org/record/7893216/files/ecosyst.csv"
 file <- "ecosyst.csv"
 ```
 
@@ -188,7 +191,6 @@ The columns have the following meanings:
 * The column "distr" provides the distribution of extinction probabilities within the interval.
 * The column "beta" is not currently needed (but may be needed if "distr" is changed).
 
-
 **(2) Data deficiency**. What is the abbreviation used for the "Data Deficient" 
 Red List Category? (Defaults to IUCN's abbreviation.)
 ```{r}
@@ -237,7 +239,6 @@ interval (possible values: "unif", "incr", "decr", "beta").
 * The column "beta" contains the beta parameter of a Beta distribution
 (a numeric values if `distr == "beta"`, and `NA` otherwise).
 
-
 **(6) Time frame** for the Expected Loss of Systems, in years
 (defaults to 50 years).
 ```{r}
@@ -268,7 +269,22 @@ RedListCat <- c(LC.EX, DD, notEval)  # all Red List Categories
 
 Read the dataset "Norwegian Red List for ecosystems and land-cover types":
 ```{r}
-RL <- read.csv2(file, as.is=TRUE, dec=".", na.strings="n/a", encoding="latin1")
+{
+  foundFile <- FALSE
+  if (file.exists(file)) {
+    foundFile <- TRUE
+  } else {
+    if (nchar(url)) {
+      downl <- try(download.file(url, file))
+      foundFile <- !inherits(downl, "try-error")
+    }
+  }
+  if (foundFile) {
+    RL <- read.csv2(file, as.is=TRUE, dec=".", na.strings="n/a", encoding="latin1")
+  } else {
+    cat("The datafile was not found.\n")
+  }
+}
 ```
 
 Check whether the data are as expected:
@@ -475,6 +491,7 @@ are disaggregated into their subordinated minor ecosystem types:
 ```
 
 
+
 ### Figure S4
 
 The following script recreates Figure S4.
@@ -558,4 +575,3 @@ Plot a graph for δRLI:
   }
 }
 ```
-

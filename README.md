@@ -1,15 +1,15 @@
 # Threats
-Quantifying the contributions of threats to Red Lists using the Red List Index or the Expected Loss of Species
+Metrics for quantifying the contributions of different threats to Red Lists
 
 ## Purpose
-Improved quantification and reporting of threats affecting red-listed species or ecosystems. Data from one or more Red Lists are needed as input.
+Improved quantification and reporting of threats affecting red-listed species or ecosystems, using the Red List Index or the Expected Loss of Species. Data from one or more Red Lists are needed as input.
 
 ## Related resources
 The code described here
 
 * is archived on _Zenodo_ at [doi:10.5281/zenodo.7843806](https://doi.org/10.5281/zenodo.7843806);
 * is used and explained in an article in _Conservation Biology_ by [Sandvik & Pedersen (2023)](https://doi.org/10.1111/cobi.14105);
-* uses data available from the _Dryad Digital Repository_ at [doi:10.5061/dryad.gmsbcc2sd](https://doi.org/10.5061/dryad.gmsbcc2sd).
+* uses data available from the _Zenodo_ at [doi:10.5281/zenodo.7893216](https://doi.org/10.5281/zenodo.7893216).
 
 ## Contents
 The repository contains the **R** code to reproduce the findings of Sandvik & Pedersen (2023) as well as generic functions that can be used to analyse threats in other Red Lists:
@@ -20,3 +20,4 @@ The repository contains the **R** code to reproduce the findings of Sandvik & Pe
 
 ## Contact
 The repository is maintained by [Hanno Sandvik](mailto:hanno.sandvik@nina.no).
+

@@ -1,7 +1,7 @@
 # These functions are needed to run the analyses of the Norwegian Red Lists
 # for species described in the paper "Metrics for quantifying how much
-# different threats contribute to red lists of species and ecosystems"
-
+# different threats contribute to red lists of species and ecosystems".
+# Equations refer to the same paper. 
 
 
 # ========================
@@ -90,7 +90,6 @@ extractSeverity <- function(x) return(
 
 RLW <- function(x, t = 0, method = weightingRLI) {
   # Red List Weights
-  # Applies Equation 2
   method <- tolower(method)
   wt <- NULL
   if (substr(method, 1, 2) == "eq") wt <- RLW.eqSteps(x, t)
@@ -117,6 +116,7 @@ RLW <- function(x, t = 0, method = weightingRLI) {
 
 RLW.eqSteps <- function(x, t) {
   # Cumulative loss of species using the "equal-steps" weighting scheme
+  # Applies Equation 2
   w <- sapply(x, function(y) ifelse(y %in% RLcateg$name,
                                     which(RLcateg$name == y),
                                     Inf))
@@ -273,6 +273,7 @@ LoS.Ev2 <- function(k, t, nsim = 0) {
   R50L <- round(invlogit(R50L), 2)
   R50U <- round(invlogit(R50U), 2)
   if (nsim < 2) {
+    # applying Equation 9:
     return(meanDist(RLcateg$distr[w], R50L, R50U))
   } else {
     return(randomiseDist(RLcateg$distr[w], R50L, R50U, nsim))
@@ -303,6 +304,7 @@ LoS.Ev3 <- function(k, t, nsim = 0) {
   R50L <- round(invlogit(R50L), 2)
   R50U <- round(invlogit(R50U), 2)
   if (nsim < 2) {
+    # applying Equation 9:
     return(meanDist(RLcateg$distr[w], R50L, R50U))
   } else {
     return(randomiseDist(RLcateg$distr[w], R50L, R50U, nsim))
@@ -328,6 +330,7 @@ LoS.A1 <- function(k, t, nsim = 0) {
   L <- round(RLcateg$lowA1[w]^(time / 10), 2)
   U <- round(RLcateg$uppA1[w]^(time / 10), 2)
   if (nsim < 2) {
+    # applying Equation 9:
     return(meanDist(RLcateg$distr[w], L, U))
   } else {
     return(randomiseDist(RLcateg$distr[w], L, U, nsim))
@@ -344,6 +347,7 @@ LoS.A2 <- function(k, t, nsim = 0) {
   L <- round(RLcateg$lowA2[w]^(time / 10), 2)
   U <- round(RLcateg$uppA2[w]^(time / 10), 2)
   if (nsim < 2) {
+    # applying Equation 9:
     return(meanDist(RLcateg$distr[w], L, U))
   } else {
     return(randomiseDist(RLcateg$distr[w], L, U, nsim))
@@ -361,6 +365,7 @@ LoS.B1 <- function(k, t, nsim = 0) {
   L <- ifelse(L > 0.5, f100(L), c100(L))
   U <- ifelse(U > 0.5, f100(U), c100(U))
   if (nsim < 2) {
+    # applying Equation 9:
     return(meanDist(RLcateg$distr[w], L, U))
   } else {
     return(randomiseDist(RLcateg$distr[w], L, U, nsim))
@@ -378,6 +383,7 @@ LoS.B2 <- function(k, t, nsim = 0) {
   L <- ifelse(L > 0.5, f100(L), c100(L))
   U <- ifelse(U > 0.5, f100(U), c100(U))
   if (nsim < 2) {
+    # applying Equation 9:
     return(meanDist(RLcateg$distr[w], L, U))
   } else {
     return(randomiseDist(RLcateg$distr[w], L, U, nsim))
@@ -395,6 +401,7 @@ LoS.C <- function(k, t, nsim = 0) {
   L <- ifelse(L > 0.5, f100(L), c100(L))
   U <- ifelse(U > 0.5, f100(U), c100(U))
   if (nsim < 2) {
+    # applying Equation 9:
     return(meanDist(RLcateg$distr[w], L, U))
   } else {
     return(randomiseDist(RLcateg$distr[w], L, U, nsim))
@@ -412,6 +419,7 @@ LoS.D <- function(k, t, nsim = 0) {
   L <- ifelse(L > 0.5, f100(L), c100(L))
   U <- ifelse(U > 0.5, f100(U), c100(U))
   if (nsim < 2) {
+    # applying Equation 9:
     return(meanDist(RLcateg$distr[w], L, U))
   } else {
     return(randomiseDist(RLcateg$distr[w], L, U, nsim))
@@ -433,7 +441,7 @@ randomiseDist <- function(D, L, U, N) {
   # Returns N random numbers within interval between L and U,
   # given distribution D
   r <- NA
-  if (D == "unif") r <- runif(N, L, U)
+  if (D == "unif") r <- runif(N, L, U)  # Equation 12
   if (D == "incr") r <- rIncr(N,    U)
   if (D == "decr") r <- rDecr(N, L   )
   return(r)
@@ -472,10 +480,10 @@ randomiseSeverity <- function(n, x) {
     U <- Severity$upper[w]
     B <- Severity$beta [w]
     mS <- switch(f,
-                 unif = runif(n, L, U),
-                 incr = rIncr(n,    U),
-                 decr = rDecr(n, L   ),
-                 beta = rbeta(n, 2, B),
+                 unif = runif(n, L, U),  # Equation 12
+                 incr = rIncr(n,    U),  # Equation 13
+                 decr = rDecr(n, L   ),  # Equation 14
+                 beta = rbeta(n, 2, B),  # Equation 15
                  NA)
   }
   return(as.vector(sapply(name, m)))
@@ -866,14 +874,15 @@ DeltaRLI <- function(RL) {
         DW[[i]]  <- W[[y0]] * THR[[y0]] - W[[yr]] * THR[[yr]]
         # applying Equation 4 (separately for positive and negative DeltaRLI):
         DRLIp[p, i] <- sum(DW[[i]][which(DW[[i]] > 0 & W[[yr]] != W[[y0]])], 
-                           na.rm=T) * 0.2 / L
+                           na.rm=T) / L / RLW(extinct[1])
         DRLIm[p, i] <- sum(DW[[i]][which(DW[[i]] < 0 & W[[yr]] != W[[y0]])],
-                           na.rm=T) * 0.2 / L
+                           na.rm=T) / L / RLW(extinct[1])
       } # i
     } # p
     if (inferThreats) { # extrapolation to unknown threats
       n <- length(threats) # this code requires "unknown" to be the last threat!
       for (i in 2:length(years)) {
+        # applying Equation 11:
         DRLIp[, i] <- DRLIp[, i] * (1 + DRLIp[n, i] / sum(DRLIp[1:(n - 1), i]))
         DRLIm[, i] <- DRLIm[, i] * (1 + DRLIm[n, i] / sum(DRLIm[1:(n - 1), i]))
       }
@@ -926,7 +935,7 @@ dRLI <- function(RL, RLI = TRUE, ELS = TRUE) {
       # applying Equation 3:
       THR <- RL[, p %+% y] / ifelse(RL[, "Pop" %+% y] == 0, 1, RL[, "Pop" %+% y])
       # applying Equation 6:
-      drli[p, "RL" %+% y] <- 0.2 * sum(Gw * THR, na.rm = TRUE) / L
+      drli[p, "RL" %+% y] <- sum(Gw * THR, na.rm = TRUE) / L / RLW(extinct[1])
       # applying Equation 7:
       els [p, "RL" %+% y] <- sum(RL[, "Loss" %+% y %+% "." %+% max(years)] * THR,
                                  na.rm = TRUE)
@@ -936,6 +945,7 @@ dRLI <- function(RL, RLI = TRUE, ELS = TRUE) {
     # extrapolation to unknown threats
     n <- nrow(els)
     for (i in 1:length(years)) {
+      # applying Equation 11:
       els [, i] <-  els[, i] * (1 +  els[n, i] / sum( els[1:(n - 1), i]))
       drli[, i] <- drli[, i] * (1 + drli[n, i] / sum(drli[1:(n - 1), i]))
     } # i
@@ -1026,7 +1036,8 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975),
       matrix(0, length(threats), nsim, dimnames=list(threats, NULL))
     loss[[y]] <- dr[[y]] <- rep(0, nsim)
   } # y
-  if (includeDD) { # determine weights for the simulation of DD species
+  if (includeDD) {
+    # determine weights for the simulation of DD species using Equation 10
     DDwt <- numeric()
     for (k in LC.EX) {
       DDwt <- c(DDwt, length(which(RL[, C] == k)))
@@ -1282,4 +1293,3 @@ disaggrMajorTypes <- function(RL, minor, type, id, categ) {
   } # i
   return(RL)
 } # disaggrMajorTypes
-

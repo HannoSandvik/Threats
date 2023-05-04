@@ -26,19 +26,23 @@
 -   <a href="#sensitivity-analysis"
     id="toc-sensitivity-analysis">Sensitivity analysis</a>
 
-This R code can be used to run the analyses of the Norwegian Red Lists
-for species described in the paper “Metrics for quantifying the
-contributions of different threats to Red Lists of species and
-ecosystems”
+This **R** code can be used to run the analyses of the Norwegian Red
+Lists for species described in the paper “Metrics for quantifying how
+much different threats contribute to red lists of species and
+ecosystems” ([Sandvik & Pedersen
+2023](https://doi.org/10.1111/cobi.14105)).
 
 ## Variables
 
 The following variables can be used to adjust the output.
 
-**(1) Name of the data file.** If you haven’t saved the data file to
-your root directory, the file path needs to be included in the file
-name.
+**(1) Name of the data file.** The defaults downloads the Norwegian Red
+List data for species from
+[doi:10.5281/zenodo.7893216](https://doi.org/10.5281/zenodo.7893216). To
+analyse other Red Lists, use `url = ""` and provide the file name of the
+dataset as `file` (including file path, if needed).
 
+    url  <- "https://zenodo.org/record/7893216/files/species.csv"
     file <- "species.csv"
 
 **(2) Handling of DD species.** Decides whether Data Deficient species
@@ -56,22 +60,22 @@ distribution of the known threat factors.
 **(4) Weighting underlying RLI.** Defines the weighting scheme for the
 Red List Index. (Defaults to “equal-steps”; other options are the IUCN
 Red List Criteria “A1”, “A2”, “B1”, “B2”, “C”, “D” and “E” as well as
-“Ev2”, “Ev3”)
+“Ev2”, “Ev3”.)
 
     weightingRLI <- "equal-steps"
 
 **(5) Weighting underlying ELS.** Defines the weighting scheme for the
 Expected Loss of Species. (Defaults to using the thresholds of the IUCN
 Red List Criterion E; other options are “A1”, “A2”, “B1”, “B2”, “C”,
-“D”, “Ev2”, “Ev3” and “equal-steps”)
+“D”, “Ev2”, “Ev3” and “equal-steps”.)
 
     weightingELS <- "E"
 
 **(6) Column names.** Column names in the dataset which contain Red List
-Categories, threat factors, reasons for change in category, and
-generation time, respectively. The three former ones need to be followed
-by the year of assessment (for change, the year of the *second* of the
-two relevant assessments). So if the column name containing Red List
+Categories, threat factors, reasons for category change, and generation
+time, respectively. The three former ones need to be followed by the
+year of assessment (for change, the year of the *second* of the two
+relevant assessments). So if the column name containing Red List
 Categories is *not* named something like “Categ21” or “Categ2021”, this
 needs to be adjusted here!
 
@@ -84,7 +88,7 @@ Note the following formatting requirements of these columns:
 
 -   Data columns with Red List Categories must match with the constants
     specified (see next section).
--   Threat columns must contain text strings specifying threat. Each
+-   Threat columns must contain text strings specifying threats. Each
     threat must be described as a sequence of (abbreviations for) (i)
     threat factor, (ii) timing, (iii) scope and (iv) severity, which are
     separated by *colons*; different threats to the same species are
@@ -113,7 +117,7 @@ adjusted for other datasets.)
 
     realChange      <- "realpopu"
 
-**(9) Timings to include. **What is (are) the abbreviation(s) of the
+**(9) Timings to include.** What is (are) the abbreviation(s) of the
 timing categories that should be considered (defaults to “ongoing”).
 
     inclTiming <- "ongoingt"
@@ -121,7 +125,7 @@ timing categories that should be considered (defaults to “ongoing”).
 If *all* threats are to be included, irrespective of timing, this would
 need to be replaced (in terms of the abbreviations used in this dataset)
 by
-`inclTiming <- c("onlypast", "suspendd", "ongoing", "onlyfutu", "unknownt")`
+`inclTiming <- c("onlypast", "suspendd", "ongoing", "onlyfutu", "unknownt")`.
 
 **(10) Number of simulations.** NB: the default takes several hours! For
 exploration purposes, `nsim <- 1000` will suffice. For pure
@@ -136,7 +140,7 @@ TRUE) or be based on novel random numbers (if FALSE)
     re.create <- TRUE
 
 **(12) File names of figures.** If you want to display the figures on
-screen, keep the default. If you want to create PNG file, specify the
+screen, keep the default. If you want to create PNG files, specify the
 file names (including paths).
 
     fig1  <- ""
@@ -153,7 +157,43 @@ modifying some underlying assumptions.
 
 **(1) Red List Categories** and their weights, extinction probabilities
 etc. This data frame needs to contain all Red List Categories used in
-the Red List analysed of species that have been evaluated.
+the Red List analysed of species that have been evaluated:
+
+    RLcateg <- data.frame(
+      name  = c(  "LC",   "NT",   "VU",   "EN",   "CR",   "RE",   "EW",   "EX"),
+      LC    = c(  TRUE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE),
+      EX    = c( FALSE,  FALSE,  FALSE,  FALSE,  FALSE,   TRUE,   TRUE,   TRUE),
+      wt    = c(     0,      1,      2,      3,      4,      5,      5,      5),
+      lowP  = c(  0.00,   0.05,   0.10,   0.20,   0.50,   1.00,   1.00,   1.00),
+      uppP  = c(  0.00,   0.10,   0.20,   0.50,   1.00,   1.00,   1.00,   1.00),
+      lowT  = c(   100,    100,    100,     20,     10,     10,     10,     10),
+      uppT  = c(   100,    100,     20,     10,     10,     10,     10,     10),
+      lowG  = c(     0,      0,      0,      5,      3,      1,      1,      1),
+      uppG  = c(     0,      0,      5,      3,      1,      1,      1,      1),
+      lowA1 = c(  0.00,   0.25,   0.50,   0.70,   0.90,   1.00,   1.00,   1.00),
+      uppA1 = c(  0.00,   0.50,   0.70,   0.90,   1.00,   1.00,   1.00,   1.00),
+      lowA2 = c(  0.00,   0.15,   0.30,   0.50,   0.80,   1.00,   1.00,   1.00),
+      uppA2 = c(  0.00,   0.30,   0.50,   0.80,   1.00,   1.00,   1.00,   1.00),
+      lowB1 = c( 40000,  40000,  20000,   5000,    100,      0,      0,      0),
+      uppB1 = c( 40000,  20000,   5000,    100,      0,      0,      0,      0),
+      lowB2 = c(  4000,   4000,   2000,    500,     10,      0,      0,      0),
+      uppB2 = c(  4000,   2000,    500,     10,      0,      0,      0,      0),
+      lowC  = c( 20000,  20000,  10000,   2500,    250,      0,      0,      0),
+      uppC  = c( 20000,  10000,   2500,    250,      0,      0,      0,      0),
+      lowD  = c(  2000,   2000,   1000,    250,     50,      0,      0,      0),
+      uppD  = c(  2000,   1000,    250,     50,      0,      0,      0,      0),
+      distr = c("unif", "unif", "unif", "unif", "decr", "unif", "unif", "unif"),
+      beta  = c(    NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA),
+      stringsAsFactors = FALSE
+    )
+
+The values in the dataframe are based on [IUCN
+(2012a)](https://portals.iucn.org/library/node/10315), [IUCN
+(2012b)](https://portals.iucn.org/library/node/10336), [IUCN
+(2022)](https://www.iucnredlist.org/resources/redlistguidelines) and the
+Norwegian guidance document ([Artsdatabanken
+2020](https://artsdatabanken.no/Files/41216/)). The columns have the
+following meanings:
 
 -   The column “LC” identifies the Red List Category “Least Concern”
     (defaults to IUCN’s abbreviation).
@@ -191,36 +231,6 @@ the Red List analysed of species that have been evaluated.
 -   The column “beta” is not currently needed (but may be needed if
     “distr” is changed).
 
-<!-- -->
-
-    RLcateg <- data.frame(
-      name  = c(  "LC",   "NT",   "VU",   "EN",   "CR",   "RE",   "EW",   "EX"),
-      LC    = c(  TRUE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE),
-      EX    = c( FALSE,  FALSE,  FALSE,  FALSE,  FALSE,   TRUE,   TRUE,   TRUE),
-      wt    = c(     0,      1,      2,      3,      4,      5,      5,      5),
-      lowP  = c(  0.00,   0.05,   0.10,   0.20,   0.50,   1.00,   1.00,   1.00),
-      uppP  = c(  0.00,   0.10,   0.20,   0.50,   1.00,   1.00,   1.00,   1.00),
-      lowT  = c(   100,    100,    100,     20,     10,     10,     10,     10),
-      uppT  = c(   100,    100,     20,     10,     10,     10,     10,     10),
-      lowG  = c(     0,      0,      0,      5,      3,      1,      1,      1),
-      uppG  = c(     0,      0,      5,      3,      1,      1,      1,      1),
-      lowA1 = c(  0.00,   0.25,   0.50,   0.70,   0.90,   1.00,   1.00,   1.00),
-      uppA1 = c(  0.00,   0.50,   0.70,   0.90,   1.00,   1.00,   1.00,   1.00),
-      lowA2 = c(  0.00,   0.15,   0.30,   0.50,   0.80,   1.00,   1.00,   1.00),
-      uppA2 = c(  0.00,   0.30,   0.50,   0.80,   1.00,   1.00,   1.00,   1.00),
-      lowB1 = c( 40000,  40000,  20000,   5000,    100,      0,      0,      0),
-      uppB1 = c( 40000,  20000,   5000,    100,      0,      0,      0,      0),
-      lowB2 = c(  4000,   4000,   2000,    500,     10,      0,      0,      0),
-      uppB2 = c(  4000,   2000,    500,     10,      0,      0,      0,      0),
-      lowC  = c( 20000,  20000,  10000,   2500,    250,      0,      0,      0),
-      uppC  = c( 20000,  10000,   2500,    250,      0,      0,      0,      0),
-      lowD  = c(  2000,   2000,   1000,    250,     50,      0,      0,      0),
-      uppD  = c(  2000,   1000,    250,     50,      0,      0,      0,      0),
-      distr = c("unif", "unif", "unif", "unif", "decr", "unif", "unif", "unif"),
-      beta  = c(    NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA),
-      stringsAsFactors = FALSE
-    )
-
 **(2) Data deficiency**. What is the abbreviation used for the “Data
 Deficient” Red List Category? (Defaults to IUCN’s abbreviation.)
 
@@ -233,7 +243,7 @@ List Categories “Not Applicable” and “Not Evaluated”.)
     notEval <- c("NA", "NE")
 
 **(4) Downlisting.** What is added to a Red List Category to indicate
-downlisting? (Defaults to the degree symbol.) If a Red List Category if
+downlisting? (Defaults to the degree symbol.) If a Red List Category is
 followed by this symbol, it is assumed to have been *downlisted* by
 *one* Red List Category.
 
@@ -241,10 +251,24 @@ followed by this symbol, it is assumed to have been *downlisted* by
 
 **(5) Severities** and their threshold values. This data frame needs to
 contain all severity categories of threats used in the Red List
-analysed. The data frame defaults to the severity categories used in
-Norwegian Red Lists, where values correspond to the declines in
-population size over 10 years or 3 generations (whichever is largest)
-caused by a threat.
+analysed:
+
+    Severity <- data.frame(
+      name  = c("negldecl", "slowdecl", "rapidecl", "unknownd"),
+      lower = c(      0.00,       0.02,       0.20,       0.00),
+      upper = c(      0.02,       0.20,       1.00,       1.00),
+      distr = c(    "incr",     "unif",     "decr",     "beta"),
+      beta  = c(        NA,         NA,         NA,         20),
+      stringsAsFactors = FALSE
+    )
+
+The data frame defaults to the severity categories used in Norwegian Red
+Lists, where values correspond to the declines in population size over
+10 years or 3 generations (whichever is largest) caused by a threat
+([Artsdatabanken 2020](https://artsdatabanken.no/Files/41216/); cf. 
+[IUCN
+2022](https://www.iucnredlist.org/resources/threat-classification-scheme)).
+The columns have the following meanings:
 
 -   The column “name” contains the abbreviations used for the severity
     categories.
@@ -257,17 +281,6 @@ caused by a threat.
     “beta”).
 -   The column “beta” contains the beta parameter of a Beta distribution
     (a numeric values if `distr == "beta"`, and `NA` otherwise).
-
-<!-- -->
-
-    Severity <- data.frame(
-      name  = c("negldecl", "slowdecl", "rapidecl", "unknownd"),
-      lower = c(      0.00,       0.02,       0.20,       0.00),
-      upper = c(      0.02,       0.20,       1.00,       1.00),
-      distr = c(    "incr",     "unif",     "decr",     "beta"),
-      beta  = c(        NA,         NA,         NA,         20),
-      stringsAsFactors = FALSE
-    )
 
 **(6) Time frame** for the Expected Loss of Species, in years (defaults
 to 50 years).
@@ -283,16 +296,31 @@ Load the set of functions belonging to this depository:
 Define further required variables, based on the variables and constants
 specified above:
 
-    LC      <- RLcateg$name[RLcateg$LC]
-    extinct <- RLcateg$name[RLcateg$EX]
-    LC.EX   <- RLcateg$name
-    RedListCat <- c(LC.EX, DD, notEval)
+    LC      <- RLcateg$name[RLcateg$LC]  # abbreviation(s) for species of Least Concern
+    extinct <- RLcateg$name[RLcateg$EX]  # abbreviation(s) for extinct species
+    LC.EX   <- RLcateg$name              # Red List Categories of evaluated species
+    RedListCat <- c(LC.EX, DD, notEval)  # all Red List Categories
 
 ## Read and check the data
 
 Read the dataset “Norwegian Red List for species”:
 
-    RL <- read.csv2(file, as.is=TRUE, dec=".", na.strings="n/a", encoding="latin1")
+    {
+      foundFile <- FALSE
+      if (file.exists(file)) {
+        foundFile <- TRUE
+      } else {
+        if (nchar(url)) {
+          downl <- try(download.file(url, file))
+          foundFile <- !inherits(downl, "try-error")
+        }
+      }
+      if (foundFile) {
+        RL <- read.csv2(file, as.is=TRUE, dec=".", na.strings="n/a", encoding="latin1")
+      } else {
+        cat("The datafile was not found.\n")
+      }
+    }
 
 Check whether the data are as expected:
 
@@ -317,8 +345,8 @@ Check whether the data are as expected:
     ## [1] 21 15 10
     ## 
     ## Threat factors reported in this dataset:
-    ##  [1] "alienspe" "bycatchc" "climatec" "disturba" "huntgath" "landusec" "natcatas" "nativesp" "nothreat"
-    ## [10] "otherthr" "outsiden" "pollutio" "unknownf"
+    ##  [1] "alienspe" "bycatchc" "climatec" "disturba" "huntgath" "landusec" "natcatas" "nativesp" "nothreat" "otherthr" "outsiden"
+    ## [12] "pollutio" "unknownf"
 
 Ensure that `RedListCat` and `LC.EX` only contain categories that are
 actually used:
@@ -374,11 +402,11 @@ Summarise the Red Lists:
 In the specific case of the three Norwegian Red Lists analysed, the
 dataset only contains the species included in the current Red List
 (2021). For different reasons (such as taxonomic change), the earlier
-Red Lists contained species that are not included in the most recent
-one. Therefore, the above summary table is not entirely correct for the
-earlier Red Lists. This has to be corrected manually by adding data for
-the Red Lists 2010 and 2015 (prior to back-casting). The sources for
-these data are:
+Red Lists contained species (names) that are not included in the most
+recent one. Therefore, the above summary table is not entirely correct
+for the earlier Red Lists. This has to be corrected manually by adding
+data for the Red Lists 2010 and 2015 (prior to back-casting). The
+sources for these data are:
 
 -   [Artsdatabanken (2010)](http://www.artsportalen.artsdatabanken.no/)
 -   [Artsdatabanken (2015)](https://www.artsdatabanken.no/Rodlista2015)
@@ -455,7 +483,7 @@ Print the corrected table (which underlies Table 3 of the paper):
 
 ## Analysis of threat factors
 
-Estimate DeltaRLI:
+Estimate ΔRLI:
 
     DRLI <- DeltaRLI(RL)
     print(DRLI)
@@ -475,7 +503,7 @@ Estimate DeltaRLI:
     ## pollutio -4.011468e-05  2.009000e-05 -2.002468e-05
     ## unknownf  1.027295e-04 -3.230370e-05  7.042581e-05
 
-Estimate dRLI and ELS50:
+Estimate δRLI and ELS\_50\_:
 
     drli <- dRLI(RL)
     print(drli)
@@ -515,62 +543,60 @@ Estimate dRLI and ELS50:
 Confidence intervals on RLI (loaded from a cached version of this call):
 
     print(confidenceRLI(RL, nsim, "Categ21"))
-    # With the default `nsim`, the above line would take quite a while... 
 
     ##      2.5%       25%       50%       75%     97.5% 
     ## 0.9196513 0.9199461 0.9200893 0.9202325 0.9205020
 
-Confidence intervals on DeltaRLI, deltaRLI and ELS50 (loaded from a
-cached version of this call):
+Confidence intervals on ΔRLI, δRLI and ELS\_50\_ (loaded from a cached
+version of this call):
 
     results <- simulateDRLI(RL, nsim)
-    # With the default `nsim`, the above line would take a looong time... 
 
     ## 
     ## 
     ## Confidence intervals for DeltaRLI from 15 to 21:
-    ##            alienspe      bycatchc      climatec      disturba      huntgath     landusec      natcatas
-    ## 2.5%  -2.758554e-05 -7.421091e-06 -2.373302e-05 -4.250712e-05 -2.192477e-05 2.778752e-05 -2.029758e-06
-    ## 25%   -1.978893e-05  2.907054e-06 -1.128957e-05 -3.100759e-05 -1.509215e-05 4.499132e-05 -1.125384e-06
-    ## 50%   -1.584435e-05  8.038740e-06 -4.614244e-06 -2.515867e-05 -1.162350e-05 5.423361e-05 -7.405215e-07
-    ## 75%   -1.202603e-05  1.299485e-05  2.019173e-06 -1.958080e-05 -8.235564e-06 6.355362e-05 -4.413957e-07
-    ## 97.5% -5.214519e-06  2.173912e-05  1.448183e-05 -9.957976e-06 -2.040439e-06 8.122583e-05 -1.164665e-07
-    ##            nativesp nothreat      otherthr     outsiden      pollutio     unknownf
-    ## 2.5%  -8.136700e-05        0 -7.802676e-06 3.971322e-05 -5.275180e-05 9.200229e-05
-    ## 25%   -6.814067e-05        0 -5.237295e-06 5.286826e-05 -4.324559e-05 9.687621e-05
-    ## 50%   -6.114062e-05        0 -3.915717e-06 5.986960e-05 -3.855195e-05 9.957235e-05
-    ## 75%   -5.422068e-05        0 -2.558729e-06 6.685664e-05 -3.412755e-05 1.022178e-04
-    ## 97.5% -4.116538e-05        0 -9.954627e-07 8.031390e-05 -2.635541e-05 1.069302e-04
+    ##            alienspe      bycatchc      climatec      disturba      huntgath     landusec      natcatas      nativesp nothreat
+    ## 2.5%  -2.758554e-05 -7.421091e-06 -2.373302e-05 -4.250712e-05 -2.192477e-05 2.778752e-05 -2.029758e-06 -8.136700e-05        0
+    ## 25%   -1.978893e-05  2.907054e-06 -1.128957e-05 -3.100759e-05 -1.509215e-05 4.499132e-05 -1.125384e-06 -6.814067e-05        0
+    ## 50%   -1.584435e-05  8.038740e-06 -4.614244e-06 -2.515867e-05 -1.162350e-05 5.423361e-05 -7.405215e-07 -6.114062e-05        0
+    ## 75%   -1.202603e-05  1.299485e-05  2.019173e-06 -1.958080e-05 -8.235564e-06 6.355362e-05 -4.413957e-07 -5.422068e-05        0
+    ## 97.5% -5.214519e-06  2.173912e-05  1.448183e-05 -9.957976e-06 -2.040439e-06 8.122583e-05 -1.164665e-07 -4.116538e-05        0
+    ##            otherthr     outsiden      pollutio     unknownf
+    ## 2.5%  -7.802676e-06 3.971322e-05 -5.275180e-05 9.200229e-05
+    ## 25%   -5.237295e-06 5.286826e-05 -4.324559e-05 9.687621e-05
+    ## 50%   -3.915717e-06 5.986960e-05 -3.855195e-05 9.957235e-05
+    ## 75%   -2.558729e-06 6.685664e-05 -3.412755e-05 1.022178e-04
+    ## 97.5% -9.954627e-07 8.031390e-05 -2.635541e-05 1.069302e-04
     ## 
     ## 
     ## Confidence intervals for DeltaRLI from 10 to 15:
-    ##            alienspe     bycatchc      climatec      disturba     huntgath     landusec     natcatas
-    ## 2.5%  -3.282773e-05 9.843417e-07 -7.618064e-05 -8.702975e-06 1.283346e-05 0.0001006732 1.684636e-05
-    ## 25%   -2.814251e-05 8.684326e-06 -7.013827e-05 -6.674633e-06 1.967747e-05 0.0001169818 1.684636e-05
-    ## 50%   -2.557454e-05 1.293225e-05 -6.688305e-05 -5.503525e-06 2.356152e-05 0.0001257049 1.684636e-05
-    ## 75%   -2.292633e-05 1.725499e-05 -6.366442e-05 -4.120830e-06 2.751622e-05 0.0001344283 1.684636e-05
-    ## 97.5% -1.761208e-05 2.550015e-05 -5.728415e-05 -8.179038e-07 3.529626e-05 0.0001509216 1.684636e-05
-    ##            nativesp nothreat otherthr     outsiden     pollutio      unknownf
-    ## 2.5%  -6.863247e-05        0        0 6.437577e-06 1.348325e-06 -4.299881e-05
-    ## 25%   -5.892648e-05        0        0 1.405019e-05 1.329316e-05 -3.554056e-05
-    ## 50%   -5.359718e-05        0        0 1.772575e-05 1.944128e-05 -3.127023e-05
-    ## 75%   -4.829702e-05        0        0 2.107672e-05 2.557229e-05 -2.674915e-05
-    ## 97.5% -3.900240e-05        0        0 2.652298e-05 3.717693e-05 -1.810152e-05
+    ##            alienspe     bycatchc      climatec      disturba     huntgath     landusec     natcatas      nativesp nothreat
+    ## 2.5%  -3.282773e-05 9.843417e-07 -7.618064e-05 -8.702975e-06 1.283346e-05 0.0001006732 1.684636e-05 -6.863247e-05        0
+    ## 25%   -2.814251e-05 8.684326e-06 -7.013827e-05 -6.674633e-06 1.967747e-05 0.0001169818 1.684636e-05 -5.892648e-05        0
+    ## 50%   -2.557454e-05 1.293225e-05 -6.688305e-05 -5.503525e-06 2.356152e-05 0.0001257049 1.684636e-05 -5.359718e-05        0
+    ## 75%   -2.292633e-05 1.725499e-05 -6.366442e-05 -4.120830e-06 2.751622e-05 0.0001344283 1.684636e-05 -4.829702e-05        0
+    ## 97.5% -1.761208e-05 2.550015e-05 -5.728415e-05 -8.179038e-07 3.529626e-05 0.0001509216 1.684636e-05 -3.900240e-05        0
+    ##       otherthr     outsiden     pollutio      unknownf
+    ## 2.5%         0 6.437577e-06 1.348325e-06 -4.299881e-05
+    ## 25%          0 1.405019e-05 1.329316e-05 -3.554056e-05
+    ## 50%          0 1.772575e-05 1.944128e-05 -3.127023e-05
+    ## 75%          0 2.107672e-05 2.557229e-05 -2.674915e-05
+    ## 97.5%        0 2.652298e-05 3.717693e-05 -1.810152e-05
     ## 
     ## 
     ## Confidence intervals for DeltaRLI from 10 to 21:
-    ##            alienspe     bycatchc      climatec      disturba      huntgath     landusec     natcatas
-    ## 2.5%  -5.410913e-05 1.946344e-06 -9.173819e-05 -4.823333e-05 -1.839358e-06 0.0001451193 1.481660e-05
-    ## 25%   -4.570030e-05 1.452778e-05 -7.855743e-05 -3.643005e-05  7.151070e-06 0.0001679223 1.572098e-05
-    ## 50%   -4.139191e-05 2.093078e-05 -7.149905e-05 -3.047644e-05  1.192182e-05 0.0001799711 1.610584e-05
-    ## 75%   -3.712836e-05 2.726511e-05 -6.449487e-05 -2.474219e-05  1.675213e-05 0.0001920937 1.640497e-05
-    ## 97.5% -2.924697e-05 3.898557e-05 -5.119619e-05 -1.468224e-05  2.614990e-05 0.0002155333 1.672989e-05
-    ##            nativesp nothreat      otherthr     outsiden      pollutio     unknownf
-    ## 2.5%  -1.391091e-04        0 -7.802676e-06 5.734709e-05 -4.151969e-05 5.496134e-05
-    ## 25%   -1.231947e-04        0 -5.237295e-06 7.036890e-05 -2.680678e-05 6.355976e-05
-    ## 50%   -1.148026e-04        0 -3.915717e-06 7.729382e-05 -1.927356e-05 6.832580e-05
-    ## 75%   -1.064025e-04        0 -2.558729e-06 8.419113e-05 -1.188016e-05 7.323331e-05
-    ## 97.5% -9.087909e-05        0 -9.954627e-07 9.701202e-05  2.008100e-06 8.274663e-05
+    ##            alienspe     bycatchc      climatec      disturba      huntgath     landusec     natcatas      nativesp nothreat
+    ## 2.5%  -5.410913e-05 1.946344e-06 -9.173819e-05 -4.823333e-05 -1.839358e-06 0.0001451193 1.481660e-05 -1.391091e-04        0
+    ## 25%   -4.570030e-05 1.452778e-05 -7.855743e-05 -3.643005e-05  7.151070e-06 0.0001679223 1.572098e-05 -1.231947e-04        0
+    ## 50%   -4.139191e-05 2.093078e-05 -7.149905e-05 -3.047644e-05  1.192182e-05 0.0001799711 1.610584e-05 -1.148026e-04        0
+    ## 75%   -3.712836e-05 2.726511e-05 -6.449487e-05 -2.474219e-05  1.675213e-05 0.0001920937 1.640497e-05 -1.064025e-04        0
+    ## 97.5% -2.924697e-05 3.898557e-05 -5.119619e-05 -1.468224e-05  2.614990e-05 0.0002155333 1.672989e-05 -9.087909e-05        0
+    ##            otherthr     outsiden      pollutio     unknownf
+    ## 2.5%  -7.802676e-06 5.734709e-05 -4.151969e-05 5.496134e-05
+    ## 25%   -5.237295e-06 7.036890e-05 -2.680678e-05 6.355976e-05
+    ## 50%   -3.915717e-06 7.729382e-05 -1.927356e-05 6.832580e-05
+    ## 75%   -2.558729e-06 8.419113e-05 -1.188016e-05 7.323331e-05
+    ## 97.5% -9.954627e-07 9.701202e-05  2.008100e-06 8.274663e-05
     ## 
     ## 
     ## Confidence intervals for the cumulative dRLI in 10:
@@ -579,18 +605,18 @@ cached version of this call):
     ## 
     ## 
     ## Confidence intervals for the threat-wise dRLIs in 10:
-    ##           alienspe     bycatchc    climatec     disturba     huntgath   landusec     natcatas     nativesp
-    ## 2.5%  0.0001426945 0.0001668548 0.001030792 0.0004961728 0.0002127255 0.04760604 0.0001791993 0.0006847039
-    ## 25%   0.0001579847 0.0001839374 0.001056869 0.0005305554 0.0002322180 0.04773790 0.0001963124 0.0007148973
-    ## 50%   0.0001662953 0.0001928923 0.001071383 0.0005491434 0.0002429416 0.04780989 0.0002058424 0.0007311389
-    ## 75%   0.0001748889 0.0002017238 0.001086568 0.0005683874 0.0002538713 0.04788406 0.0002154320 0.0007476703
-    ## 97.5% 0.0001912517 0.0002184636 0.001118294 0.0006069659 0.0002749241 0.04803025 0.0002328631 0.0007797846
-    ##           nothreat otherthr     outsiden    pollutio   unknownf
-    ## 2.5%  1.306473e-07        0 0.0007253337 0.002151481 0.02564591
-    ## 25%   4.994905e-07        0 0.0007499919 0.002213917 0.02588579
-    ## 50%   8.384147e-07        0 0.0007626733 0.002247125 0.02601612
-    ## 75%   1.275377e-06        0 0.0007751986 0.002281128 0.02614898
-    ## 97.5% 2.306426e-06        0 0.0007987181 0.002345430 0.02641055
+    ##           alienspe     bycatchc    climatec     disturba     huntgath   landusec     natcatas     nativesp     nothreat
+    ## 2.5%  0.0001426945 0.0001668548 0.001030792 0.0004961728 0.0002127255 0.04760604 0.0001791993 0.0006847039 1.306473e-07
+    ## 25%   0.0001579847 0.0001839374 0.001056869 0.0005305554 0.0002322180 0.04773790 0.0001963124 0.0007148973 4.994905e-07
+    ## 50%   0.0001662953 0.0001928923 0.001071383 0.0005491434 0.0002429416 0.04780989 0.0002058424 0.0007311389 8.384147e-07
+    ## 75%   0.0001748889 0.0002017238 0.001086568 0.0005683874 0.0002538713 0.04788406 0.0002154320 0.0007476703 1.275377e-06
+    ## 97.5% 0.0001912517 0.0002184636 0.001118294 0.0006069659 0.0002749241 0.04803025 0.0002328631 0.0007797846 2.306426e-06
+    ##       otherthr     outsiden    pollutio   unknownf
+    ## 2.5%         0 0.0007253337 0.002151481 0.02564591
+    ## 25%          0 0.0007499919 0.002213917 0.02588579
+    ## 50%          0 0.0007626733 0.002247125 0.02601612
+    ## 75%          0 0.0007751986 0.002281128 0.02614898
+    ## 97.5%        0 0.0007987181 0.002345430 0.02641055
     ## 
     ## 
     ## Confidence intervals for the cumulative dRLI in 15:
@@ -599,18 +625,18 @@ cached version of this call):
     ## 
     ## 
     ## Confidence intervals for the threat-wise dRLIs in 15:
-    ##           alienspe     bycatchc    climatec     disturba     huntgath   landusec     natcatas    nativesp
-    ## 2.5%  0.0004654485 0.0004058008 0.001726858 0.0006577528 0.0001830036 0.04704259 0.0001290436 0.001029409
-    ## 25%   0.0004960362 0.0004340037 0.001768134 0.0006946349 0.0002023833 0.04718712 0.0001443514 0.001071179
-    ## 50%   0.0005122505 0.0004489106 0.001791132 0.0007145710 0.0002130874 0.04726472 0.0001527685 0.001093675
-    ## 75%   0.0005283537 0.0004641115 0.001815423 0.0007346618 0.0002241106 0.04734521 0.0001612560 0.001116644
-    ## 97.5% 0.0005596139 0.0004928468 0.001864325 0.0007746213 0.0002455143 0.04750369 0.0001769820 0.001160990
-    ##       nothreat     otherthr     outsiden    pollutio   unknownf
-    ## 2.5%         0 6.209688e-05 0.0004794150 0.002076458 0.02465761
-    ## 25%          0 6.528467e-05 0.0004977467 0.002140048 0.02489357
-    ## 50%          0 6.720246e-05 0.0005077713 0.002173702 0.02502169
-    ## 75%          0 6.914778e-05 0.0005178658 0.002207578 0.02515309
-    ## 97.5%        0 7.273932e-05 0.0005371932 0.002272940 0.02541082
+    ##           alienspe     bycatchc    climatec     disturba     huntgath   landusec     natcatas    nativesp nothreat
+    ## 2.5%  0.0004654485 0.0004058008 0.001726858 0.0006577528 0.0001830036 0.04704259 0.0001290436 0.001029409        0
+    ## 25%   0.0004960362 0.0004340037 0.001768134 0.0006946349 0.0002023833 0.04718712 0.0001443514 0.001071179        0
+    ## 50%   0.0005122505 0.0004489106 0.001791132 0.0007145710 0.0002130874 0.04726472 0.0001527685 0.001093675        0
+    ## 75%   0.0005283537 0.0004641115 0.001815423 0.0007346618 0.0002241106 0.04734521 0.0001612560 0.001116644        0
+    ## 97.5% 0.0005596139 0.0004928468 0.001864325 0.0007746213 0.0002455143 0.04750369 0.0001769820 0.001160990        0
+    ##           otherthr     outsiden    pollutio   unknownf
+    ## 2.5%  6.209688e-05 0.0004794150 0.002076458 0.02465761
+    ## 25%   6.528467e-05 0.0004977467 0.002140048 0.02489357
+    ## 50%   6.720246e-05 0.0005077713 0.002173702 0.02502169
+    ## 75%   6.914778e-05 0.0005178658 0.002207578 0.02515309
+    ## 97.5% 7.273932e-05 0.0005371932 0.002272940 0.02541082
     ## 
     ## 
     ## Confidence intervals for the cumulative dRLI in 21:
@@ -619,18 +645,18 @@ cached version of this call):
     ## 
     ## 
     ## Confidence intervals for the threat-wise dRLIs in 21:
-    ##          alienspe     bycatchc    climatec    disturba     huntgath   landusec     natcatas    nativesp
-    ## 2.5%  0.001320317 0.0004509342 0.003271669 0.001439563 0.0003027424 0.05930110 0.0002409912 0.002620797
-    ## 25%   0.001368545 0.0004810663 0.003332628 0.001497888 0.0003221677 0.05949384 0.0002651078 0.002689503
-    ## 50%   0.001393922 0.0004970019 0.003365490 0.001528925 0.0003329112 0.05959713 0.0002781345 0.002726200
-    ## 75%   0.001419573 0.0005131894 0.003399099 0.001560184 0.0003439041 0.05970240 0.0002912058 0.002762421
-    ## 97.5% 0.001468751 0.0005440783 0.003465365 0.001621395 0.0003656166 0.05990923 0.0003169533 0.002832002
-    ##          nothreat     otherthr     outsiden    pollutio    unknownf
-    ## 2.5%  4.21159e-05 7.353650e-05 0.0002452594 0.003067352 0.006265697
-    ## 25%   4.21159e-05 8.323033e-05 0.0002659077 0.003143160 0.006477857
-    ## 50%   4.21159e-05 8.869756e-05 0.0002770768 0.003183559 0.006592891
-    ## 75%   4.21159e-05 9.419064e-05 0.0002883152 0.003224167 0.006710418
-    ## 97.5% 4.21159e-05 1.036887e-04 0.0003105598 0.003301730 0.006943918
+    ##          alienspe     bycatchc    climatec    disturba     huntgath   landusec     natcatas    nativesp    nothreat
+    ## 2.5%  0.001320317 0.0004509342 0.003271669 0.001439563 0.0003027424 0.05930110 0.0002409912 0.002620797 4.21159e-05
+    ## 25%   0.001368545 0.0004810663 0.003332628 0.001497888 0.0003221677 0.05949384 0.0002651078 0.002689503 4.21159e-05
+    ## 50%   0.001393922 0.0004970019 0.003365490 0.001528925 0.0003329112 0.05959713 0.0002781345 0.002726200 4.21159e-05
+    ## 75%   0.001419573 0.0005131894 0.003399099 0.001560184 0.0003439041 0.05970240 0.0002912058 0.002762421 4.21159e-05
+    ## 97.5% 0.001468751 0.0005440783 0.003465365 0.001621395 0.0003656166 0.05990923 0.0003169533 0.002832002 4.21159e-05
+    ##           otherthr     outsiden    pollutio    unknownf
+    ## 2.5%  7.353650e-05 0.0002452594 0.003067352 0.006265697
+    ## 25%   8.323033e-05 0.0002659077 0.003143160 0.006477857
+    ## 50%   8.869756e-05 0.0002770768 0.003183559 0.006592891
+    ## 75%   9.419064e-05 0.0002883152 0.003224167 0.006710418
+    ## 97.5% 1.036887e-04 0.0003105598 0.003301730 0.006943918
     ## 
     ## 
     ## Confidence intervals for the cumulative ELS50 in 10:
@@ -639,18 +665,18 @@ cached version of this call):
     ## 
     ## 
     ## Confidence intervals for the threat-wise ELS50 in 10:
-    ##       alienspe bycatchc climatec  disturba huntgath landusec natcatas  nativesp    nothreat otherthr outsiden
-    ## 2.5%  1.713921 2.160339 11.03325  7.835271 3.344055 771.8913 3.563334  9.497606 0.000494524        0 13.87316
-    ## 25%   2.114467 2.494310 11.83299  8.715928 3.765894 778.4862 4.027070 10.322642 0.001931488        0 14.77775
-    ## 50%   2.341902 2.679842 12.27027  9.205291 3.996742 781.9936 4.288849 10.766185 0.003325577        0 15.25393
-    ## 75%   2.575577 2.871803 12.71730  9.709378 4.231785 785.4870 4.560873 11.219823 0.005256977        0 15.73369
-    ## 97.5% 3.031599 3.250796 13.61011 10.767979 4.685093 792.1704 5.088289 12.107799 0.010524343        0 16.65851
-    ##       pollutio unknownf
-    ## 2.5%  35.84644 355.4854
-    ## 25%   37.51722 362.3810
-    ## 50%   38.40848 366.0903
-    ## 75%   39.31298 369.8969
-    ## 97.5% 41.07687 377.3296
+    ##       alienspe bycatchc climatec  disturba huntgath landusec natcatas  nativesp    nothreat otherthr outsiden pollutio
+    ## 2.5%  1.713921 2.160339 11.03325  7.835271 3.344055 771.8913 3.563334  9.497606 0.000494524        0 13.87316 35.84644
+    ## 25%   2.114467 2.494310 11.83299  8.715928 3.765894 778.4862 4.027070 10.322642 0.001931488        0 14.77775 37.51722
+    ## 50%   2.341902 2.679842 12.27027  9.205291 3.996742 781.9936 4.288849 10.766185 0.003325577        0 15.25393 38.40848
+    ## 75%   2.575577 2.871803 12.71730  9.709378 4.231785 785.4870 4.560873 11.219823 0.005256977        0 15.73369 39.31298
+    ## 97.5% 3.031599 3.250796 13.61011 10.767979 4.685093 792.1704 5.088289 12.107799 0.010524343        0 16.65851 41.07687
+    ##       unknownf
+    ## 2.5%  355.4854
+    ## 25%   362.3810
+    ## 50%   366.0903
+    ## 75%   369.8969
+    ## 97.5% 377.3296
     ## 
     ## 
     ## Confidence intervals for the cumulative ELS50 in 15:
@@ -659,18 +685,12 @@ cached version of this call):
     ## 
     ## 
     ## Confidence intervals for the threat-wise ELS50 in 15:
-    ##       alienspe bycatchc climatec disturba huntgath landusec natcatas nativesp nothreat  otherthr outsiden
-    ## 2.5%  6.429392 5.852798 20.16523 10.75171 3.339128 728.5759 3.063295 13.19706        0 0.6998283 10.10069
-    ## 25%   7.160534 6.498025 21.38156 11.74717 3.745344 735.3276 3.494316 14.21944        0 0.8642567 10.81997
-    ## 50%   7.559791 6.851345 22.04545 12.28401 3.970534 738.9185 3.736478 14.77800        0 1.0003201 11.20678
-    ## 75%   7.964910 7.217245 22.73950 12.83566 4.206740 742.4894 3.986534 15.34300        0 1.1355247 11.59655
-    ## 97.5% 8.762859 7.936168 24.14536 13.94629 4.677196 749.4285 4.469384 16.45867        0 1.2992195 12.33046
-    ##       pollutio unknownf
-    ## 2.5%  34.88497 376.5288
-    ## 25%   36.63138 383.1682
-    ## 50%   37.55544 386.7761
-    ## 75%   38.49165 390.4636
-    ## 97.5% 40.31063 397.6805
+    ##       alienspe bycatchc climatec disturba huntgath landusec natcatas nativesp nothreat  otherthr outsiden pollutio unknownf
+    ## 2.5%  6.429392 5.852798 20.16523 10.75171 3.339128 728.5759 3.063295 13.19706        0 0.6998283 10.10069 34.88497 376.5288
+    ## 25%   7.160534 6.498025 21.38156 11.74717 3.745344 735.3276 3.494316 14.21944        0 0.8642567 10.81997 36.63138 383.1682
+    ## 50%   7.559791 6.851345 22.04545 12.28401 3.970534 738.9185 3.736478 14.77800        0 1.0003201 11.20678 37.55544 386.7761
+    ## 75%   7.964910 7.217245 22.73950 12.83566 4.206740 742.4894 3.986534 15.34300        0 1.1355247 11.59655 38.49165 390.4636
+    ## 97.5% 8.762859 7.936168 24.14536 13.94629 4.677196 749.4285 4.469384 16.45867        0 1.2992195 12.33046 40.31063 397.6805
     ## 
     ## 
     ## Confidence intervals for the cumulative ELS50 in 21:
@@ -679,18 +699,12 @@ cached version of this call):
     ## 
     ## 
     ## Confidence intervals for the threat-wise ELS50 in 21:
-    ##       alienspe bycatchc climatec disturba huntgath landusec natcatas nativesp  nothreat  otherthr outsiden
-    ## 2.5%  18.01563 6.619278 31.21453 24.71861 4.609584 922.3794 4.239145 32.73401 0.8398355 0.8854666 4.644973
-    ## 25%   19.14020 7.259777 32.58599 26.21910 5.102536 929.9284 4.906173 34.22506 0.8628706 1.0930390 5.190771
-    ## 50%   19.74498 7.609586 33.34501 27.02456 5.371875 933.9718 5.269059 35.01811 0.8848130 1.2188477 5.492353
-    ## 75%   20.36097 7.969205 34.13131 27.85145 5.647965 938.0420 5.640209 35.82016 0.9163174 1.3448933 5.801821
-    ## 97.5% 21.56187 8.681329 35.72520 29.46728 6.188712 945.7978 6.366258 37.37600 0.9810815 1.5758903 6.406989
-    ##       pollutio unknownf
-    ## 2.5%  50.13332 109.1790
-    ## 25%   52.16730 114.5751
-    ## 50%   53.25436 117.5645
-    ## 75%   54.35730 120.6107
-    ## 97.5% 56.50830 126.8124
+    ##       alienspe bycatchc climatec disturba huntgath landusec natcatas nativesp  nothreat  otherthr outsiden pollutio unknownf
+    ## 2.5%  18.01563 6.619278 31.21453 24.71861 4.609584 922.3794 4.239145 32.73401 0.8398355 0.8854666 4.644973 50.13332 109.1790
+    ## 25%   19.14020 7.259777 32.58599 26.21910 5.102536 929.9284 4.906173 34.22506 0.8628706 1.0930390 5.190771 52.16730 114.5751
+    ## 50%   19.74498 7.609586 33.34501 27.02456 5.371875 933.9718 5.269059 35.01811 0.8848130 1.2188477 5.492353 53.25436 117.5645
+    ## 75%   20.36097 7.969205 34.13131 27.85145 5.647965 938.0420 5.640209 35.82016 0.9163174 1.3448933 5.801821 54.35730 120.6107
+    ## 97.5% 21.56187 8.681329 35.72520 29.46728 6.188712 945.7978 6.366258 37.37600 0.9810815 1.5758903 6.406989 56.50830 126.8124
 
 ## Figures
 
@@ -708,44 +722,49 @@ Simplify the table by collapsing minor threats:
     DRLI. <- rbind(0, DRLI.)
     DRLI. <- rbind(DRLI., 0)
 
-Plot a graph for DeltaRLI:
+Plot a graph for ΔRLI:
 
-    if (nchar(fig1)) {
-     png(fig1, 1500, 1200, res = 180)
+    {
+      xl <- c(2009.5, 2028)
+      yl <- c(0.9198, 0.92023)
+      if (nchar(fig1)) {
+        png(fig1, 1500, 1200, res = 180)
+        xl <- c(2009.5, 2027.5)
+        yl <- c(0.9198, 0.92022)
+      }
+      par(mai = c(0.96, 0.96, 0.12, 0.06), family = "sans")
+      plot(0, 0, xlim = xl, ylim = yl,
+        xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
+        ylab = "Red List Index",
+        bty = "n", cex.axis = 1.2, cex.lab = 1.8)
+      axis(1, c(2009, 2021.5),              F, T, tcl = 0,        lwd = 1.5, lend = 1)
+      axis(1, 2009:2021,                    F, T,                 lwd = 1.5, lend = 1)
+      axis(1, c(2010, 2015, 2021),          T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+      axis(2, seq(0.9198, 0.9202, 0.00010), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+      axis(2, seq(0.9198, 0.9202, 0.00001), F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
+      mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
+      x <- c(2010, 2015, 2021, 2023)
+      DRLI.[, 4] <- DRLI.[, 3] + c(0, 0, 0, 0, 0, 0, -0.00000887, 0)
+      lines(x[4:1], rep(RLI10, 4), lty = "12",     lwd = 9.6, col = grey(0.84))
+      lines(x[1:4], c(RLI10, RLI15, RLI21, RLI21), lwd = 9.6, col = grey(0.84))
+      for (i in 2:7) {
+        lines(x, RLI10 + DRLI.[i, ], lty = i - 1, lwd = 2.4)
+        points(x[2:3], RLI10 + DRLI.[i, 2:3], pch = c(1, 4, 21, 24, 22, 25, 23)[i],
+          cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
+        text(2023, RLI10 + DRLI.[i, 4],
+          c("", "land-use change", "other/unknown", "climate change", "pollution",
+            "native species", "disturbance")[i],
+          pos = 4, cex = 1.2)
+      }
+      text(2023, RLI21, "RLI", pos = 4, cex = 1.2)
+      text(2023, RLI10, "no change", pos = 4, cex = 1.2)
+      text(2015.5, 0.92021, expression(bold(Delta*RLI)), cex = 1.8)
+      if (nchar(fig1)) {
+        dev.off()
+      }
     }
-    par(mai = c(0.96, 0.96, 0.12, 0.06), family = "sans")
-    plot(0, 0, xlim = c(2009.5, 2027.5), ylim = c(0.9198, 0.92022),
-      xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
-      ylab = "Red List Index",
-      bty = "n", cex.axis = 1.2, cex.lab = 1.8)
-    axis(1, c(2009, 2021.5),              F, T, tcl = 0,        lwd = 1.5, lend = 1)
-    axis(1, 2009:2021,                    F, T,                 lwd = 1.5, lend = 1)
-    axis(1, c(2010, 2015, 2021),          T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-    axis(2, seq(0.9198, 0.9202, 0.00010), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-    axis(2, seq(0.9198, 0.9202, 0.00001), F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
-    mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
-    x <- c(2010, 2015, 2021, 2023)
-    DRLI.[, 4] <- DRLI.[, 3] + c(0, 0, 0, 0, 0, 0, -0.00000887, 0)
-    lines(x[4:1], rep(RLI10, 4), lty = "12",     lwd = 9.6, col = grey(0.84))
-    lines(x[1:4], c(RLI10, RLI15, RLI21, RLI21), lwd = 9.6, col = grey(0.84))
-    for (i in 2:7) {
-      lines(x, RLI10 + DRLI.[i, ], lty = i - 1, lwd = 2.4)
-      points(x[2:3], RLI10 + DRLI.[i, 2:3], pch = c(1, 4, 21, 24, 22, 25, 23)[i],
-        cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
-      text(2023, RLI10 + DRLI.[i, 4],
-        c("", "land-use change", "other/unknown", "climate change", "pollution",
-          "native species", "disturbance")[i],
-        pos = 4, cex = 1.2)
-    }
-    text(2023, RLI21, "RLI", pos = 4, cex = 1.2)
-    text(2023, RLI10, "no change", pos = 4, cex = 1.2)
-    text(2015.5, 0.92021, expression(bold(Delta*RLI)), cex = 1.8)
 
-![](species_files/figure-markdown_strict/unnamed-chunk-234-1.png)
-
-    if (nchar(fig1)) {
-      dev.off()
-    }
+![](species_files/figure-markdown_strict/unnamed-chunk-38-1.png)
 
 ### Figure 2
 
@@ -772,109 +791,106 @@ Simplify the table by collapsing minor threats:
     drli. <- rbind(0, drli.)
     drli. <- rbind(0, drli.)
 
-Plot a graph for deltaRLI:
+Plot a graph for δRLI:
 
-    if (nchar(fig2)) {
-     png(fig2, 1500, 1200, res=180)
+    {
+      xl <- c(2009.5, 2028)
+      yl <- c(0.91, 1.008)
+      if (nchar(fig2)) {
+        png(fig2, 1500, 1200, res=180)
+        xl <- c(2009.5, 2027.5)
+        yl <- c(0.91, 1.002)
+      }
+      par(mai=c(0.96, 0.96, 0.06, 0.06), family="sans")
+      plot(0, 0, xlim = xl, ylim = yl, xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n",
+        xlab="", ylab = "Red List Index", bty = "n", cex.axis = 1.2, cex.lab = 1.8)
+      axis(1, c(2009, 2021.5),     F, T, tcl=0,        lwd=1.5, lend=1)
+      axis(1, 2009:2021,           F, T,               lwd=1.5, lend=1)
+      axis(1, c(2010, 2015, 2021), T, T, cex.axis=1.2, lwd=1.5, lend=1)
+      axis(2, seq(0.8, 1, 0.01),   F, T,               lwd=1.5, lend=1)
+      axis(2, seq(0.8, 1, 0.02),   T, T, cex.axis=1.2, lwd=1.5, lend=1)
+      mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex=1.8)
+      x <- c(2021, 2015, 2010)
+      for (i in 3:nrow(drli.)) {
+        polygon(c(x, rev(x)),
+                1 - c(apply(drli.[1:(i-1),], 2, sum), rev(apply(drli.[1:i,], 2, sum))),
+                border=NA, col=grey(1.32 - i * 0.12))
+      }
+      y0 <- rep(RLI21, 3)
+      y2 <- 1 - (sum(drli.[1:8,1]) + sum(drli.[1:7,1])) / 2
+      #y2 <- RLI21 + 0.005
+      for (i in 7:3) {
+        y1 <- 1 - apply(drli.[1:i,], 2, sum)
+        lines(x, y1, lwd=2.4)
+        lines(c(2021, 2023), c(mean(c(y0[1], y1[1])), y2), lwd=1.8)
+        text(2023, y2, 
+          c("", "land-use change", "other/unknown", "climate change",
+            "pollution", "native species", "disturbance")[i],
+          pos=4, cex=1.2)
+        y0 <- y1
+        y2 <- y2 + 0.005
+      }
+      lines(c(2021, 2023), rep(y2, 2), lwd=1.8)
+      text(2023, y2, "land-use change", pos=4, cex=1.2)
+      lines(x, rep(1, 3), lwd=4.8)
+      lines(c(2021, 2023), rep(1, 2), lwd=1.8)
+      text(2023, 1, "reference value", font=2, pos=4, cex=1.2)
+      lines(x, c(RLI21, RLI15, RLI10), lwd=4.8)
+      lines(c(2021, 2023), c(RLI21, y2 - 0.03), lwd=1.8)
+      text(2023, y2 - 0.03, "RLI", font=2, pos=4, cex=1.2)
+      text(2015.5, 1.005, expression(bold(delta*RLI)), cex = 1.8)
+      if (nchar(fig2)) {
+        dev.off()
+      }
     }
-    par(mai=c(0.96, 0.96, 0.06, 0.06), family="sans")
-    # plot(0, 0, xlim=c(2009.5, 2027.5), ylim=c(0.91, 1.002),
-    plot(0, 0, xlim=c(2009.5, 2029.5), ylim=c(0.91, 1.008),
-      xaxs="i", yaxs="i", xaxt="n", yaxt="n", xlab="", ylab="Red List Index",
-      bty="n", cex.axis=1.2, cex.lab=1.8)
-    axis(1, c(2009, 2021.5),     F, T, tcl=0,        lwd=1.5, lend=1)
-    axis(1, 2009:2021,           F, T,               lwd=1.5, lend=1)
-    axis(1, c(2010, 2015, 2021), T, T, cex.axis=1.2, lwd=1.5, lend=1)
-    axis(2, seq(0.8, 1, 0.01),   F, T,               lwd=1.5, lend=1)
-    axis(2, seq(0.8, 1, 0.02),   T, T, cex.axis=1.2, lwd=1.5, lend=1)
-    mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex=1.8)
-    x <- c(2021, 2015, 2010)
-    for (i in 3:nrow(drli.)) {
-      polygon(c(x, rev(x)),
-              1 - c(apply(drli.[1:(i-1),], 2, sum), rev(apply(drli.[1:i,], 2, sum))),
-              border=NA, col=grey(1.32 - i * 0.12))
-    }
-    y0 <- rep(RLI21, 3)
-    y2 <- 1 - (sum(drli.[1:8,1]) + sum(drli.[1:7,1])) / 2
-    #y2 <- RLI21 + 0.005
-    for (i in 7:3) {
-      y1 <- 1 - apply(drli.[1:i,], 2, sum)
-      lines(x, y1, lwd=2.4)
-    #  lines(c(2021, 2023), c(mean(c(y0[1], y1[1])), y2), lwd=1.8)
-      lines(c(2021, 2022), c(mean(c(y0[1], y1[1])), y2), lwd=1.8)
-    #   text(2023, y2, 
-      text(2022, y2, 
-        c("", "land-use change", "other/unknown", "climate change",
-          "pollution", "native species", "disturbance")[i] %+%
-          " (" %+% formatC(drli.[i + 1, 1], 4, format="f") %+% ")",
-        pos=4, cex=1.2)
-      y0 <- y1
-      y2 <- y2 + 0.005
-    }
-    #lines(c(2021, 2023), rep(y2, 2), lwd=1.8)
-    lines(c(2021, 2022), rep(y2, 2), lwd=1.8)
-    #text(2023, y2, "land-use change", pos=4, cex=1.2)
-    text(2022, y2, "land-use change" %+%
-                   " (" %+% formatC(drli.[3, 1], 4, format="f") %+% ")",
-         pos=4, cex=1.2)
-    lines(x, rep(1, 3), lwd=4.8)
-    lines(c(2021, 2022), rep(1, 2), lwd=1.8)
-    text(2022, 1, "reference value", font=2, pos=4, cex=1.2)
-    lines(x, c(RLI21, RLI15, RLI10), lwd=4.8)
-    lines(c(2021, 2022), c(RLI21, y2 - 0.03), lwd=1.8)
-    text(2022, y2 - 0.03, "RLI", font=2, pos=4, cex=1.2)
-    text(2015.5, 1.005, expression(bold(delta*RLI)), cex = 1.8)
 
-![](species_files/figure-markdown_strict/unnamed-chunk-236-1.png)
-
-    if (nchar(fig2)) {
-      dev.off()
-    }
+![](species_files/figure-markdown_strict/unnamed-chunk-40-1.png)
 
 ### Figure 3
 
 The following script recreates Figure 3.
 
-Plot a graph for ELS50:
+Plot a graph for ELS\_50\_:
 
-    if (nchar(fig3)) {
-     png(fig3, 1500, 1200, res = 180)
+    {
+      xl <- c(2009.5, 2028)
+      yl <- c(lg(8), 3.1)
+      if (nchar(fig3)) {
+        png(fig3, 1500, 1200, res = 180)
+        xl <- c(2009.5, 2027.5)
+        yl <- c(lg(8), 3)
+      }
+      par(mai = c(0.96, 0.96, 0.06, 0.06), family = "sans")
+      plot(0, 0, xlim = xl, ylim = yl, 
+           xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
+           ylab = "Expected loss of species",
+           bty = "n", cex.axis = 1.2, cex.lab = 1.8)
+      axis(1, c(2009, 2021.5),          F, T, tcl = 0,        lwd = 1.5, lend = 1)
+      axis(1, 2009:2021,                F, T,                 lwd = 1.5, lend = 1)
+      axis(1, c(2010, 2015, 2021),      T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+      axis(2, 0:3, c(1, 10, 100, 1000), T,    cex.axis = 1.2, lwd = 1.5, lend = 1)
+      axis(2, lg(c(2:9, seq(20, 90, 10), seq(200, 900, 100))),
+                                        F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
+      mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
+      x <- c(2010, 2015, 2021, 2023)
+      ELS.[3, 4] <- 10^(1/3 * lg(ELS.[4, 4]) + 2/3 * lg(ELS.[6, 4]))
+      ELS.[5, 4] <- 10^(2/3 * lg(ELS.[4, 4]) + 1/3 * lg(ELS.[6, 4]))
+      for (i in 1:6) {
+        lines (x,      lg(ELS.[i, ]), lty = i, lwd = 2.4)
+        points(x[1:3], lg(ELS.[i, 1:3]), pch = c(4, 21, 24, 22, 25, 23)[i],
+          cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
+        text(2023, lg(ELS.[i, 4]), 
+          c("land-use change", "other/unknown", "climate change",
+            "pollution", "native species", "disturbance")[i],
+          pos = 4, cex = 1.2)
+      }
+      text(2015.5, 3.01, expression(bold(ELS[50])), cex = 1.8)
+      if (nchar(fig3)) {
+        dev.off()
+      }
     }
-    par(mai = c(0.96, 0.96, 0.06, 0.06), family = "sans")
-    # plot(0, 0, xlim=c(2009.5, 2027.5), ylim=c(lg(8), 3), 
-    plot(0, 0, xlim=c(2009.5, 2029.5), ylim=c(lg(8), 3.1), 
-         xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
-         ylab = "Expected loss of species",
-         bty = "n", cex.axis = 1.2, cex.lab = 1.8)
-    axis(1, c(2009, 2021.5),          F, T, tcl = 0,        lwd = 1.5, lend = 1)
-    axis(1, 2009:2021,                F, T,                 lwd = 1.5, lend = 1)
-    axis(1, c(2010, 2015, 2021),      T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-    axis(2, 0:3, c(1, 10, 100, 1000), T,    cex.axis = 1.2, lwd = 1.5, lend = 1)
-    axis(2, lg(c(2:9, seq(20, 90, 10), seq(200, 900, 100))),
-                                      F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
-    mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
-    # x <- c(2010, 2015, 2021, 2023)
-    x <- c(2010, 2015, 2021, 2022)
-    ELS.[3, 4] <- 10^(1/3 * lg(ELS.[4, 4]) + 2/3 * lg(ELS.[6, 4]))
-    ELS.[5, 4] <- 10^(2/3 * lg(ELS.[4, 4]) + 1/3 * lg(ELS.[6, 4]))
-    for (i in 1:6) {
-      lines (x,      lg(ELS.[i, ]), lty = i, lwd = 2.4)
-      points(x[1:3], lg(ELS.[i, 1:3]), pch = c(4, 21, 24, 22, 25, 23)[i],
-        cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
-    # text(2023, lg(ELS.[i, 4]), 
-      text(2022, lg(ELS.[i, 4]), 
-        c("land-use change", "other/unknown", "climate change",
-          "pollution", "native species", "disturbance")[i] %+%
-          " (" %+% round(ELS.[i, 3]) %+% ")",
-        pos = 4, cex = 1.2)
-    }
-    text(2015.5, 3.01, expression(bold(ELS[50])), cex = 1.8)
 
-![](species_files/figure-markdown_strict/unnamed-chunk-237-1.png)
-
-    if (nchar(fig3)) {
-      dev.off()
-    }
+![](species_files/figure-markdown_strict/unnamed-chunk-41-1.png)
 
 ## Analysis with DD species excluded
 
@@ -885,13 +901,19 @@ included, they can be re-run with Data Deficient species excluded:
       includeDD <- FALSE
       RL. <- calcLoss(RL)
       RL. <- addThreats(RL.)
+      cat("\nDeltaRLI excluding DD species:\n")
       DRLI. <- DeltaRLI(RL.)
       print(DRLI.)
       drli. <- dRLI(RL.)
-      print(drli.)
+      cat("\ndRLI excluding DD species:\n")
+      print(drli.$dRLI)
+      cat("\nELS50 excluding DD species:\n")
+      print(drli.$ELS50)
       includeDD <- TRUE
     }
 
+    ## 
+    ## DeltaRLI excluding DD species:
     ##                RL15_21       RL10_15       RL10_21
     ## alienspe -1.646534e-05 -2.618685e-05 -4.265218e-05
     ## bycatchc  7.749949e-06  1.318314e-05  2.093309e-05
@@ -906,7 +928,8 @@ included, they can be re-run with Data Deficient species excluded:
     ## outsiden  6.228195e-05  1.903962e-05  8.132157e-05
     ## pollutio -4.011468e-05  2.009000e-05 -2.002468e-05
     ## unknownf  1.027295e-04 -3.230370e-05  7.042581e-05
-    ## $dRLI
+    ## 
+    ## dRLI excluding DD species:
     ##                  RL10         RL15         RL21
     ## alienspe 1.712182e-04 0.0005291232 1.439336e-03
     ## bycatchc 1.976214e-04 0.0004636794 5.157190e-04
@@ -922,7 +945,7 @@ included, they can be re-run with Data Deficient species excluded:
     ## pollutio 2.313781e-03 0.0022325508 3.269086e-03
     ## unknownf 2.476861e-02 0.0238031022 5.175007e-03
     ## 
-    ## $ELS50
+    ## ELS50 excluding DD species:
     ##                  RL10       RL15       RL21
     ## alienspe 2.336318e+00   7.570922  19.755750
     ## bycatchc 2.659176e+00   6.866327   7.644216
@@ -948,13 +971,19 @@ threats:
       inferThreats <- TRUE
       RL. <- calcLoss(RL)
       RL. <- addThreats(RL.)
+      cat("\nDeltaRLI excluding DD species:\n")
       DRLI. <- DeltaRLI(RL.)
       print(DRLI.)
       drli. <- dRLI(RL.)
-      print(drli.)
+      cat("\ndRLI excluding DD species:\n")
+      print(drli.$dRLI)
+      cat("\nELS50 excluding DD species:\n")
+      print(drli.$ELS50)
       inferThreats <- FALSE
     }
 
+    ## 
+    ## DeltaRLI excluding DD species:
     ##                RL15_21       RL10_15       RL10_21
     ## alienspe -1.541714e-05 -3.498722e-05 -5.040437e-05
     ## bycatchc  1.297978e-05  1.561721e-05  2.859699e-05
@@ -969,7 +998,8 @@ threats:
     ## outsiden  8.353522e-05  1.921717e-05  1.027524e-04
     ## pollutio -4.263000e-05  2.365228e-05 -1.897772e-05
     ## unknownf  0.000000e+00  0.000000e+00  0.000000e+00
-    ## $dRLI
+    ## 
+    ## dRLI excluding DD species:
     ##                  RL10         RL15         RL21
     ## alienspe 2.472902e-04 7.475371e-04 1.526174e-03
     ## bycatchc 2.837378e-04 6.538221e-04 5.445765e-04
@@ -985,7 +1015,7 @@ threats:
     ## pollutio 3.337628e-03 3.165809e-03 3.473227e-03
     ## unknownf 0.000000e+00 0.000000e+00 0.000000e+00
     ## 
-    ## $ELS50
+    ## ELS50 excluding DD species:
     ##                  RL10        RL15         RL21
     ## alienspe 3.334304e+00   11.004252   21.9313575
     ## bycatchc 3.763962e+00    9.954738    8.4411939
@@ -1014,42 +1044,47 @@ Simplify the table by collapsing minor threats:
     DRLI. <- rbind(0, DRLI.)
     DRLI. <- rbind(DRLI., 0)
 
-Plot a graph for DeltaRLI:
+Plot a graph for ΔRLI:
 
-    if (nchar(figS1)) {
-     png(figS1, 1500, 1200, res = 180)
+    {
+      xl <- c(2009.5, 2028)
+      yl <- c(0.9198, 0.92034)
+      if (nchar(figS1)) {
+        png(figS1, 1500, 1200, res = 180)
+        xl <- c(2009.5, 2027.5)
+        yl <- c(0.9198, 0.92033)
+      }
+      par(mai = c(0.96, 0.96, 0.12, 0.06), family = "sans") # ylim=c(0.9199, 0.92015)
+      plot(0, 0, xlim = xl, ylim = yl,
+        xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
+        ylab = "Red List Index",
+        bty = "n", cex.axis = 1.2, cex.lab = 1.8)
+      axis(1, c(2009, 2021.5),              F, T, tcl = 0,        lwd = 1.5, lend = 1)
+      axis(1, 2009:2021,                    F, T,                 lwd = 1.5, lend = 1)
+      axis(1, c(2010, 2015, 2021),          T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+      axis(2, seq(0.9198, 0.9203, 0.00010), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+      axis(2, seq(0.9198, 0.9203, 0.00001), F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
+      mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
+      x <- c(2010, 2015, 2021, 2023)
+      DRLI.[,4] <- DRLI.[,3] + c(0, 0, 0, 0, 0, 0, -0.00000876, 0)
+      lines(x[3:1], rep(RLI10, 3), lty = "12", lwd = 9.6, col = grey(0.84))
+      lines(x[1:3], c(RLI10, RLI15, RLI21),    lwd = 9.6, col = grey(0.84))
+      for (i in 2:7) {
+        lines(x, RLI10 + DRLI.[i, ], lty = i - 1, lwd = 2.4)
+        points(x[2:3], RLI10 + DRLI.[i, 2:3], pch=c(1, 4, 21, 24, 22, 25, 23)[i],
+          cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
+        text(2023, RLI10 + DRLI.[i, 4],
+          c("", "land-use change", "other/unknown", "climate change", "pollution",
+            "native species", "disturbance")[i],
+          pos = 4, cex = 1.2)
+      }
+      text(2015.5, 0.92032, expression(bold(Delta*RLI)), cex = 1.8)
+      if (nchar(figS1)) {
+        dev.off()
+      }
     }
-    par(mai = c(0.96, 0.96, 0.12, 0.06), family = "sans") # ylim=c(0.9199, 0.92015)
-    plot(0, 0, xlim = c(2009.5, 2027.5), ylim = c(0.9198, 0.92033),
-      xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
-      ylab = "Red List Index",
-      bty = "n", cex.axis = 1.2, cex.lab = 1.8)
-    axis(1, c(2009, 2021.5),               F, T, tcl = 0,        lwd = 1.5, lend = 1)
-    axis(1, 2009:2021,                     F, T,                 lwd = 1.5, lend = 1)
-    axis(1, c(2010, 2015, 2021),           T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-    axis(2, seq(0.9198, 0.9203, 0.00010), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-    axis(2, seq(0.9198, 0.9203, 0.00001), F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
-    mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
-    x <- c(2010, 2015, 2021, 2023)
-    DRLI.[,4] <- DRLI.[,3] + c(0, 0, 0, 0, 0, 0, -0.00000876, 0)
-    lines(x[3:1], rep(RLI10, 3), lty = "12", lwd = 9.6, col = grey(0.84))
-    lines(x[1:3], c(RLI10, RLI15, RLI21),    lwd = 9.6, col = grey(0.84))
-    for (i in 2:7) {
-      lines(x, RLI10 + DRLI.[i, ], lty = i - 1, lwd = 2.4)
-      points(x[2:3], RLI10 + DRLI.[i, 2:3], pch=c(1, 4, 21, 24, 22, 25, 23)[i],
-        cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
-      text(2023, RLI10 + DRLI.[i, 4],
-        c("", "land-use change", "other/unknown", "climate change", "pollution",
-          "native species", "disturbance")[i],
-        pos = 4, cex = 1.2)
-    }
-    text(2015.5, 0.92032, expression(bold(Delta*RLI)), cex = 1.8)
 
-![](species_files/figure-markdown_strict/unnamed-chunk-241-1.png)
-
-    if (nchar(figS1)) {
-      dev.off()
-    }
+![](species_files/figure-markdown_strict/unnamed-chunk-45-1.png)
 
 ### Figure S2
 
@@ -1079,95 +1114,105 @@ Simplify the table by collapsing minor threats:
     drli. <- rbind(0, drli.)
     drli. <- rbind(0, drli.)
 
-Plot a graph for deltaRLI:
+Plot a graph for δRLI:
 
-    if (nchar(figS2)) {
-     png(figS2, 1500, 1200, res = 180)
+    {
+      xl <- c(2009.5, 2028)
+      yl <- c(0.91, 1.008)
+      if (nchar(figS2)) {
+        png(figS2, 1500, 1200, res = 180)
+        xl <- c(2009.5, 2027.5)
+        yl <- c(0.91, 1.008)
+      }
+      par(mai = c(0.96, 0.96, 0.06, 0.06), family = "sans")
+      plot(0, 0, xlim = xl, ylim = yl,
+        xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
+        ylab = "Red List Index",
+        bty = "n", cex.axis = 1.2, cex.lab = 1.8)
+      axis(1, c(2009, 2021.5),     F, T, tcl = 0,        lwd = 1.5, lend = 1)
+      axis(1, 2009:2021,           F, T,                 lwd = 1.5, lend = 1)
+      axis(1, c(2010, 2015, 2021), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+      axis(2, seq(0.8, 1, 0.01),   F, T,                 lwd = 1.5, lend = 1)
+      axis(2, seq(0.8, 1, 0.02),   T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+      mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
+      x <- c(2021, 2015, 2010)
+      for (i in 3:nrow(drli.)) {
+        polygon(c(x, rev(x)),
+                1 - c(apply(drli.[1:(i-1),], 2, sum), rev(apply(drli.[1:i,], 2, sum))),
+                border = NA, col = grey(1.32 - i * 0.12))
+      }
+      y0 <- rep(RLI21, 3)
+      y2 <- 1 - (sum(drli.[1:8, 1]) + sum(drli.[1:7, 1])) / 2
+      for (i in 7:3) {
+        y1 <- 1 - apply(drli.[1:i, ], 2, sum)
+        lines(x, y1, lwd = 2.4)
+        lines(c(2021, 2023), c(mean(c(y0[1], y1[1])), y2), lwd = 1.8)
+        text(2023, y2, 
+          c("", "land-use change", "other/unknown", "climate change",
+            "pollution", "native species", "disturbance")[i],
+          pos = 4, cex = 1.2)
+        y0 <- y1
+        y2 <- y2 + 0.005
+      }
+      lines(c(2021, 2023), rep(y2, 2), lwd = 1.8)
+      text(2023, y2, "land-use change", pos = 4, cex = 1.2)
+      lines(x, rep(1,3), lwd = 4.8)
+      lines(x, c(RLI21, RLI15, RLI10), lwd = 4.8)
+      text(2015.5, 1.005, expression(bold(delta*RLI)), cex = 1.8)
+      if (nchar(figS2)) {
+        dev.off()
+      }
     }
-    par(mai = c(0.96, 0.96, 0.06, 0.06), family = "sans")
-    plot(0, 0, xlim = c(2009.5, 2027.5), ylim = c(0.91, 1.008),
-      xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "", 
-      ylab = "Red List Index",
-      bty = "n", cex.axis = 1.2, cex.lab = 1.8)
-    axis(1, c(2009, 2021.5),     F, T, tcl = 0,        lwd = 1.5, lend = 1)
-    axis(1, 2009:2021,           F, T,                 lwd = 1.5, lend = 1)
-    axis(1, c(2010, 2015, 2021), T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-    axis(2, seq(0.8, 1, 0.01),   F, T,                 lwd = 1.5, lend = 1)
-    axis(2, seq(0.8, 1, 0.02),   T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-    mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
-    x <- c(2021, 2015, 2010)
-    for (i in 3:nrow(drli.)) {
-      polygon(c(x, rev(x)),
-              1 - c(apply(drli.[1:(i-1), ], 2, sum), rev(apply(drli.[1:i, ], 2, sum))),
-              border = NA, col = grey(1.32 - i * 0.12))
-    }
-    y0 <- rep(RLI21, 3)
-    y2 <- 1 - (sum(drli.[1:8, 1]) + sum(drli.[1:7, 1])) / 2
-    for (i in 7:3) {
-      y1 <- 1 - apply(drli.[1:i, ], 2, sum)
-      lines(x, y1, lwd = 2.4)
-      lines(c(2021, 2023), c(mean(c(y0[1], y1[1])), y2), lwd = 1.8)
-      text(2023, y2, 
-        c("", "land-use change", "other/unknown", "climate change",
-          "pollution", "native species", "disturbance")[i],
-        pos = 4, cex = 1.2)
-      y0 <- y1
-      y2 <- y2 + 0.005
-    }
-    lines(c(2021, 2023), rep(y2, 2), lwd = 1.8)
-    text(2023, y2, "land-use change", pos = 4, cex = 1.2)
-    lines(x, rep(1,3), lwd = 4.8)
-    lines(x, c(RLI21, RLI15, RLI10), lwd = 4.8)
-    text(2015.5, 1.005, expression(bold(delta*RLI)), cex = 1.8)
 
-![](species_files/figure-markdown_strict/unnamed-chunk-243-1.png)
-
-    if (nchar(figS2)) {
-      dev.off()
-    }
+![](species_files/figure-markdown_strict/unnamed-chunk-47-1.png)
 
 ### Figure S3
 
 The following script recreates Figure S3.
 
-Plot a graph for ELS50:
+Plot a graph for ELS\_50\_:
 
-    if (nchar(figS3)) {
-     png(figS3, 1500, 1200, res = 180)
+    {
+      xl <- c(2009.5, 2028)
+      yl <- c(lg(8), 3.25)
+      if (nchar(figS3)) {
+        png(figS3, 1500, 1200, res = 180)
+        xl <- c(2009.5, 2027.5)
+        yl <- c(lg(8), 3.1)
+      }
+      par(mai = c(0.96, 0.96, 0.06, 0.06), family = "sans")
+      plot(0, 0, xlim = xl, ylim = yl,
+        xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "",
+        ylab="Expected loss of species",
+        bty = "n", cex.axis = 1.2, cex.lab = 1.8)
+      axis(1, c(2009, 2021.5),          F, T, tcl = 0,        lwd = 1.5, lend = 1)
+      axis(1, 2009:2021,                F, T,                 lwd = 1.5, lend = 1)
+      axis(1, c(2010, 2015, 2021),      T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
+      axis(2, c(1, lg(1200)),           F, T, tcl = 0,        lwd = 1.5, lend = 1)
+      axis(2, 0:3, c(1, 10, 100, 1000), T,    cex.axis = 1.2, lwd = 1.5, lend = 1)
+      axis(2, lg(c(2:9, seq(20, 90, 10), seq(200, 900, 100))),
+                                        F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
+      mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
+      x <- c(2010, 2015, 2021, 2023)
+      ELS.[2, 4] <- 10^(3/4 * lg(ELS.[4, 4]) + 1/4 * lg(ELS.[6, 4]))
+      ELS.[5, 4] <- 10^(2/4 * lg(ELS.[4, 4]) + 2/4 * lg(ELS.[6, 4]))
+      ELS.[3, 4] <- 10^(1/4 * lg(ELS.[4, 4]) + 3/4 * lg(ELS.[6, 4]))
+      for (i in 1:6) {
+        lines (x,      lg(ELS.[i, ]), lty = i, lwd = 2.4)
+        points(x[1:3], lg(ELS.[i, 1:3]), pch = c(4, 21, 24, 22, 25, 23)[i],
+          cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
+        text(2023, lg(ELS.[i, 4]), 
+          c("land-use change", "other/unknown", "climate change",
+            "pollution", "native species", "disturbance")[i],
+          pos = 4, cex = 1.2)
+      }
+      text(2015.5, 3.12, expression(bold(ELS[50])), cex = 1.8)
+      if (nchar(figS3)) {
+        dev.off()
+      }
     }
-    par(mai = c(0.96, 0.96, 0.06, 0.06), family = "sans")
-    plot(0, 0, xlim = c(2009.5, 2027.5), ylim = c(1, 3.2),
-      xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n", xlab = "",
-      ylab="Expected loss of species",
-      bty = "n", cex.axis = 1.2, cex.lab = 1.8)
-    axis(1, c(2009, 2021.5),          F, T, tcl = 0,        lwd = 1.5, lend = 1)
-    axis(1, 2009:2021,                F, T,                 lwd = 1.5, lend = 1)
-    axis(1, c(2010, 2015, 2021),      T, T, cex.axis = 1.2, lwd = 1.5, lend = 1)
-    axis(2, c(1, lg(1200)),           F, T, tcl = 0,        lwd = 1.5, lend = 1)
-    axis(2, 0:3, c(1, 10, 100, 1000), T,    cex.axis = 1.2, lwd = 1.5, lend = 1)
-    axis(2, lg(c(2:9, seq(20, 90, 10), seq(200, 900, 100))),
-                                      F, T, tcl = -0.25,    lwd = 1.5, lend = 1)
-    mtext("Year of Red List assessment", 1, 3, F, 2015.5, cex = 1.8)
-    x <- c(2010, 2015, 2021, 2023)
-    ELS.[2, 4] <- 10^(3/4 * lg(ELS.[4, 4]) + 1/4 * lg(ELS.[6, 4]))
-    ELS.[5, 4] <- 10^(2/4 * lg(ELS.[4, 4]) + 2/4 * lg(ELS.[6, 4]))
-    ELS.[3, 4] <- 10^(1/4 * lg(ELS.[4, 4]) + 3/4 * lg(ELS.[6, 4]))
-    for (i in 1:6) {
-      lines (x,      lg(ELS.[i, ]), lty = i, lwd = 2.4)
-      points(x[1:3], lg(ELS.[i, 1:3]), pch = c(4, 21, 24, 22, 25, 23)[i],
-        cex = 1.8, bg = "black", lwd = 2.4, ljoin = 1)
-      text(2023, lg(ELS.[i, 4]), 
-        c("land-use change", "other/unknown", "climate change",
-          "pollution", "native species", "disturbance")[i],
-        pos = 4, cex = 1.2)
-    }
-    text(2015.5, 3.12, expression(bold(ELS[50])), cex = 1.8)
 
-![](species_files/figure-markdown_strict/unnamed-chunk-244-1.png)
-
-    if (nchar(figS3)) {
-      dev.off()
-    }
+![](species_files/figure-markdown_strict/unnamed-chunk-48-1.png)
 
 ## Sensitivity analysis
 
