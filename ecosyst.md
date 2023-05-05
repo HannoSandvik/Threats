@@ -15,16 +15,16 @@
     -   <a href="#figure-s4" id="toc-figure-s4">Figure S4</a>
 
 This **R** code can be used to run the analyses of the Norwegian Red
-Lists for ecosystems and land-cover types described in the paper
-“Metrics for quantifying how much different threats contribute to red
-lists of species and ecosystems” ([Sandvik & Pedersen
+Lists for ecosystems and habitat types described in the paper “Metrics
+for quantifying how much different threats contribute to red lists of
+species and ecosystems” ([Sandvik & Pedersen
 2023](https://doi.org/10.1111/cobi.14105)).
 
 ## Variables
 
 The following variables can be used to adjust the output.
 
-**(1) Name of the data file.** The defaults downloads the Norwegian Red
+**(1) Name of the data file.** The default downloads the Norwegian Red
 List data for ecosystems from
 [doi:10.5281/zenodo.7893216](https://doi.org/10.5281/zenodo.7893216). To
 analyse other Red Lists, use `url = ""` and provide the file name of the
@@ -33,7 +33,7 @@ dataset as `file` (including file path, if needed).
     url  <- "https://zenodo.org/record/7893216/files/ecosyst.csv"
     file <- "ecosyst.csv"
 
-**(2) Handling of DD species.** Decides whether Data Deficient
+**(2) Handling of DD systems.** Decides whether Data Deficient
 ecosystems are excluded (if FALSE) or randomly assigned to other Red
 List categories (if TRUE).
 
@@ -52,15 +52,15 @@ disaggregated into their minor types.
 
 **(5) Weighting underlying RLI.** Defines the weighting scheme for the
 Red List Index. (Defaults to “equal-steps”; other options are the IUCN
-Red List Criteria “A1”, “A2”, “A3”, “B1”, “B2”, “C1”, “C2”, “C3”, “D1”,
-“D2”, “D3” and “E” as well as “Ev2”, “Ev3”.)
+Red List Criteria “A1”, “A2”, “B1”, “B2”, “C1”, “C2”, “D1”, “D2”, and
+“E” as well as “Ev2”, “Ev3”.)
 
     weightingRLI <- "equal-steps"
 
 **(6) Weighting underlying ELS.** Defines the weighting scheme for the
 Expected Loss of Systems. (Defaults to using the thresholds of the IUCN
-Red List Criterion E; other options are “A1”, “A2”, “A3”, “B1”, “B2”,
-“C1”, “C2”, “C3”, “D1”, “D2”, “D3”, “Ev2”, “Ev3” and “equal-steps”.)
+Red List Criterion E; other options are “A1”, “A2”, “B1”, “B2”, “C1”,
+“C2”, “D1”, “D2”, “Ev2”, “Ev3” and “equal-steps”.)
 
     weightingELS <- "E"
 
@@ -79,8 +79,8 @@ needs to be adjusted here!
 
 Note the following formatting requirements of these columns:
 
--   Data columns with Red List Categories must match with the constants
-    specified (see next section).
+-   Red List Categories in the “Categ” column must match with the
+    constants specified (see next section).
 -   Threat columns must contain text strings specifying threat. Each
     threat must be described as a sequence of (abbreviations for) (i)
     threat factor, (ii) timing, (iii) scope and (iv) severity, which are
@@ -89,6 +89,8 @@ Note the following formatting requirements of these columns:
 -   Change columns are needed only if the dataset contains results from
     more than one Red List. It must contain no more than one reason for
     change in Red List Category per ecosystem.
+-   Generation time is not applicable to ecosystems. However, `GTime`
+    needs to be specified for the functions to work correctly.
 
 **(8) Abbreviations used.** What are the abbreviations used for unknown
 threats and for real status change? The four “unknowns” can occur in the
@@ -274,7 +276,7 @@ to 50 years).
 
 ## Preliminaries
 
-Load the set of functions belonging to this depository:
+Load the set of functions belonging to this repository:
 
     eval(parse(text = readLines("function.R")))
 
@@ -288,8 +290,7 @@ specified above:
 
 ## Read and check the data
 
-Read the dataset “Norwegian Red List for ecosystems and land-cover
-types”:
+Read the dataset “Norwegian Red List for ecosystems and habitat types”:
 
     {
       foundFile <- FALSE
@@ -358,7 +359,7 @@ ones:
 
 That’s correct, so we wouldn’t have needed this step either.
 
-**(3) Calculate extinction probabilites** for all species:
+**(3) Calculate collapse probabilites** for all ecosystems:
 
     RL <- calcLoss(RL)
 
@@ -388,11 +389,7 @@ Estimate ΔRLI:
 
     ## DeltaRLI can only be estimated if there are at least two Red Lists.
 
-    print(DRLI)
-
-    ## [1] NA
-
-Estimate δRLI and ELS\_50\_:
+Estimate δRLI and ELS<sub>50</sub>:
 
     drli <- dRLI(RL)
     print(drli)
@@ -430,7 +427,7 @@ Confidence intervals on RLI (loaded from a cached version of this call):
     ##      2.5%       25%       50%       75%     97.5% 
     ## 0.8009524 0.8047619 0.8066667 0.8085714 0.8123810
 
-Confidence intervals on ΔRLI, δRLI and ELS\_50\_:
+Confidence intervals on ΔRLI, δRLI and ELS<sub>50</sub>:
 
     results <- simulateDRLI(RL, nsim)
 
