@@ -19,7 +19,7 @@ different threats contribute to red lists of species and ecosystems"
 
 The following variables can be used to adjust the output.
 
-**(1) Name of the data file.** The defaults downloads the Norwegian Red List data 
+**(1) Name of the data file.** The default downloads the Norwegian Red List data 
 for species from [doi:10.5281/zenodo.7893216](https://doi.org/10.5281/zenodo.7893216). 
 To analyse other Red Lists, use `url = ""` and provide the file name of the 
 dataset as `file` (including file path, if needed).
@@ -73,7 +73,7 @@ GTime  <- "GenTime"
 ```
 Note the following formatting requirements of these columns:
 
-* Data columns with Red List Categories must match with the constants specified (see next section).
+*  Red List Categories in the "Categ" column must match with the constants specified (see next section).
 * Threat columns must contain text strings specifying threats. Each threat must be described as a sequence of (abbreviations for) (i) threat factor, (ii) timing, (iii) scope and (iv) severity, which are separated by _colons_; different threats to the same species are separated by _commas_.
 * Change columns are needed only if the dataset contains results from more than one Red List. It must contain no more than one reason for change in Red List Category per species.
 * Generation time, measured in _years_, must be a numerical variable.
