@@ -36,7 +36,7 @@ ecosystems” ([Sandvik & Pedersen
 
 The following variables can be used to adjust the output.
 
-**(1) Name of the data file.** The default downloads the Norwegian Red
+**(1) Name of the data file.** The defaults downloads the Norwegian Red
 List data for species from
 [doi:10.5281/zenodo.7893216](https://doi.org/10.5281/zenodo.7893216). To
 analyse other Red Lists, use `url = ""` and provide the file name of the
@@ -86,8 +86,8 @@ needs to be adjusted here!
 
 Note the following formatting requirements of these columns:
 
--   Red List Categories in the “Categ” column must match with the
-    constants specified (see next section).
+-   Data columns with Red List Categories must match with the constants
+    specified (see next section).
 -   Threat columns must contain text strings specifying threats. Each
     threat must be described as a sequence of (abbreviations for) (i)
     threat factor, (ii) timing, (iii) scope and (iv) severity, which are
@@ -764,7 +764,7 @@ Plot a graph for ΔRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-85-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-38-1.png)
 
 ### Figure 2
 
@@ -844,7 +844,7 @@ Plot a graph for δRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-87-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-40-1.png)
 
 ### Figure 3
 
@@ -890,7 +890,7 @@ Plot a graph for ELS\_50\_:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-88-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-41-1.png)
 
 ## Analysis with DD species excluded
 
@@ -1084,7 +1084,7 @@ Plot a graph for ΔRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-92-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-45-1.png)
 
 ### Figure S2
 
@@ -1164,7 +1164,7 @@ Plot a graph for δRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-94-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-47-1.png)
 
 ### Figure S3
 
@@ -1212,7 +1212,7 @@ Plot a graph for ELS\_50\_:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-95-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-48-1.png)
 
 ## Sensitivity analysis
 
@@ -1231,170 +1231,170 @@ are directly comparable across weightings.
       drli <- sort(dRLI(RL.)$ELS50[, 3], decreasing = TRUE)
       drli <- cbind(drli, drli / sum(drli))
       colnames(drli) <- c("ELS" %+% TimeFrame, "fraction")
-      drli <- rbind(drli, Cumulative = apply(drli, 2, sum))
       cat("\n\nWeighting scheme " %+% meth %+% ":\n")
       print(drli)
+      cat("Cumulative ELS" %+% TimeFrame %+% ": " %+% sum(drli[, 1]) %+% "\n")
     }
 
     ## 
     ## 
     ## Weighting scheme E:
-    ##                  ELS50     fraction
-    ## landusec    933.621740 0.7493074643
-    ## unknownf    117.639559 0.0944153250
-    ## pollutio     53.329631 0.0428013715
-    ## nativesp     35.077282 0.0281523751
-    ## climatec     33.384750 0.0267939804
-    ## disturba     27.107788 0.0217562074
-    ## alienspe     19.860701 0.0159398298
-    ## bycatchc      7.644216 0.0061351056
-    ## outsiden      5.514580 0.0044258996
-    ## huntgath      5.388558 0.0043247565
-    ## natcatas      5.290871 0.0042463551
-    ## otherthr      1.227322 0.0009850257
-    ## nothreat      0.892500 0.0007163039
-    ## Cumulative 1245.979500 1.0000000000
+    ##               ELS50     fraction
+    ## landusec 933.621740 0.7493074643
+    ## unknownf 117.639559 0.0944153250
+    ## pollutio  53.329631 0.0428013715
+    ## nativesp  35.077282 0.0281523751
+    ## climatec  33.384750 0.0267939804
+    ## disturba  27.107788 0.0217562074
+    ## alienspe  19.860701 0.0159398298
+    ## bycatchc   7.644216 0.0061351056
+    ## outsiden   5.514580 0.0044258996
+    ## huntgath   5.388558 0.0043247565
+    ## natcatas   5.290871 0.0042463551
+    ## otherthr   1.227322 0.0009850257
+    ## nothreat   0.892500 0.0007163039
+    ## Cumulative ELS50: 1245.9795
     ## 
     ## 
     ## Weighting scheme Ev2:
-    ##                  ELS50     fraction
-    ## landusec   1010.480713 0.7488284470
-    ## unknownf    125.144201 0.0927395608
-    ## pollutio     57.077557 0.0422979853
-    ## nativesp     39.155638 0.0290167391
-    ## climatec     37.605759 0.0278681834
-    ## disturba     29.310813 0.0217211174
-    ## alienspe     22.017742 0.0163165027
-    ## bycatchc      8.831695 0.0065448300
-    ## huntgath      5.912539 0.0043815554
-    ## outsiden      5.809632 0.0043052952
-    ## natcatas      5.697062 0.0042218740
-    ## otherthr      1.437151 0.0010650171
-    ## nothreat      0.935000 0.0006928926
-    ## Cumulative 1349.415500 1.0000000000
+    ##                ELS50     fraction
+    ## landusec 1010.480713 0.7488284470
+    ## unknownf  125.144201 0.0927395608
+    ## pollutio   57.077557 0.0422979853
+    ## nativesp   39.155638 0.0290167391
+    ## climatec   37.605759 0.0278681834
+    ## disturba   29.310813 0.0217211174
+    ## alienspe   22.017742 0.0163165027
+    ## bycatchc    8.831695 0.0065448300
+    ## huntgath    5.912539 0.0043815554
+    ## outsiden    5.809632 0.0043052952
+    ## natcatas    5.697062 0.0042218740
+    ## otherthr    1.437151 0.0010650171
+    ## nothreat    0.935000 0.0006928926
+    ## Cumulative ELS50: 1349.4155
     ## 
     ## 
     ## Weighting scheme Ev3:
-    ##                   ELS50     fraction
-    ## landusec    789.7188629 0.7477821199
-    ## unknownf    103.9801213 0.0984584252
-    ## pollutio     45.7262220 0.0432980049
-    ## nativesp     28.5623017 0.0270455469
-    ## climatec     26.2429860 0.0248493946
-    ## disturba     23.0441769 0.0218204532
-    ## alienspe     16.6340366 0.0157507130
-    ## bycatchc      6.4591100 0.0061161094
-    ## outsiden      4.8739841 0.0046151591
-    ## huntgath      4.5429454 0.0043016996
-    ## natcatas      4.4976605 0.0042588195
-    ## otherthr      0.9840927 0.0009318341
-    ## nothreat      0.8150000 0.0007717207
-    ## Cumulative 1056.0815000 1.0000000000
+    ##                ELS50     fraction
+    ## landusec 789.7188629 0.7477821199
+    ## unknownf 103.9801213 0.0984584252
+    ## pollutio  45.7262220 0.0432980049
+    ## nativesp  28.5623017 0.0270455469
+    ## climatec  26.2429860 0.0248493946
+    ## disturba  23.0441769 0.0218204532
+    ## alienspe  16.6340366 0.0157507130
+    ## bycatchc   6.4591100 0.0061161094
+    ## outsiden   4.8739841 0.0046151591
+    ## huntgath   4.5429454 0.0043016996
+    ## natcatas   4.4976605 0.0042588195
+    ## otherthr   0.9840927 0.0009318341
+    ## nothreat   0.8150000 0.0007717207
+    ## Cumulative ELS50: 1056.0815
     ## 
     ## 
     ## Weighting scheme equal-steps:
-    ##                  ELS50     fraction
-    ## landusec   1414.621672 0.7455265259
-    ## unknownf    156.663571 0.0825640169
-    ## climatec     79.976493 0.0421487938
-    ## pollutio     75.661475 0.0398747153
-    ## nativesp     64.788403 0.0341444457
-    ## disturba     36.403990 0.0191854406
-    ## alienspe     33.246404 0.0175213461
-    ## bycatchc     11.863084 0.0062520204
-    ## huntgath      7.922241 0.0041751381
-    ## natcatas      6.619288 0.0034884627
-    ## outsiden      6.602732 0.0034797375
-    ## otherthr      2.110647 0.0011123422
-    ## nothreat      1.000000 0.0005270148
-    ## Cumulative 1897.480000 1.0000000000
+    ##                ELS50     fraction
+    ## landusec 1414.621672 0.7455265259
+    ## unknownf  156.663571 0.0825640169
+    ## climatec   79.976493 0.0421487938
+    ## pollutio   75.661475 0.0398747153
+    ## nativesp   64.788403 0.0341444457
+    ## disturba   36.403990 0.0191854406
+    ## alienspe   33.246404 0.0175213461
+    ## bycatchc   11.863084 0.0062520204
+    ## huntgath    7.922241 0.0041751381
+    ## natcatas    6.619288 0.0034884627
+    ## outsiden    6.602732 0.0034797375
+    ## otherthr    2.110647 0.0011123422
+    ## nothreat    1.000000 0.0005270148
+    ## Cumulative ELS50: 1897.48
     ## 
     ## 
     ## Weighting scheme A1:
-    ##                  ELS50     fraction
-    ## landusec   1483.316289 0.7606494700
-    ## unknownf    174.796267 0.0896361004
-    ## pollutio     87.296556 0.0447659607
-    ## climatec     49.207858 0.0252339515
-    ## nativesp     48.712853 0.0249801109
-    ## disturba     42.614569 0.0218528910
-    ## alienspe     29.642981 0.0152010183
-    ## bycatchc      9.081307 0.0046569242
-    ## natcatas      8.122716 0.0041653553
-    ## outsiden      7.886598 0.0040442736
-    ## huntgath      6.874503 0.0035252678
-    ## otherthr      1.593003 0.0008168972
-    ## nothreat      0.920000 0.0004717790
-    ## Cumulative 1950.065500 1.0000000000
+    ##                ELS50     fraction
+    ## landusec 1483.316289 0.7606494700
+    ## unknownf  174.796267 0.0896361004
+    ## pollutio   87.296556 0.0447659607
+    ## climatec   49.207858 0.0252339515
+    ## nativesp   48.712853 0.0249801109
+    ## disturba   42.614569 0.0218528910
+    ## alienspe   29.642981 0.0152010183
+    ## bycatchc    9.081307 0.0046569242
+    ## natcatas    8.122716 0.0041653553
+    ## outsiden    7.886598 0.0040442736
+    ## huntgath    6.874503 0.0035252678
+    ## otherthr    1.593003 0.0008168972
+    ## nothreat    0.920000 0.0004717790
+    ## Cumulative ELS50: 1950.0655
     ## 
     ## 
     ## Weighting scheme A2:
-    ##                  ELS50     fraction
-    ## landusec   1032.429641 0.7611966317
-    ## unknownf    130.280641 0.0960541821
-    ## pollutio     62.102811 0.0457875762
-    ## disturba     30.372850 0.0223934981
-    ## nativesp     30.055238 0.0221593271
-    ## climatec     27.419678 0.0202161637
-    ## alienspe     19.704591 0.0145279323
-    ## bycatchc      6.022574 0.0044403638
-    ## natcatas      5.914806 0.0043609075
-    ## outsiden      5.703598 0.0042051869
-    ## huntgath      4.578900 0.0033759623
-    ## otherthr      1.001672 0.0007385195
-    ## nothreat      0.737500 0.0005437489
-    ## Cumulative 1356.324500 1.0000000000
+    ##                ELS50     fraction
+    ## landusec 1032.429641 0.7611966317
+    ## unknownf  130.280641 0.0960541821
+    ## pollutio   62.102811 0.0457875762
+    ## disturba   30.372850 0.0223934981
+    ## nativesp   30.055238 0.0221593271
+    ## climatec   27.419678 0.0202161637
+    ## alienspe   19.704591 0.0145279323
+    ## bycatchc    6.022574 0.0044403638
+    ## natcatas    5.914806 0.0043609075
+    ## outsiden    5.703598 0.0042051869
+    ## huntgath    4.578900 0.0033759623
+    ## otherthr    1.001672 0.0007385195
+    ## nothreat    0.737500 0.0005437489
+    ## Cumulative ELS50: 1356.3245
     ## 
     ## 
     ## Weighting scheme B:
-    ##                  ELS50     fraction
-    ## landusec   2110.519053 0.7496893383
-    ## unknownf    218.431277 0.0775902020
-    ## climatec    120.083690 0.0426556028
-    ## pollutio    112.190240 0.0398517259
-    ## nativesp     97.477974 0.0346256991
-    ## disturba     54.981918 0.0195304362
-    ## alienspe     48.914040 0.0173750312
-    ## bycatchc     16.643131 0.0059119000
-    ## huntgath     11.829632 0.0042020701
-    ## natcatas     10.286953 0.0036540866
-    ## outsiden      9.553232 0.0033934574
-    ## otherthr      3.037859 0.0010790950
-    ## nothreat      1.242500 0.0004413554
-    ## Cumulative 2815.191500 1.0000000000
+    ##                ELS50     fraction
+    ## landusec 2110.519053 0.7496893383
+    ## unknownf  218.431277 0.0775902020
+    ## climatec  120.083690 0.0426556028
+    ## pollutio  112.190240 0.0398517259
+    ## nativesp   97.477974 0.0346256991
+    ## disturba   54.981918 0.0195304362
+    ## alienspe   48.914040 0.0173750312
+    ## bycatchc   16.643131 0.0059119000
+    ## huntgath   11.829632 0.0042020701
+    ## natcatas   10.286953 0.0036540866
+    ## outsiden    9.553232 0.0033934574
+    ## otherthr    3.037859 0.0010790950
+    ## nothreat    1.242500 0.0004413554
+    ## Cumulative ELS50: 2815.1915
     ## 
     ## 
     ## Weighting scheme C:
-    ##                  ELS50     fraction
-    ## landusec   2104.815662 0.7497977193
-    ## unknownf    217.532659 0.0774915800
-    ## climatec    119.809297 0.0426796225
-    ## pollutio    111.888623 0.0398580436
-    ## nativesp     97.199425 0.0346253158
-    ## disturba     54.805678 0.0195234068
-    ## alienspe     48.744183 0.0173641227
-    ## bycatchc     16.556846 0.0058980393
-    ## huntgath     11.791411 0.0042004500
-    ## natcatas     10.258609 0.0036544207
-    ## outsiden      9.516130 0.0033899275
-    ## otherthr      3.024477 0.0010774083
-    ## nothreat      1.235000 0.0004399436
-    ## Cumulative 2807.178000 1.0000000000
+    ##                ELS50     fraction
+    ## landusec 2104.815662 0.7497977193
+    ## unknownf  217.532659 0.0774915800
+    ## climatec  119.809297 0.0426796225
+    ## pollutio  111.888623 0.0398580436
+    ## nativesp   97.199425 0.0346253158
+    ## disturba   54.805678 0.0195234068
+    ## alienspe   48.744183 0.0173641227
+    ## bycatchc   16.556846 0.0058980393
+    ## huntgath   11.791411 0.0042004500
+    ## natcatas   10.258609 0.0036544207
+    ## outsiden    9.516130 0.0033899275
+    ## otherthr    3.024477 0.0010774083
+    ## nothreat    1.235000 0.0004399436
+    ## Cumulative ELS50: 2807.178
     ## 
     ## 
     ## Weighting scheme D:
-    ##                  ELS50     fraction
-    ## landusec   2099.357291 0.7497957667
-    ## unknownf    217.104326 0.0775398763
-    ## climatec    119.543900 0.0426956911
-    ## pollutio    111.592790 0.0398559130
-    ## nativesp     96.924421 0.0346170330
-    ## disturba     54.635090 0.0195131908
-    ## alienspe     48.576043 0.0173491723
-    ## bycatchc     16.470562 0.0058825420
-    ## huntgath     11.753189 0.0041977093
-    ## natcatas     10.230265 0.0036537895
-    ## outsiden      9.479027 0.0033854811
-    ## otherthr      3.011094 0.0010754271
-    ## nothreat      1.227500 0.0004384077
-    ## Cumulative 2799.905500 1.0000000000
+    ##                ELS50     fraction
+    ## landusec 2099.357291 0.7497957667
+    ## unknownf  217.104326 0.0775398763
+    ## climatec  119.543900 0.0426956911
+    ## pollutio  111.592790 0.0398559130
+    ## nativesp   96.924421 0.0346170330
+    ## disturba   54.635090 0.0195131908
+    ## alienspe   48.576043 0.0173491723
+    ## bycatchc   16.470562 0.0058825420
+    ## huntgath   11.753189 0.0041977093
+    ## natcatas   10.230265 0.0036537895
+    ## outsiden    9.479027 0.0033854811
+    ## otherthr    3.011094 0.0010754271
+    ## nothreat    1.227500 0.0004384077
+    ## Cumulative ELS50: 2799.9055
