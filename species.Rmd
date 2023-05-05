@@ -73,7 +73,7 @@ GTime  <- "GenTime"
 ```
 Note the following formatting requirements of these columns:
 
-*  Red List Categories in the "Categ" column must match with the constants specified (see next section).
+* Red List Categories in the "Categ" column must match with the constants specified (see next section).
 * Threat columns must contain text strings specifying threats. Each threat must be described as a sequence of (abbreviations for) (i) threat factor, (ii) timing, (iii) scope and (iv) severity, which are separated by _colons_; different threats to the same species are separated by _commas_.
 * Change columns are needed only if the dataset contains results from more than one Red List. It must contain no more than one reason for change in Red List Category per species.
 * Generation time, measured in _years_, must be a numerical variable.
@@ -256,7 +256,7 @@ TimeFrame <- 50
 
 ## Preliminaries
 
-Load the set of functions belonging to this depository:
+Load the set of functions belonging to this repository:
 ```{r}
 eval(parse(text = readLines("function.R")))
 ```
