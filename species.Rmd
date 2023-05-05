@@ -910,8 +910,8 @@ for (meth in c("E", "Ev2", "Ev3", "equal-steps", "A1", "A2", "B", "C", "D")) {
   drli <- sort(dRLI(RL.)$ELS50[, 3], decreasing = TRUE)
   drli <- cbind(drli, drli / sum(drli))
   colnames(drli) <- c("ELS" %+% TimeFrame, "fraction")
+  drli <- rbind(drli, Cumulative = apply(drli, 2, sum))
   cat("\n\nWeighting scheme " %+% meth %+% ":\n")
   print(drli)
-  cat("Cumulative ELS" %+% TimeFrame %+% ": " %+% sum(drli[, 1]) %+% "\n")
 }
 ```
