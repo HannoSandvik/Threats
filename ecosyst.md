@@ -544,7 +544,7 @@ Plot a graph for δRLI:
       }
     }
 
-![](ecosyst_files/figure-markdown_strict/unnamed-chunk-36-1.png)
+![](ecosyst_files/figure-markdown_strict/unnamed-chunk-73-1.png)
 
 ## Disaggregation
 
@@ -680,4 +680,4 @@ Plot a graph for δRLI:
       }
     }
 
-![](ecosyst_files/figure-markdown_strict/unnamed-chunk-39-1.png)
+![](ecosyst_files/figure-markdown_strict/unnamed-chunk-76-1.png)
