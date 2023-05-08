@@ -1,8 +1,8 @@
 ---
-title: Threats to ecosystems
+title: "Threats to ecosystems"
 subtitle: "Quantification of threats on the Norwegian Red Lists of ecosystems"
 author: "Hanno Sandvik"
-date: "5 May 2023"
+date: "8 May 2023"
 output:
   md_document:
     toc: yes
@@ -481,7 +481,7 @@ are disaggregated into their subordinated minor ecosystem types:
   RL. <-    calcLoss(RL.)
   RL. <-  addThreats(RL.)
   cat("Summary table:\n")
-  tab <- summariseRL(RL.)
+  tab <- summariseRL(RL., exclude = NULL)
   drli. <- dRLI(RL.)
   cat("\ndRLI after disaggregation into minor types:\n")
   print(drli.$dRLI)

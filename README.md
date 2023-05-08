@@ -9,7 +9,7 @@ The code described here
 
 * is archived on _Zenodo_ at [doi:10.5281/zenodo.7843806](https://doi.org/10.5281/zenodo.7843806);
 * is used and explained in an article in _Conservation Biology_ by [Sandvik & Pedersen (2023)](https://doi.org/10.1111/cobi.14105);
-* uses data available from the _Zenodo_ at [doi:10.5281/zenodo.7893216](https://doi.org/10.5281/zenodo.7893216).
+* uses data available from _Zenodo_ at [doi:10.5281/zenodo.7893216](https://doi.org/10.5281/zenodo.7893216).
 
 ## Contents
 The repository contains the **R** code to reproduce the findings of Sandvik & Pedersen (2023) as well as generic functions that can be used to analyse threats in other Red Lists:
