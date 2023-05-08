@@ -1,3 +1,16 @@
+# Threats to species
+## Quantification of threats on the Norwegian Red Lists of species
+
+_Author and date:_ Hanno Sandvik, 5 May 2023
+
+This **R** code can be used to run the analyses of the Norwegian Red
+Lists for species described in the paper “Metrics for quantifying how
+much different threats contribute to red lists of species and
+ecosystems” ([Sandvik & Pedersen
+2023](https://doi.org/10.1111/cobi.14105)).
+
+_Contents:_
+
 -   <a href="#variables" id="toc-variables">Variables</a>
 -   <a href="#constants" id="toc-constants">Constants</a>
 -   <a href="#preliminaries" id="toc-preliminaries">Preliminaries</a>
@@ -26,11 +39,7 @@
 -   <a href="#sensitivity-analysis"
     id="toc-sensitivity-analysis">Sensitivity analysis</a>
 
-This **R** code can be used to run the analyses of the Norwegian Red
-Lists for species described in the paper “Metrics for quantifying how
-much different threats contribute to red lists of species and
-ecosystems” ([Sandvik & Pedersen
-2023](https://doi.org/10.1111/cobi.14105)).
+
 
 ## Variables
 
@@ -436,7 +445,7 @@ sources for these data are:
       c(252, 755, 916, 17579,   NA,   NA, 1297, 119, 1294)
     tb <- table(RL$Cat21orig)
     Table3[8, match(names(tb), colnames(Table3))] <- tb
-    Loss21o <- LoS(RL$Cat21orig, RL$GenTime)
+    Loss21o <- LoS(substr(RL$Categ21, 1, 2), RL$GenTime)
 
     # Insert the previous summary into this table:
     Table3[c(4, 7, 9), colnames(tab)] <- tab[c(3, 5, 6), ]
@@ -465,7 +474,7 @@ sources for these data are:
     Table3[3, "Cum.ELS50"] <- sum(mn15 * Table3[3, RedListCat], na.rm=T)
     Table3[5, "Cum.ELS50"] <- sum(mn15 * Table3[5, RedListCat], na.rm=T)
     Table3[6, "Cum.ELS50"] <- sum(mn15 * Table3[6, RedListCat], na.rm=T)
-    Loss21o[which(isDD(RL$Cat21orig))] <- RL$Loss21[which(isDD(RL$Cat21orig))]
+    Loss21o[which(isDD(RL$Categ21))] <- RL$Loss21[which(isDD(RL$Categ21))]
     Table3[8, "Cum.ELS50"] <- sum(Loss21o, na.rm=T)
     rm(alphabetic, tb, tab, mn10, mn15, Loss21o)
 
@@ -481,7 +490,7 @@ Print the corrected table (which underlies Table 3 of the paper):
     ## RL2015°    31325 17594 1302 1294  901 247 119 755 3018 6095 0.9237918  1114.840
     ## RL2015     22212 17579 1297 1294  916 252 119 755   NA   NA 0.9232325  1126.575
     ## RL2015(21) 23744 18682 1389 1517  999 302 114 741   NA   NA 0.9200278  1246.852
-    ## RL2021°    33042 18696 1391 1528  977 299 112 741 3256 6042 0.9205843  1231.374
+    ## RL2021°    33042 18696 1391 1528  977 299 112 741 3256 6042 0.9205843  1245.979
     ## RL2021     23744 18683 1392 1514  997 305 112 741   NA   NA 0.9200887  1245.979
 
 ## Analysis of threat factors
@@ -767,7 +776,7 @@ Plot a graph for ΔRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-85-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-38-1.png)
 
 ### Figure 2
 
@@ -847,7 +856,7 @@ Plot a graph for δRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-87-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-40-1.png)
 
 ### Figure 3
 
@@ -893,7 +902,7 @@ Plot a graph for ELS<sub>50</sub>:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-88-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-41-1.png)
 
 ## Analysis with DD species excluded
 
@@ -1087,7 +1096,7 @@ Plot a graph for ΔRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-92-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-45-1.png)
 
 ### Figure S2
 
@@ -1167,7 +1176,7 @@ Plot a graph for δRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-94-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-47-1.png)
 
 ### Figure S3
 
@@ -1215,7 +1224,7 @@ Plot a graph for ELS<sub>50</sub>:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-95-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-48-1.png)
 
 ## Sensitivity analysis
 

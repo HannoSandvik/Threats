@@ -1,8 +1,8 @@
 ---
-title: Threats to species
+title: "Threats to species"
 subtitle: "Quantification of threats on the Norwegian Red Lists of species"
 author: "Hanno Sandvik"
-date: "5 May 2023"
+date: "8 May 2023"
 output:
   md_document:
     toc: yes
@@ -392,7 +392,7 @@ Table3[6, match(alphabetic, colnames(Table3))] <-
   c(252, 755, 916, 17579,   NA,   NA, 1297, 119, 1294)
 tb <- table(RL$Cat21orig)
 Table3[8, match(names(tb), colnames(Table3))] <- tb
-Loss21o <- LoS(substr(RL$Categ21, 1, 2), RL$GenTime)
+Loss21o <- LoS(RL$Cat21orig, RL$GenTime)
 
 # Insert the previous summary into this table:
 Table3[c(4, 7, 9), colnames(tab)] <- tab[c(3, 5, 6), ]
@@ -421,7 +421,7 @@ Table3[2, "Cum.ELS50"] <- sum(mn10 * Table3[2, RedListCat], na.rm=T)
 Table3[3, "Cum.ELS50"] <- sum(mn15 * Table3[3, RedListCat], na.rm=T)
 Table3[5, "Cum.ELS50"] <- sum(mn15 * Table3[5, RedListCat], na.rm=T)
 Table3[6, "Cum.ELS50"] <- sum(mn15 * Table3[6, RedListCat], na.rm=T)
-Loss21o[which(isDD(RL$Categ21))] <- RL$Loss21[which(isDD(RL$Categ21))]
+Loss21o[which(isDD(RL$Cat21orig))] <- RL$Loss21[which(isDD(RL$Cat21orig))]
 Table3[8, "Cum.ELS50"] <- sum(Loss21o, na.rm=T)
 rm(alphabetic, tb, tab, mn10, mn15, Loss21o)
 ```
