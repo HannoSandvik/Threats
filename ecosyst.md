@@ -1,7 +1,7 @@
 # Threats to ecosystems
 ## Quantification of threats on the Norwegian Red Lists of ecosystems
 
-_Author and date:_ Hanno Sandvik, 5 May 2023
+_Author and date:_ Hanno Sandvik, 8 May 2023
 
 This **R** code can be used to run the analyses of the Norwegian Red
 Lists for ecosystems and habitat types described in the paper “Metrics
