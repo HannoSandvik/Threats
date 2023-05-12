@@ -33,9 +33,9 @@ _Contents:_
 -   <a href="#analysis-with-unknown-threats-inferred"
     id="toc-analysis-with-unknown-threats-inferred">Analysis with unknown
     threats inferred</a>
-    -   <a href="#figure-s1" id="toc-figure-s1">Figure S1</a>
-    -   <a href="#figure-s2" id="toc-figure-s2">Figure S2</a>
-    -   <a href="#figure-s3" id="toc-figure-s3">Figure S3</a>
+    -   <a href="#appendix-s7" id="toc-appendix-s7">Appendix S7</a>
+    -   <a href="#appendix-s8" id="toc-appendix-s8">Appendix S8</a>
+    -   <a href="#appendix-s9" id="toc-appendix-s9">Appendix S9</a>
 -   <a href="#sensitivity-analysis"
     id="toc-sensitivity-analysis">Sensitivity analysis</a>
 
