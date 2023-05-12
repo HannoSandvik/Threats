@@ -25,7 +25,7 @@ _Contents:_
     id="toc-analysis-of-threat-factors">Analysis of threat factors</a>
 -   <a href="#figure-4" id="toc-figure-4">Figure 4</a>
 -   <a href="#disaggregation" id="toc-disaggregation">Disaggregation</a>
-    -   <a href="#figure-s4" id="toc-figure-s4">Figure S4</a>
+    -   <a href="#appendix-s10" id="toc-appendix-s10">Appendix S10</a>
 
 
 
