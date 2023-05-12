@@ -120,7 +120,7 @@ nsim <- 100000
 **(11) Re-create published estimates?** 
 Decides whether the estimation of confidence intervals
 should be re-created exactly as published (if TRUE) or be based on 
-novel random numbers (if FALSE)
+novel random numbers (if FALSE).
 ```{r}
 re.create <- TRUE
 ```

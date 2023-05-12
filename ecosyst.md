@@ -1,10 +1,10 @@
 # Threats to ecosystems
-## Quantification of threats on the Norwegian Red Lists of ecosystems
+## Quantification of threats on the Norwegian Red List of ecosystems
 
 _Author and date:_ Hanno Sandvik, 12 May 2023
 
 This **R** code can be used to run the analyses of the Norwegian Red
-Lists for ecosystems and habitat types described in the paper “Metrics
+List for ecosystems and habitat types described in the paper “Metrics
 for quantifying how much different threats contribute to red lists of
 species and ecosystems” ([Sandvik & Pedersen
 2023](https://doi.org/10.1111/cobi.14105)).
@@ -132,7 +132,7 @@ exploration purposes, `nsim <- 1000` will suffice.
 
 **(11) Re-create published estimates?** Decides whether the estimation
 of confidence intervals should be re-created exactly as published (if
-TRUE) or be based on novel random numbers (if FALSE)
+TRUE) or be based on novel random numbers (if FALSE).
 
     re.create <- TRUE
 
@@ -197,7 +197,7 @@ following meanings:
     values for extinction probability according to IUCN Red List
     Criterion E.
 -   The columns “lowT” and “uppT” provide the lower and upper threshold
-    values for extinction time frames in *years* according to IUCN Red
+    values for extinction time frames in years according to IUCN Red
     List Criterion E.
 -   The columns “lowG” and “uppG” are not used for ecosystems but should
     contain zeros.
@@ -205,7 +205,7 @@ following meanings:
     threshold values for reduction in geographic distribution according
     to IUCN Red List Criterion A1.
 -   The columns “lowA2” and “uppA2” provide the lower and upper
-    threshold values for reduction in geographic distribution to IUCN
+    threshold values for reduction in geographic distribution according to IUCN
     Red List Criterion A2. (Note that A3 is not implemented.)
 -   The columns “lowB1” and “uppB1” provide the lower and upper
     threshold values for extents of occurrence (EOO) according to IUCN
