@@ -1,7 +1,7 @@
 # Threats to ecosystems
 ## Quantification of threats on the Norwegian Red Lists of ecosystems
 
-_Author and date:_ Hanno Sandvik, 8 May 2023
+_Author and date:_ Hanno Sandvik, 12 May 2023
 
 This **R** code can be used to run the analyses of the Norwegian Red
 Lists for ecosystems and habitat types described in the paper “Metrics
@@ -429,7 +429,7 @@ Estimate δRLI and ELS<sub>50</sub>:
     ## pollutio 1.3487037882
     ## unknownf 0.4730000000
 
-Confidence intervals on RLI (loaded from a cached version of this call):
+Confidence intervals on RLI:
 
     print(confidenceRLI(RL, nsim, "Categ18"))
 
@@ -604,9 +604,9 @@ ecosystem types:
     ## pollutio  2.913136887
     ## unknownf  0.872000000
 
-### Figure S4
+### Appendix S10
 
-The following script recreates Figure S4.
+The following script recreates Appendix S10 (Figure S4).
 
 Simplify the data by collapsing minor threats:
 

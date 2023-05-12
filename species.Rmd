@@ -2,7 +2,7 @@
 title: "Threats to species"
 subtitle: "Quantification of threats on the Norwegian Red Lists of species"
 author: "Hanno Sandvik"
-date: "8 May 2023"
+date: "12 May 2023"
 output:
   md_document:
     toc: yes
@@ -447,7 +447,7 @@ drli <- dRLI(RL)
 print(drli)
 ```
 
-Confidence intervals on RLI (loaded from a cached version of this call):
+Confidence intervals on RLI:
 ```{r, eval=FALSE, echo=TRUE}
 print(confidenceRLI(RL, nsim, "Categ21"))
 ```
@@ -458,7 +458,7 @@ load("cache.rdata")
 print(conf)
 ```
 
-Confidence intervals on ΔRLI, δRLI and ELS~50~ (loaded from a cached version of this call):
+Confidence intervals on ΔRLI, δRLI and ELS~50~:
 ```{r, eval=FALSE, echo=TRUE}
 results <- simulateDRLI(RL, nsim)
 ```
@@ -711,8 +711,8 @@ they can be re-run with unknown threats distributed over known threats:
 
 
 
-### Figure S1
-The following script recreates Figure S1.
+### Appendix S7
+The following script recreates Appendix S7 (Figure S1).
 
 Simplify the table by collapsing minor threats:
 ```{r}
@@ -767,8 +767,8 @@ Plot a graph for ΔRLI:
 
 
 
-### Figure S2
-The following script recreates Figure S2.
+### Appendix S8
+The following script recreates Appendix S8 (Figure S2).
 
 Simplify the table by collapsing minor threats:
 ```{r}
@@ -848,8 +848,8 @@ Plot a graph for δRLI:
 
 
 
-### Figure S3
-The following script recreates Figure S3.
+### Appendix S9
+The following script recreates Appendix S9 (Figure S3).
 
 Plot a graph for ELS~50~:
 ```{r}
