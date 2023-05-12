@@ -144,7 +144,7 @@ illustration, `nsim <- 100` is enough.
 
 **(11) Re-create published estimates?** Decides whether the estimation
 of confidence intervals should be re-created exactly as published (if
-TRUE) or be based on novel random numbers (if FALSE)
+TRUE) or be based on novel random numbers (if FALSE).
 
     re.create <- TRUE
 

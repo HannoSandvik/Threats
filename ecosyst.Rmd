@@ -1,6 +1,6 @@
 ---
 title: "Threats to ecosystems"
-subtitle: "Quantification of threats on the Norwegian Red Lists of ecosystems"
+subtitle: "Quantification of threats on the Norwegian Red List of ecosystems"
 author: "Hanno Sandvik"
 date: "12 May 2023"
 output:
@@ -8,7 +8,7 @@ output:
     toc: yes
 ---
 
-This **R** code can be used to run the analyses of the Norwegian Red Lists for 
+This **R** code can be used to run the analyses of the Norwegian Red List for 
 ecosystems and habitat types described in the paper "Metrics for quantifying 
 how much different threats contribute to red lists of species and ecosystems" 
 ([Sandvik & Pedersen 2023](https://doi.org/10.1111/cobi.14105)).
@@ -120,7 +120,7 @@ nsim <- 100000
 **(11) Re-create published estimates?** 
 Decides whether the estimation of confidence intervals
 should be re-created exactly as published (if TRUE) or be based on 
-novel random numbers (if FALSE)
+novel random numbers (if FALSE).
 ```{r}
 re.create <- TRUE
 ```
@@ -184,7 +184,7 @@ The columns have the following meanings:
 * The columns "lowT" and "uppT" provide the lower and upper threshold values for extinction time frames in _years_ according to IUCN Red List Criterion E.
 * The columns "lowG" and "uppG" are not used for ecosystems but should contain zeros.
 * The columns "lowA1" and "uppA1" provide the lower and upper threshold values for reduction in geographic distribution according to IUCN Red List Criterion A1.
-* The columns "lowA2" and "uppA2" provide the lower and upper threshold values for reduction in geographic distribution to IUCN Red List Criterion A2. (Note that A3 is not implemented.)
+* The columns "lowA2" and "uppA2" provide the lower and upper threshold values for reduction in geographic distribution according to IUCN Red List Criterion A2. (Note that A3 is not implemented.)
 * The columns "lowB1" and "uppB1" provide the lower and upper threshold values for extents of occurrence (EOO) according to IUCN Red List Criterion B1.
 * The columns "lowB2" and "uppB2" provide the lower and upper threshold values for areas of occupancy (AOO) according to IUCN Red List Criterion B2.
 * The columns "lowC" and "uppC" provide the lower and upper threshold values for environmental degradation according to IUCN Red List Criteria C1 and C2 (estimated as the _product_ of _extent_ and _relative severity_ over a 50-year period; note that C3 is not implemented).
