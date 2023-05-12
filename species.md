@@ -1,7 +1,7 @@
 # Threats to species
 ## Quantification of threats on the Norwegian Red Lists of species
 
-_Author and date:_ Hanno Sandvik, 8 May 2023
+_Author and date:_ Hanno Sandvik, 12 May 2023
 
 This **R** code can be used to run the analyses of the Norwegian Red
 Lists for species described in the paper “Metrics for quantifying how
@@ -552,15 +552,14 @@ Estimate δRLI and ELS<sub>50</sub>:
     ## pollutio 3.854984e+01  37.621407  53.329631
     ## unknownf 3.661415e+02 386.830041 117.639559
 
-Confidence intervals on RLI (loaded from a cached version of this call):
+Confidence intervals on RLI:
 
     print(confidenceRLI(RL, nsim, "Categ21"))
 
     ##      2.5%       25%       50%       75%     97.5% 
     ## 0.9196513 0.9199461 0.9200893 0.9202325 0.9205020
 
-Confidence intervals on ΔRLI, δRLI and ELS<sub>50</sub> (loaded from a
-cached version of this call):
+Confidence intervals on ΔRLI, δRLI and ELS<sub>50</sub>:
 
     results <- simulateDRLI(RL, nsim)
 
@@ -1043,9 +1042,9 @@ threats:
     ## pollutio 5.456583e+01   54.543173   58.8897239
     ## unknownf 0.000000e+00    0.000000    0.0000000
 
-### Figure S1
+### Appendix S7
 
-The following script recreates Figure S1.
+The following script recreates Appendix S7 (Figure S1).
 
 Simplify the table by collapsing minor threats:
 
@@ -1098,9 +1097,9 @@ Plot a graph for ΔRLI:
 
 ![](species_files/figure-markdown_strict/unnamed-chunk-92-1.png)
 
-### Figure S2
+### Appendix S8
 
-The following script recreates Figure S2.
+The following script recreates Appendix S8 (Figure S2).
 
 Simplify the table by collapsing minor threats:
 
@@ -1178,9 +1177,9 @@ Plot a graph for δRLI:
 
 ![](species_files/figure-markdown_strict/unnamed-chunk-94-1.png)
 
-### Figure S3
+### Appendix S9
 
-The following script recreates Figure S3.
+The following script recreates Appendix S9 (Figure S3).
 
 Plot a graph for ELS<sub>50</sub>:
 

@@ -1293,3 +1293,4 @@ disaggrMajorTypes <- function(RL, minor, type, id, categ) {
   } # i
   return(RL)
 } # disaggrMajorTypes
+
