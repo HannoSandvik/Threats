@@ -42,23 +42,17 @@ should be inferred from the distribution of the known threat factors.
 inferThreats <- FALSE
 ```
 
-**(4) Weighting underlying RLI.** 
-Defines the weighting scheme for the Red List Index.
-(Defaults to "equal-steps"; other options are the IUCN Red List Criteria
-"A1", "A2", "B1", "B2", "C", "D" and "E" as well as "Ev2", "Ev3".)
+**(4) Weighting schemes.** 
+Defines the weighting scheme for the Red List Index and the Expected Loss of Species.
+(Defaults to "equal-steps" for RLI and the thresholds of the IUCN Red List 
+Criterion E for ELS; other options are the IUCN Red List Criteria
+"A1", "A2", "B1", "B2", "C", "D" as well as "Ev2", "Ev3".)
 ```{r}
 weightingRLI <- "equal-steps"
-```
-
-**(5) Weighting underlying ELS.** 
-Defines the weighting scheme for the Expected Loss of Species.
-(Defaults to using the thresholds of the IUCN Red List Criterion E;
-other options are "A1", "A2", "B1", "B2", "C", "D", "Ev2", "Ev3" and "equal-steps".)
-```{r}
 weightingELS <- "E"
 ```
 
-**(6) Column names.** 
+**(5) Column names.** 
 Column names in the dataset which contain Red List Categories, threat factors,
 reasons for category change, and generation time, respectively. 
 The three former ones need to be followed by the year of assessment
@@ -78,7 +72,7 @@ Note the following formatting requirements of these columns:
 * Change columns are needed only if the dataset contains results from more than one Red List. It must contain no more than one reason for change in Red List Category per species.
 * Generation time, measured in _years_, must be a numerical variable.
 
-**(7) Abbreviations used for threats.**
+**(6) Abbreviations used for threats.**
 What are the abbreviations used for unknown threats? 
 They can occur in the `Threat` column(s), see previous item. 
 (Defaults to the abbreviations used in the dataset analysed in the paper.
@@ -90,24 +84,39 @@ unknownScope    <- "unknownp"
 unknownSeverity <- "unknownd"
 ```
 
-**(8) Abbreviation used for real change.**
+**(7) Abbreviation used for real change.**
 What is the abbreviations used for real population changes? 
 This is only needed if Red List Categories are to be "back-cast" to earlier Red List assessments. 
 It must occur in the `Change` column(s), see item (6). 
 (Defaults to the abbreviation used in the dataset analysed in the paper.
 May need to be adjusted for other datasets.)
 ```{r}
-realChange      <- "realpopu"
+realChange <- "realpopu"
 ```
 
-**(9) Timings to include.** What is (are) the abbreviation(s) of the timing 
-categories that should be considered (defaults to "ongoing").
+**(8) Timings to include.**
+What is (are) the abbreviation(s) of the timing categories that should be considered 
+(defaults to "ongoing").
 ```{r}
 inclTiming <- "ongoingt"
 ```
 If _all_ threats are to be included, irrespective of timing, this would need to be 
 replaced (in terms of the abbreviations used in this dataset) by
 `inclTiming <- c("onlypast", "suspendd", "ongoing", "onlyfutu", "unknownt")`.
+
+**(9) Calculation of threat scores.** 
+Decides whether threat scores are based on the product of scope and severity 
+(if TRUE) or on severity alone (if FALSE).
+```{r}
+useScope <- FALSE
+```
+IUCN now [states](https://www.iucnredlist.org/resources/threat-classification-scheme) 
+that severities should describe the population decline _within the scope_ 
+of a particular threat. This implies that `useScope` should be `TRUE`. 
+Previously, however, the definition of severity was ambiguous. In the Norwegian 
+Red Lists analysed here, severity was used to describe the decline of the 
+_entire population_. The default value (FALSE) assumes the latter situation, 
+in which severity should not be multiplied with score.
 
 **(10) Number of simulations.** 
 NB: the default takes several hours!
@@ -197,16 +206,11 @@ The columns have the following meanings:
 * The column "distr" provides the distribution of extinction probabilities within the interval.
 * The column "beta" is not currently needed (but may be needed if "distr" is changed).
 
-**(2) Data deficiency**. What is the abbreviation used for the "Data Deficient" 
-Red List Category? (Defaults to IUCN's abbreviation.)
+**(2) Species Red List Categories.** What are the abbreviations used for 
+data-deficient species and for species that have _not_ been evaluated? 
+(Defaults to IUCN's abbreviations.)
 ```{r}
 DD <- "DD"
-```
-
-**(3) Not Evaluated.** Which Red List Categories exist for species 
-that have _not_ been evaluated? (Defaults to IUCN's abbreviations for the Red List 
-Categories "Not Applicable" and "Not Evaluated".)
-```{r}
 notEval <- c("NA", "NE")
 ```
 
@@ -217,6 +221,33 @@ _downlisted_ by _one_ Red List Category.
 ```{r}
 downlistSymbol <- "°"
 ```
+
+**(4) Scopes** and their threshold values. 
+This data frame needs to contain all scope categories of threats used in the 
+Red List analysed:
+¤¤¤
+```{r}
+Scope <- data.frame(
+  name  = c("neglprop", "minority", "majority", "wholepop", "unknownd"),
+  lower = c(      0.00,       0.05,       0.50,       0.90,       0.00),
+  upper = c(      0.05,       0.50,       0.90,       1.00,       1.00),
+  distr = c(    "unif",     "unif",     "unif",     "unif",     "beta"),
+  beta  = c(        NA,         NA,         NA,         NA,          2),
+  stringsAsFactors = FALSE
+)
+
+ScopeIUCN <- data.frame(
+  name  = c("minority", "majority", "wholepop", "unknownd"),
+  lower = c(      0.00,       0.50,       0.90,       0.00),
+  upper = c(      0.50,       0.90,       1.00,       1.00),
+  distr = c(    "unif",     "unif",     "unif",     "beta"),
+  beta  = c(        NA,         NA,         NA,          2),
+  stringsAsFactors = FALSE
+)
+
+#¤
+```
+¤¤¤
 
 **(5) Severities** and their threshold values.
 This data frame needs to contain all severity categories of threats used in the 
@@ -230,6 +261,17 @@ Severity <- data.frame(
   beta  = c(        NA,         NA,         NA,         20),
   stringsAsFactors = FALSE
 )
+
+SeverityIUCN <- data.frame(
+  name  = c("nodeclin", "negldecl", "slowdecl", "rapidecl", "veryrapd", "fluctuat", "unknownd"),
+  lower = c(      0.00,       0.00,       0.02,       0.20,       0.30,       0.02,       0.00),
+  upper = c(      0.00,       0.02,       0.20,       0.30,       1.00,       0.20,       1.00),
+  distr = c(    "unif",     "unif",     "unif",     "unif",     "decr",     "unif",     "beta"),
+  beta  = c(        NA,         NA,         NA,         NA,         NA,         NA,         20),
+  stringsAsFactors = FALSE
+)
+
+#¤¤¤
 ```
 The data frame defaults to the severity categories used in Norwegian Red Lists,
 where values correspond to the declines in population size over 10 years or

@@ -448,6 +448,54 @@ randomiseDist <- function(D, L, U, N) {
 }
 
 
+meanScope <- function(x, ignoreScope = !useScope) {
+  # Returns the arithmetic mean of scope, given a scope class
+  if (ignoreScope) {
+    return(1)
+  } else {
+    name <- extractScope(x)
+    m <- function(x) {
+      w <- which(Scope$name == x)
+      f <- Scope$distr[w]
+      L <- Scope$lower[w]
+      U <- Scope$upper[w]
+      B <- Scope$beta [w]
+      mS <- switch(f,
+                   unif = L * 0.50 + U * 0.50,
+                   incr = L * 0.25 + U * 0.75,
+                   decr = L * 0.75 + U * 0.25,
+                   beta = 2 / (B + 2),
+                   NA)
+    }
+    return(round(as.vector(sapply(name, m)), 3))
+  }
+}
+
+
+randomiseScope <- function(n, x, ignoreScope = !useScope) {
+  # Returns n random numbers of scope, given a scope class
+  if (ignoreScope) {
+    return(1)
+  } else {
+    name <- extractScope(x)
+    m <- function(x) {
+      w <- which(Scope$name == x)
+      f <- Scope$distr[w]
+      L <- Scope$lower[w]
+      U <- Scope$upper[w]
+      B <- Scope$beta [w]
+      mS <- switch(f,
+                   unif = runif(n, L, U),
+                   incr = rIncr(n,    U),
+                   decr = rDecr(n, L   ),
+                   beta = rbeta(n, 2, B),
+                   NA)
+    }
+    return(as.vector(sapply(name, m)))
+  }
+}
+
+
 meanSeverity <- function(x) {
   # Returns the arithmetic mean of severity,
   # given a severity class
@@ -793,11 +841,11 @@ addThreats <- function(RL) {
         P <- unknThr
       }
       for (j in 1:length(P)) {
-        # Threat factors receive score according to their severity
-        sever <- meanSeverity(P[j])
-        # Severity scores are summed for each species
-        RL[i,              "Pop" %+% y] <- RL[i,              "Pop" %+% y] + sever
-        RL[i,extractThreat(P[j]) %+% y] <- RL[i,extractThreat(P[j]) %+% y] + sever
+        # Threat factors receive score according to their scope and severity
+        ScoSev <- meanScope(P[j]) * meanSeverity(P[j])
+        # Scope * severity scores are summed for each species
+        RL[i,              "Pop" %+% y] <- RL[i,              "Pop" %+% y] + ScoSev
+        RL[i,extractThreat(P[j]) %+% y] <- RL[i,extractThreat(P[j]) %+% y] + ScoSev
       } # j
     } # i
   } # y
@@ -1160,15 +1208,17 @@ simulateDRLI <- function(RL, nsim, quantiles = c(0.025, 0.25, 0.5, 0.75, 0.975),
           o <- sample(1:nsim)
           for (k in 1:length(Z)) {
             if (Z[k]) {
-              sever <- rep(0, nsim)
-              # Threat factors receive randomised scores according to their severity
-              sever[w[[k]]] <- randomiseSeverity(Z[k], Q[k])
+              ScoSev <- rep(0, nsim)
+              # Threat factors receive randomised scores according to 
+              # their scope and severity
+              ScoSev[w[[k]]] <- randomiseScope(Z[k], Q[k]) *
+                             randomiseSeverity(Z[k], Q[k])
               # shuffle the values (needed when inferThreats == T)
-              sever <- sever[o]
-              # Severity scores are summed for each species
-              pop[[y]] <- pop[[y]] + sever
+              ScoSev <- ScoSev[o]
+              # Scope * severity scores are summed for each species
+              pop[[y]] <- pop[[y]] + ScoSev
               thr[[y]]  [extractThreat(Q[k]), ] <- 
-                thr[[y]][extractThreat(Q[k]), ] + sever
+                thr[[y]][extractThreat(Q[k]), ] + ScoSev
             }
           } # k
         } # j
