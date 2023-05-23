@@ -448,7 +448,7 @@ randomiseDist <- function(D, L, U, N) {
 }
 
 
-meanScope <- function(x, ignoreScope = !useScope) {
+meanScope <- function(x, ignoreScope = !useIUCNthreats) {
   # Returns the arithmetic mean of scope, given a scope class
   if (ignoreScope) {
     return(1)
@@ -472,7 +472,7 @@ meanScope <- function(x, ignoreScope = !useScope) {
 }
 
 
-randomiseScope <- function(n, x, ignoreScope = !useScope) {
+randomiseScope <- function(n, x, ignoreScope = !useIUCNthreats) {
   # Returns n random numbers of scope, given a scope class
   if (ignoreScope) {
     return(1)
@@ -596,6 +596,7 @@ checkRL <- function(RL) {
     } else {
       cat("ERROR: The datafile contains unexpected Red List Categories:\n" %+%
             paste(sort(RLCat %-% RedListCat), collapse=", ") %+% "\n")
+      OK <- FALSE
     } # RL categories
     # Check the threat columns
     if (all((Threat %+% years) %in% names(RL))) {
@@ -612,13 +613,27 @@ checkRL <- function(RL) {
           if (any(timing %in% unknownTiming)) {
             if (any(timing %in% inclTiming)) {
               if (any(extractScope(thr) %in% unknownScope)) {
-                if (any(extractSeverity(thr) %in% unknownSeverity)) {
-                  cat("Threat columns are OK.\n")
+                if (all(extractScope(thr) %in% Scope$name)) {
+                  if (any(extractSeverity(thr) %in% unknownSeverity)) {
+                    if (all(extractSeverity(thr) %in% Severity$name)) {
+                      cat("Threat columns are OK.\n")
+                    } else {
+                      cat("ERROR: The following severities are undefined:\n")
+                      cat(paste(unique(extractSeverity(thr) %-% Severity$name,
+                                collapse = ", ")) %+% "\n")
+                      OK <- FALSE
+                    }
+                  } else {
+                    cat("WARNING: The severity \"" %+% unknownSeverity %+%
+                          "\" does not occur in the dataset!\n")
+                    OK <- FALSE
+                  } # unknown severity missing?
                 } else {
-                  cat("WARNING: The severity \"" %+% unknownSeverity %+%
-                        "\" does not occur in the dataset!\n")
+                  cat("ERROR: The following scope(s) are undefined:\n")
+                  cat(paste(unique(extractScope(thr) %-% Scope$name,
+                            collapse = ", ")) %+% "\n")
                   OK <- FALSE
-                } # unknown severity missing?
+                } # all scopes defined?
               } else {
                 cat("WARNING: The scope \"" %+% unknownScope %+%
                       "\" does not occur in the dataset!\n")

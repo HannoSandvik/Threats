@@ -1,16 +1,3 @@
-# Threats to species
-## Quantification of threats on the Norwegian Red Lists of species
-
-_Author and date:_ Hanno Sandvik, 12 May 2023
-
-This **R** code can be used to run the analyses of the Norwegian Red
-Lists for species described in the paper “Metrics for quantifying how
-much different threats contribute to red lists of species and
-ecosystems” ([Sandvik & Pedersen
-2023](https://doi.org/10.1111/cobi.14105)).
-
-_Contents:_
-
 -   <a href="#variables" id="toc-variables">Variables</a>
 -   <a href="#constants" id="toc-constants">Constants</a>
 -   <a href="#preliminaries" id="toc-preliminaries">Preliminaries</a>
@@ -39,7 +26,11 @@ _Contents:_
 -   <a href="#sensitivity-analysis"
     id="toc-sensitivity-analysis">Sensitivity analysis</a>
 
-
+This **R** code can be used to run the analyses of the Norwegian Red
+Lists for species described in the paper “Metrics for quantifying how
+much different threats contribute to red lists of species and
+ecosystems” ([Sandvik & Pedersen
+2023](https://doi.org/10.1111/cobi.14105)).
 
 ## Variables
 
@@ -66,21 +57,16 @@ distribution of the known threat factors.
 
     inferThreats <- FALSE
 
-**(4) Weighting underlying RLI.** Defines the weighting scheme for the
-Red List Index. (Defaults to “equal-steps”; other options are the IUCN
-Red List Criteria “A1”, “A2”, “B1”, “B2”, “C”, “D” and “E” as well as
-“Ev2”, “Ev3”.)
+**(4) Weighting schemes.** Defines the weighting scheme for the Red List
+Index and the Expected Loss of Species. (Defaults to “equal-steps” for
+RLI and the thresholds of the IUCN Red List Criterion E for ELS; other
+options are the IUCN Red List Criteria “A1”, “A2”, “B1”, “B2”, “C” and
+“D” as well as “Ev2”, “Ev3”.)
 
     weightingRLI <- "equal-steps"
-
-**(5) Weighting underlying ELS.** Defines the weighting scheme for the
-Expected Loss of Species. (Defaults to using the thresholds of the IUCN
-Red List Criterion E; other options are “A1”, “A2”, “B1”, “B2”, “C”,
-“D”, “Ev2”, “Ev3” and “equal-steps”.)
-
     weightingELS <- "E"
 
-**(6) Column names.** Column names in the dataset which contain Red List
+**(5) Column names.** Column names in the dataset which contain Red List
 Categories, threat factors, reasons for category change, and generation
 time, respectively. The three former ones need to be followed by the
 year of assessment (for change, the year of the *second* of the two
@@ -107,7 +93,7 @@ Note the following formatting requirements of these columns:
     change in Red List Category per species.
 -   Generation time, measured in *years*, must be a numerical variable.
 
-**(7) Abbreviations used for threats.** What are the abbreviations used
+**(6) Abbreviations used for threats.** What are the abbreviations used
 for unknown threats? They can occur in the `Threat` column(s), see
 previous item. (Defaults to the abbreviations used in the dataset
 analysed in the paper. May need to be adjusted for other datasets.)
@@ -117,16 +103,16 @@ analysed in the paper. May need to be adjusted for other datasets.)
     unknownScope    <- "unknownp"
     unknownSeverity <- "unknownd"
 
-**(8) Abbreviation used for real change.** What is the abbreviations
+**(7) Abbreviation used for real change.** What is the abbreviations
 used for real population changes? This is only needed if Red List
 Categories are to be “back-cast” to earlier Red List assessments. It
-must occur in the `Change` column(s), see item (6). (Defaults to the
+must occur in the `Change` column(s), see item (5). (Defaults to the
 abbreviation used in the dataset analysed in the paper. May need to be
 adjusted for other datasets.)
 
-    realChange      <- "realpopu"
+    realChange <- "realpopu"
 
-**(9) Timings to include.** What is (are) the abbreviation(s) of the
+**(8) Timings to include.** What is (are) the abbreviation(s) of the
 timing categories that should be considered (defaults to “ongoing”).
 
     inclTiming <- "ongoingt"
@@ -135,6 +121,22 @@ If *all* threats are to be included, irrespective of timing, this would
 need to be replaced (in terms of the abbreviations used in this dataset)
 by
 `inclTiming <- c("onlypast", "suspendd", "ongoing", "onlyfutu", "unknownt")`.
+
+**(9) Calculation of threat scores.** Decides whether threat scores are
+based on the product of scope and severity (if TRUE) or on severity
+alone (if FALSE).
+
+    useIUCNthreats <- FALSE
+
+IUCN now
+[states](https://www.iucnredlist.org/resources/threat-classification-scheme)
+that severities should describe the population decline *within the
+scope* of a particular threat. This implies that `useIUCNthreats` should
+be `TRUE`. Previously, however, the definition of severity was
+ambiguous. In the Norwegian Red Lists analysed here, severity was used
+to describe the decline of the *entire population*. The default value
+(FALSE) assumes the latter situation, in which severity should not be
+multiplied with scope. (See [here](scopesev.md) for some more detail.)
 
 **(10) Number of simulations.** NB: the default takes several hours! For
 exploration purposes, `nsim <- 1000` will suffice. For pure
@@ -240,29 +242,77 @@ following meanings:
 -   The column “beta” is not currently needed (but may be needed if
     “distr” is changed).
 
-**(2) Data deficiency**. What is the abbreviation used for the “Data
-Deficient” Red List Category? (Defaults to IUCN’s abbreviation.)
+**(2) Special Red List Categories.** What are the abbreviations used for
+data-deficient species and for species that have *not* been evaluated?
+(Defaults to IUCN’s abbreviations.)
 
     DD <- "DD"
-
-**(3) Not Evaluated.** Which Red List Categories exist for species that
-have *not* been evaluated? (Defaults to IUCN’s abbreviations for the Red
-List Categories “Not Applicable” and “Not Evaluated”.)
-
     notEval <- c("NA", "NE")
 
-**(4) Downlisting.** What is added to a Red List Category to indicate
+**(3) Downlisting.** What is added to a Red List Category to indicate
 downlisting? (Defaults to the degree symbol.) If a Red List Category is
 followed by this symbol, it is assumed to have been *downlisted* by
 *one* Red List Category.
 
     downlistSymbol <- "°"
+    downlistSymbol <- iconv(downlistSymbol, Encoding(downlistSymbol), "latin1")
+
+**(4) Scopes** and their threshold values. This data frame needs to
+contain all scope categories of threats used in the Red List analysed.
+Two data frames are provided, one for analysis of the Norwegian Red List
+data (the default) and one with the scope classes defined by IUCN
+([2023](https://www.iucnredlist.org/resources/threat-classification-scheme)):
+
+    ScopeNorway <- data.frame(
+      name  = c("neglprop", "minority", "majority", "wholepop", "unknownp"),
+      lower = c(      0.00,       0.05,       0.50,       0.90,       0.00),
+      upper = c(      0.05,       0.50,       0.90,       1.00,       1.00),
+      distr = c(    "unif",     "unif",     "unif",     "unif",     "beta"),
+      beta  = c(        NA,         NA,         NA,         NA,          2),
+      stringsAsFactors = FALSE
+    )
+
+    ScopeIUCN <- data.frame(
+      name  = c("minority", "majority", "wholepop", "unknownp"),
+      lower = c(      0.00,       0.50,       0.90,       0.00),
+      upper = c(      0.50,       0.90,       1.00,       1.00),
+      distr = c(    "unif",     "unif",     "unif",     "beta"),
+      beta  = c(        NA,         NA,         NA,          2),
+      stringsAsFactors = FALSE
+    )
+
+    if (useIUCNthreats) {
+      Scope <- ScopeIUCN
+    } else {
+      Scope <- ScopeNorway
+    }
+
+Values are the proportion of the total population affected by a threat
+([Artsdatabanken 2020](https://artsdatabanken.no/Files/41216/); cf. 
+[IUCN
+2023](https://www.iucnredlist.org/resources/threat-classification-scheme)).
+The columns have the following meanings:
+
+-   The column “name” contains the abbreviations used for the scope
+    categories.
+-   The column “lower” contains the lower limit of the respective
+    interval.
+-   The column “upper” contains the upper limit of the respective
+    interval.
+-   The column “distr” contains the distribution of values within the
+    respective interval (possible values: “unif”, “incr”, “decr”,
+    “beta”).
+-   The column “beta” contains the beta parameter of a Beta distribution
+    (a numeric values if `distr == "beta"`, and `NA` otherwise).
 
 **(5) Severities** and their threshold values. This data frame needs to
 contain all severity categories of threats used in the Red List
-analysed:
+analysed. Two data frames are provided, one for analysis of the
+Norwegian Red List data (the default) and one with the severity classes
+defined by IUCN
+([2023](https://www.iucnredlist.org/resources/threat-classification-scheme)):
 
-    Severity <- data.frame(
+    SeverityNorway <- data.frame(
       name  = c("negldecl", "slowdecl", "rapidecl", "unknownd"),
       lower = c(      0.00,       0.02,       0.20,       0.00),
       upper = c(      0.02,       0.20,       1.00,       1.00),
@@ -271,12 +321,25 @@ analysed:
       stringsAsFactors = FALSE
     )
 
-The data frame defaults to the severity categories used in Norwegian Red
-Lists, where values correspond to the declines in population size over
-10 years or 3 generations (whichever is largest) caused by a threat
-([Artsdatabanken 2020](https://artsdatabanken.no/Files/41216/); cf. 
-[IUCN
-2022](https://www.iucnredlist.org/resources/threat-classification-scheme)).
+    SeverityIUCN <- data.frame(
+      name  = c("nodeclin", "negldecl", "slowdecl", "rapidecl", "veryrapd", "fluctuat", "unknownd"),
+      lower = c(      0.00,       0.00,       0.02,       0.20,       0.30,       0.02,       0.00),
+      upper = c(      0.00,       0.02,       0.20,       0.30,       1.00,       0.20,       1.00),
+      distr = c(    "unif",     "unif",     "unif",     "unif",     "decr",     "unif",     "beta"),
+      beta  = c(        NA,         NA,         NA,         NA,         NA,         NA,         20),
+      stringsAsFactors = FALSE
+    )
+
+    if(useIUCNthreats) {
+      Severity <- SeverityIUCN
+    } else {
+      Severity <- SeverityNorway
+    }
+
+Values correspond to the declines in population size over 10 years or 3
+generations (whichever is largest) caused by a threat ([Artsdatabanken
+2020](https://artsdatabanken.no/Files/41216/); cf.  [IUCN
+2023](https://www.iucnredlist.org/resources/threat-classification-scheme)).
 The columns have the following meanings:
 
 -   The column “name” contains the abbreviations used for the severity
@@ -287,7 +350,7 @@ The columns have the following meanings:
     interval.
 -   The column “distr” contains the distribution of values within the
     respective interval (possible values: “unif”, “incr”, “decr”,
-    “beta”).
+    “beta”; see [here](scopesev.md) for the rationale).
 -   The column “beta” contains the beta parameter of a Beta distribution
     (a numeric values if `distr == "beta"`, and `NA` otherwise).
 
@@ -775,7 +838,7 @@ Plot a graph for ΔRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-85-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-137-1.png)
 
 ### Figure 2
 
@@ -855,7 +918,7 @@ Plot a graph for δRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-87-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-139-1.png)
 
 ### Figure 3
 
@@ -901,7 +964,7 @@ Plot a graph for ELS<sub>50</sub>:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-88-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-140-1.png)
 
 ## Analysis with DD species excluded
 
@@ -1095,7 +1158,7 @@ Plot a graph for ΔRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-92-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-144-1.png)
 
 ### Appendix S8
 
@@ -1175,7 +1238,7 @@ Plot a graph for δRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-94-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-146-1.png)
 
 ### Appendix S9
 
@@ -1223,7 +1286,7 @@ Plot a graph for ELS<sub>50</sub>:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-95-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-147-1.png)
 
 ## Sensitivity analysis
 
