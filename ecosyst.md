@@ -35,7 +35,7 @@ dataset as `file` (including file path, if needed).
 
 **(2) Handling of DD systems.** Decides whether Data Deficient
 ecosystems are excluded (if FALSE) or randomly assigned to other Red
-List categories (if TRUE).
+List Categories (if TRUE).
 
     includeDD <- TRUE
 
@@ -120,12 +120,13 @@ alone (if FALSE).
 IUCN now
 [states](https://www.iucnredlist.org/resources/threat-classification-scheme)
 that severities should describe the decline *within the scope* of a
-particular threat. This implies that `useIUCNthreats` should be `TRUE`.
-Previously, however, the definition of severity was ambiguous. In the
-Norwegian Red Lists analysed here, severity was used to describe the
-decline of the *entire area*. The default value (FALSE) assumes the
-latter situation, in which severity should not be multiplied with score.
-(See [here](scopesev.md) for some more detail.)
+particular threat. If this definition has been followed,
+`useIUCNthreats` should be `TRUE`. Previously, however, the definition
+of severity was ambiguous. In the Norwegian Red List analysed here,
+severity was used to describe the decline of the *entire area*. The
+default value (FALSE) assumes the latter situation, in which severity
+should *not* be multiplied with score. (See [here](scopesev.md) for some
+more detail.)
 
 **(10) Number of simulations.** NB: the default takes a while. For
 exploration purposes, `nsim <- 1000` will suffice.
@@ -240,15 +241,17 @@ evaluated? (Defaults to IUCN’s abbreviations.)
 **(3) Downlisting.** What is added to a Red List Category to indicate
 downlisting? (Defaults to the degree symbol.) If a Red List Category if
 followed by this symbol, it is assumed to have been *downlisted* by
-*one* Red List Category.
+*one* Red List Category. (This is not relevant for ecosystems but
+included for compatibility.)
 
-    downlistSymbol <- "°"
+    downlistSymbol <- "\u00b0"  # degree symbol in unicode
     downlistSymbol <- iconv(downlistSymbol, Encoding(downlistSymbol), "latin1")
 
 **(4) Scopes** and their threshold values. This data frame needs to
-contain all scope categories of threats used in the Red List analysed.
-Two data frames are provided, one for analysis of the Norwegian Red List
-data (the default) and one with the scope classes defined by IUCN
+contain all scope classes of threats used in the Red List analysed. Two
+versions of the data frame are provided, one for analysis of the
+Norwegian Red List data (the default) and one with the scope classes
+defined by IUCN
 ([2023](https://www.iucnredlist.org/resources/threat-classification-scheme)):
 
     ScopeNorway <- data.frame(
@@ -275,14 +278,14 @@ data (the default) and one with the scope classes defined by IUCN
       Scope <- ScopeNorway
     }
 
-Values are the proportion of the total area affected by a threat
+Values are the proportions of the total area affected by a threat
 ([Artsdatabanken 2018](https://artsdatabanken.no/Files/27210/); cf. 
 [IUCN
 2023](https://www.iucnredlist.org/resources/threat-classification-scheme)).
 The columns have the following meanings:
 
 -   The column “name” contains the abbreviations used for the scope
-    categories.
+    classes.
 -   The column “lower” contains the lower limit of the respective
     interval.
 -   The column “upper” contains the upper limit of the respective
@@ -294,8 +297,8 @@ The columns have the following meanings:
     (a numeric values if `distr == "beta"`, and `NA` otherwise).
 
 **(5) Severities** and their threshold values. This data frame needs to
-contain all severity categories of threats used in the Red List
-analysed. Two data frames are provided, one for analysis of the
+contain all severity classes of threats used in the Red List analysed.
+Two versions of the data frame are provided, one for analysis of the
 Norwegian Red List data (the default) and one with the severity classes
 defined by IUCN
 ([2023](https://www.iucnredlist.org/resources/threat-classification-scheme)):
@@ -331,7 +334,7 @@ caused by a threat ([Artsdatabanken
 The columns have the following meanings:
 
 -   The column “name” contains the abbreviations used for the severity
-    categories.
+    classes.
 -   The column “lower” contains the lower limit of the respective
     interval.
 -   The column “upper” contains the upper limit of the respective
@@ -614,7 +617,7 @@ Plot a graph for δRLI:
       }
     }
 
-![](ecosyst_files/figure-markdown_strict/unnamed-chunk-36-1.png)
+![](ecosyst_files/figure-markdown_strict/unnamed-chunk-73-1.png)
 
 ## Disaggregation
 
@@ -750,4 +753,4 @@ Plot a graph for δRLI:
       }
     }
 
-![](ecosyst_files/figure-markdown_strict/unnamed-chunk-39-1.png)
+![](ecosyst_files/figure-markdown_strict/unnamed-chunk-76-1.png)

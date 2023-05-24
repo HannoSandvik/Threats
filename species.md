@@ -47,7 +47,7 @@ dataset as `file` (including file path, if needed).
 
 **(2) Handling of DD species.** Decides whether Data Deficient species
 are excluded (if FALSE) or randomly assigned to other Red List
-categories (if TRUE).
+Categories (if TRUE).
 
     includeDD <- TRUE
 
@@ -131,12 +131,13 @@ alone (if FALSE).
 IUCN now
 [states](https://www.iucnredlist.org/resources/threat-classification-scheme)
 that severities should describe the population decline *within the
-scope* of a particular threat. This implies that `useIUCNthreats` should
-be `TRUE`. Previously, however, the definition of severity was
-ambiguous. In the Norwegian Red Lists analysed here, severity was used
-to describe the decline of the *entire population*. The default value
-(FALSE) assumes the latter situation, in which severity should not be
-multiplied with scope. (See [here](scopesev.md) for some more detail.)
+scope* of a particular threat. If this definition has been followed,
+`useIUCNthreats` should be `TRUE`. Previously, however, the definition
+of severity was ambiguous. In the Norwegian Red Lists analysed here,
+severity was used to describe the decline of the *entire population*.
+The default value (FALSE) assumes the latter situation, in which
+severity should *not* be multiplied with scope. (See [here](scopesev.md)
+for some more detail.)
 
 **(10) Number of simulations.** NB: the default takes several hours! For
 exploration purposes, `nsim <- 1000` will suffice. For pure
@@ -254,13 +255,14 @@ downlisting? (Defaults to the degree symbol.) If a Red List Category is
 followed by this symbol, it is assumed to have been *downlisted* by
 *one* Red List Category.
 
-    downlistSymbol <- "°"
+    downlistSymbol <- "\u00b0"  # degree symbol in unicode
     downlistSymbol <- iconv(downlistSymbol, Encoding(downlistSymbol), "latin1")
 
 **(4) Scopes** and their threshold values. This data frame needs to
-contain all scope categories of threats used in the Red List analysed.
-Two data frames are provided, one for analysis of the Norwegian Red List
-data (the default) and one with the scope classes defined by IUCN
+contain all scope classes of threats used in the Red List analysed. Two
+versions of the data frames are provided, one for analysis of the
+Norwegian Red List data (the default) and one with the scope classes
+defined by IUCN
 ([2023](https://www.iucnredlist.org/resources/threat-classification-scheme)):
 
     ScopeNorway <- data.frame(
@@ -287,14 +289,14 @@ data (the default) and one with the scope classes defined by IUCN
       Scope <- ScopeNorway
     }
 
-Values are the proportion of the total population affected by a threat
+Values are the proportions of the total population affected by a threat
 ([Artsdatabanken 2020](https://artsdatabanken.no/Files/41216/); cf. 
 [IUCN
 2023](https://www.iucnredlist.org/resources/threat-classification-scheme)).
 The columns have the following meanings:
 
 -   The column “name” contains the abbreviations used for the scope
-    categories.
+    classes.
 -   The column “lower” contains the lower limit of the respective
     interval.
 -   The column “upper” contains the upper limit of the respective
@@ -306,8 +308,8 @@ The columns have the following meanings:
     (a numeric values if `distr == "beta"`, and `NA` otherwise).
 
 **(5) Severities** and their threshold values. This data frame needs to
-contain all severity categories of threats used in the Red List
-analysed. Two data frames are provided, one for analysis of the
+contain all severity classes of threats used in the Red List analysed.
+Two versions of the data frame are provided, one for analysis of the
 Norwegian Red List data (the default) and one with the severity classes
 defined by IUCN
 ([2023](https://www.iucnredlist.org/resources/threat-classification-scheme)):
@@ -343,7 +345,7 @@ generations (whichever is largest) caused by a threat ([Artsdatabanken
 The columns have the following meanings:
 
 -   The column “name” contains the abbreviations used for the severity
-    categories.
+    classes.
 -   The column “lower” contains the lower limit of the respective
     interval.
 -   The column “upper” contains the upper limit of the respective
@@ -838,7 +840,7 @@ Plot a graph for ΔRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-137-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-38-1.png)
 
 ### Figure 2
 
@@ -918,7 +920,7 @@ Plot a graph for δRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-139-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-40-1.png)
 
 ### Figure 3
 
@@ -964,7 +966,7 @@ Plot a graph for ELS<sub>50</sub>:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-140-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-41-1.png)
 
 ## Analysis with DD species excluded
 
@@ -1158,7 +1160,7 @@ Plot a graph for ΔRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-144-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-45-1.png)
 
 ### Appendix S8
 
@@ -1238,7 +1240,7 @@ Plot a graph for δRLI:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-146-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-47-1.png)
 
 ### Appendix S9
 
@@ -1286,7 +1288,7 @@ Plot a graph for ELS<sub>50</sub>:
       }
     }
 
-![](species_files/figure-markdown_strict/unnamed-chunk-147-1.png)
+![](species_files/figure-markdown_strict/unnamed-chunk-48-1.png)
 
 ## Sensitivity analysis
 
