@@ -763,13 +763,13 @@ they can be re-run with unknown threats distributed over known threats:
   inferThreats <- TRUE
   RL. <- calcLoss(RL)
   RL. <- addThreats(RL.)
-  cat("\nDeltaRLI excluding DD species:\n")
+  cat("\nDeltaRLI with unknown threats inferred:\n")
   DRLI. <- DeltaRLI(RL.)
   print(DRLI.)
   drli. <- dRLI(RL.)
-  cat("\ndRLI excluding DD species:\n")
+  cat("\ndRLI with unknown threats inferred:\n")
   print(drli.$dRLI)
-  cat("\nELS50 excluding DD species:\n")
+  cat("\nELS50 with unknown threats inferred:\n")
   print(drli.$ELS50)
   inferThreats <- FALSE
 }
