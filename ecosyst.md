@@ -1,3 +1,16 @@
+# Threats to ecosystems
+## Quantification of threats on the Norwegian Red List of ecosystems
+
+_Author and date:_ Hanno Sandvik, 24 May 2023
+
+This **R** code can be used to run the analyses of the Norwegian Red
+List for ecosystems and habitat types described in the paper “Metrics
+for quantifying how much different threats contribute to red lists of
+species and ecosystems” ([Sandvik & Pedersen
+2023](https://doi.org/10.1111/cobi.14105)).
+
+_Contents:_
+
 -   <a href="#variables" id="toc-variables">Variables</a>
 -   <a href="#constants" id="toc-constants">Constants</a>
 -   <a href="#preliminaries" id="toc-preliminaries">Preliminaries</a>
@@ -14,11 +27,7 @@
 -   <a href="#disaggregation" id="toc-disaggregation">Disaggregation</a>
     -   <a href="#appendix-s10" id="toc-appendix-s10">Appendix S10</a>
 
-This **R** code can be used to run the analyses of the Norwegian Red
-List for ecosystems and habitat types described in the paper “Metrics
-for quantifying how much different threats contribute to red lists of
-species and ecosystems” ([Sandvik & Pedersen
-2023](https://doi.org/10.1111/cobi.14105)).
+
 
 ## Variables
 
