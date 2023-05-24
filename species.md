@@ -1,3 +1,16 @@
+# Threats to species
+## Quantification of threats on the Norwegian Red Lists of species
+
+_Author and date:_ Hanno Sandvik, 24 May 2023
+
+This **R** code can be used to run the analyses of the Norwegian Red
+Lists for species described in the paper “Metrics for quantifying how
+much different threats contribute to red lists of species and
+ecosystems” ([Sandvik & Pedersen
+2023](https://doi.org/10.1111/cobi.14105)).
+
+_Contents:_
+
 -   <a href="#variables" id="toc-variables">Variables</a>
 -   <a href="#constants" id="toc-constants">Constants</a>
 -   <a href="#preliminaries" id="toc-preliminaries">Preliminaries</a>
@@ -26,11 +39,7 @@
 -   <a href="#sensitivity-analysis"
     id="toc-sensitivity-analysis">Sensitivity analysis</a>
 
-This **R** code can be used to run the analyses of the Norwegian Red
-Lists for species described in the paper “Metrics for quantifying how
-much different threats contribute to red lists of species and
-ecosystems” ([Sandvik & Pedersen
-2023](https://doi.org/10.1111/cobi.14105)).
+
 
 ## Variables
 
@@ -1474,3 +1483,5 @@ are directly comparable across weightings.
     ## otherthr      3.011094 0.0010754271
     ## nothreat      1.227500 0.0004384077
     ## Cumulative 2799.905500 1.0000000000
+
+
