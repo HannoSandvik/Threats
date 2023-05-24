@@ -1,7 +1,7 @@
 ## Scope and severity
 
 Shortly after [version 1.0](http://dx.doi.org/10.5281/zenodo.7930001) of
-this code was published, IUCN has
+this code was published, IUCN 
 [clarified](https://www.iucnredlist.org/resources/threat-classification-scheme)
 that *severity* should be understood as the population decline “within
 the scope of the particular threat”. Previously, the definition of
@@ -35,9 +35,9 @@ are:
     severity intervals, which is “negligible”; however, this does not
     make sense for IUCN’s lowest severity interval, which is “no
     decline”).
--   Garnett. et al. and Mair et al. used the averages of the products of
+-   Garnett et al. and Mair et al. used the averages of the products of
     the limits of each interval, whereas we use the products of the
-    averages of the limits of each interval.
+    averages of each interval.
 
 The differences are here illustrated with the IUCN classes for scope and
 severity:
