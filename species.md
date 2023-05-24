@@ -1047,19 +1047,19 @@ threats:
       inferThreats <- TRUE
       RL. <- calcLoss(RL)
       RL. <- addThreats(RL.)
-      cat("\nDeltaRLI excluding DD species:\n")
+      cat("\nDeltaRLI with unknown threats inferred:\n")
       DRLI. <- DeltaRLI(RL.)
       print(DRLI.)
       drli. <- dRLI(RL.)
-      cat("\ndRLI excluding DD species:\n")
+      cat("\ndRLI with unknown threats inferred:\n")
       print(drli.$dRLI)
-      cat("\nELS50 excluding DD species:\n")
+      cat("\nELS50 with unknown threats inferred:\n")
       print(drli.$ELS50)
       inferThreats <- FALSE
     }
 
     ## 
-    ## DeltaRLI excluding DD species:
+    ## DeltaRLI with unknown threats inferred:
     ##                RL15_21       RL10_15       RL10_21
     ## alienspe -1.541714e-05 -3.498722e-05 -5.040437e-05
     ## bycatchc  1.297978e-05  1.561721e-05  2.859699e-05
@@ -1075,7 +1075,7 @@ threats:
     ## pollutio -4.263000e-05  2.365228e-05 -1.897772e-05
     ## unknownf  0.000000e+00  0.000000e+00  0.000000e+00
     ## 
-    ## dRLI excluding DD species:
+    ## dRLI with unknown threats inferred:
     ##                  RL10         RL15         RL21
     ## alienspe 2.472902e-04 7.475371e-04 1.526174e-03
     ## bycatchc 2.837378e-04 6.538221e-04 5.445765e-04
@@ -1091,7 +1091,7 @@ threats:
     ## pollutio 3.337628e-03 3.165809e-03 3.473227e-03
     ## unknownf 0.000000e+00 0.000000e+00 0.000000e+00
     ## 
-    ## ELS50 excluding DD species:
+    ## ELS50 with unknown threats inferred:
     ##                  RL10        RL15         RL21
     ## alienspe 3.334304e+00   11.004252   21.9313575
     ## bycatchc 3.763962e+00    9.954738    8.4411939
