@@ -2,7 +2,7 @@
 title: "Threats to ecosystems"
 subtitle: "Quantification of threats on the Norwegian Red List of ecosystems"
 author: "Hanno Sandvik"
-date: "12 May 2023"
+date: "24 May 2023"
 output:
   md_document:
     toc: yes
@@ -30,7 +30,7 @@ file <- "ecosyst.csv"
 
 **(2) Handling of DD systems.** 
 Decides whether Data Deficient ecosystems are excluded (if FALSE)
-or randomly assigned to other Red List categories (if TRUE).
+or randomly assigned to other Red List Categories (if TRUE).
 ```{r}
 includeDD <- TRUE
 ```
@@ -48,25 +48,17 @@ Decides whether ecosystem major types should be disaggregated into their minor t
 disaggregate <- FALSE
 ```
 
-**(5) Weighting underlying RLI.** 
-Defines the weighting scheme for the Red List Index.
-(Defaults to "equal-steps"; other options are the IUCN Red List Criteria
-"A1", "A2", "B1", "B2", "C1", "C2", "D1", "D2", and "E" 
-as well as "Ev2", "Ev3".)
+**(5) Weighting schemes.** 
+Defines the weighting scheme for the Red List Index and the Expected Loss of Species.
+(Defaults to "equal-steps" for RLI and the thresholds of the IUCN Red List 
+Criterion E for ELS; other options are the IUCN Red List Criteria
+"A1", "A2", "B1", "B2", "C1", "C2", "D1" and "D2" as well as "Ev2", "Ev3".)
 ```{r}
 weightingRLI <- "equal-steps"
-```
-
-**(6) Weighting underlying ELS.** 
-Defines the weighting scheme for the Expected Loss of Systems.
-(Defaults to using the thresholds of the IUCN Red List Criterion E;
-other options are "A1", "A2", "B1", "B2", "C1", "C2", 
-"D1", "D2", "Ev2", "Ev3" and "equal-steps".)
-```{r}
 weightingELS <- "E"
 ```
 
-**(7) Column names.** 
+**(6) Column names.** 
 Column names in the dataset which contain Red List Categories, threat factors,
 reasons for category change, and generation time, respectively. 
 The three former ones need to be followed by the year of assessment
@@ -86,7 +78,7 @@ Note the following formatting requirements of these columns:
 * Change columns are needed only if the dataset contains results from more than one Red List. It must contain no more than one reason for change in Red List Category per ecosystem.
 * Generation time is not applicable to ecosystems. However, `GTime` needs to be specified for the functions to work correctly.
 
-**(8) Abbreviations used.**
+**(7) Abbreviations used.**
 What are the abbreviations used for unknown threats and for real status change? 
 The four "unknowns" can occur in the `Threat` column(s), see previous item. 
 (Defaults to the abbreviations used in the dataset analysed in the paper.
@@ -101,7 +93,7 @@ unknownSeverity <- "unknownd"
 realChange      <- "realchng"
 ```
 
-**(9) Timings to include.** What is (are) the abbreviation(s) of the timing 
+**(8) Timings to include.** What is (are) the abbreviation(s) of the timing 
 categories that should be considered (defaults to "ongoing").
 ```{r}
 inclTiming <- "ongoingt"
@@ -109,6 +101,21 @@ inclTiming <- "ongoingt"
 If _all_ threats are to be included, irrespective of timing, this would need to be 
 replaced (in terms of the abbreviations used in this dataset) by
 `inclTiming <- c("onlypast", "suspendd", "ongoing", "onlyfutu", "unknownt")`.
+
+**(9) Calculation of threat scores.** 
+Decides whether threat scores are based on the product of scope and severity 
+(if TRUE) or on severity alone (if FALSE).
+```{r}
+useScope <- FALSE
+```
+IUCN now [states](https://www.iucnredlist.org/resources/threat-classification-scheme) 
+that severities should describe the decline _within the scope_ 
+of a particular threat. If this definition has been followed, `useScope` 
+should be `TRUE`. Previously, however, the definition of severity was ambiguous. 
+In the Norwegian Red List analysed here, severity was used to describe the decline 
+of the _entire area_. The default value (FALSE) assumes the latter situation, 
+in which severity should _not_ be multiplied with score.
+(See [here](scopesev.md) for some more detail.)
 
 **(10) Number of simulations.** 
 NB: the default takes a while. 
@@ -192,32 +199,72 @@ The columns have the following meanings:
 * The column "distr" provides the distribution of extinction probabilities within the interval.
 * The column "beta" is not currently needed (but may be needed if "distr" is changed).
 
-**(2) Data deficiency**. What is the abbreviation used for the "Data Deficient" 
-Red List Category? (Defaults to IUCN's abbreviation.)
+**(2) Special Red List Categories.** What are the abbreviations used for 
+data-deficient ecosystems and for ecosustems that have _not_ been evaluated? 
+(Defaults to IUCN's abbreviations.)
 ```{r}
 DD <- "DD"
-```
-
-**(3) Not Evaluated.** Which Red List Categories exist for ecosystems 
-that have _not_ been evaluated? (Defaults to IUCN's abbreviations for the Red List 
-Categories "Not Applicable" and "Not Evaluated".)
-```{r}
 notEval <- c("NA", "NE")
 ```
 
-**(4) Downlisting.** What is added to a Red List Category to indicate downlisting? 
+**(3) Downlisting.** What is added to a Red List Category to indicate downlisting? 
 (Defaults to the degree symbol.)
 If a Red List Category if followed by this symbol, it is assumed to have been 
 _downlisted_ by _one_ Red List Category.
+(This is not relevant for ecosystems but included for compatibility.)
 ```{r}
-downlistSymbol <- "°"
+downlistSymbol <- "\u00b0"  # degree symbol in unicode
+downlistSymbol <- iconv(downlistSymbol, Encoding(downlistSymbol), "latin1")
 ```
 
-**(5) Severities** and their threshold values.
-This data frame needs to contain all severity categories of threats used in the 
-Red List analysed:
+**(4) Scopes** and their threshold values. 
+This data frame needs to contain all scope classes of threats used in the 
+Red List analysed. Two versions of the data frame are provided, one for analysis 
+of the Norwegian Red List data (the default) and one with the scope classes defined 
+by IUCN ([2023](https://www.iucnredlist.org/resources/threat-classification-scheme)). 
+The default is to use the Norwegian scope classes.
 ```{r}
-Severity <- data.frame(
+ScopeNorway <- data.frame(
+  name  = c("neglarea", "minority", "majority", "wholarea", "unknownp"),
+  lower = c(      0.00,       0.05,       0.50,       0.90,       0.00),
+  upper = c(      0.05,       0.50,       0.90,       1.00,       1.00),
+  distr = c(    "unif",     "unif",     "unif",     "unif",     "beta"),
+  beta  = c(        NA,         NA,         NA,         NA,          2),
+  stringsAsFactors = FALSE
+)
+
+ScopeIUCN <- data.frame(
+  name  = c("minority", "majority", "wholarea", "unknownp"),
+  lower = c(      0.00,       0.50,       0.90,       0.00),
+  upper = c(      0.50,       0.90,       1.00,       1.00),
+  distr = c(    "unif",     "unif",     "unif",     "beta"),
+  beta  = c(        NA,         NA,         NA,          2),
+  stringsAsFactors = FALSE
+)
+
+Scope <- ScopeNorway
+```
+Values are the proportions of the total area affected by a threat 
+([Artsdatabanken 2018](https://artsdatabanken.no/Files/27210/); cf. 
+[IUCN 2023](https://www.iucnredlist.org/resources/threat-classification-scheme)).
+The columns have the following meanings:
+
+* The column "name" contains the abbreviations used for the scope classes.
+* The column "lower" contains the lower limit of the respective interval.
+* The column "upper" contains the upper limit of the respective interval.
+* The column "distr" contains the distribution of values within the respective
+interval (possible values: "unif", "incr", "decr", "beta").
+* The column "beta" contains the beta parameter of a Beta distribution
+(a numeric values if `distr == "beta"`, and `NA` otherwise).
+
+**(5) Severities** and their threshold values.
+This data frame needs to contain all severity classes of threats used in the Red 
+List analysed. Two versions of the data frame are provided, one for analysis of the 
+Norwegian Red List data (the default) and one with the severity classes defined 
+by IUCN ([2023](https://www.iucnredlist.org/resources/threat-classification-scheme)). 
+The default is to use the Norwegian severity classes.
+```{r}
+SeverityNorway <- data.frame(
   name  = c("negldecl", "slowdecl", "rapidecl", "unknownd"),
   lower = c(      0.00,       0.02,       0.20,       0.00),
   upper = c(      0.02,       0.20,       1.00,       1.00),
@@ -225,18 +272,29 @@ Severity <- data.frame(
   beta  = c(        NA,         NA,         NA,         20),
   stringsAsFactors = FALSE
 )
+
+SeverityIUCN <- data.frame(
+  name  = c("nodeclin", "negldecl", "slowdecl", "rapidecl", "veryrapd", "fluctuat", "unknownd"),
+  lower = c(      0.00,       0.00,       0.02,       0.20,       0.30,       0.02,       0.00),
+  upper = c(      0.00,       0.02,       0.20,       0.30,       1.00,       0.20,       1.00),
+  distr = c(    "unif",     "unif",     "unif",     "unif",     "decr",     "unif",     "beta"),
+  beta  = c(        NA,         NA,         NA,         NA,         NA,         NA,         20),
+  stringsAsFactors = FALSE
+)
+
+Severity <- SeverityNorway
 ```
-The data frame defaults to the severity categories used in Norwegian Red Lists,
-where values correspond to the declines in area of occupancy over 50 years caused 
-by a threat ([Artsdatabanken 2018](https://artsdatabanken.no/Files/27210/); cf. 
-[IUCN 2022](https://www.iucnredlist.org/resources/threat-classification-scheme)).
+Values correspond to the declines in area of occupancy over 50 years caused by 
+a threat ([Artsdatabanken 2020](https://artsdatabanken.no/Files/41216/); cf. 
+[IUCN 2023](https://www.iucnredlist.org/resources/threat-classification-scheme)).
 The columns have the following meanings:
 
-* The column "name" contains the abbreviations used for the severity categories.
+* The column "name" contains the abbreviations used for the severity classes.
 * The column "lower" contains the lower limit of the respective interval.
 * The column "upper" contains the upper limit of the respective interval.
 * The column "distr" contains the distribution of values within the respective 
-interval (possible values: "unif", "incr", "decr", "beta").
+interval (possible values: "unif", "incr", "decr", "beta";
+see [here](scopesev.md) for the rationale).
 * The column "beta" contains the beta parameter of a Beta distribution
 (a numeric values if `distr == "beta"`, and `NA` otherwise).
 
