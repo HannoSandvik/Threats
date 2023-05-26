@@ -17,6 +17,7 @@ The repository contains the **R** code to reproduce the findings of Sandvik & Pe
 * The _functions_ used are defined in [function.R](function.R).
 * The specific analyses of the Norwegian Red Lists of _species_ are shown in [species.md](species.md) (with the underlying R Markdown file [available here](species.Rmd)).
 * The specific analyses of the Norwegian Red List of _ecosystems_ are shown in [ecosyst.md](ecosyst.md) (with the underlying R Markdown file [available here](ecosyst.Rmd)).
+* The changes from version 1.0 to 1.1. are explained in [scopesev.md](scopesev.md) (with the underlying R Markdown file [available here](scopesev.Rmd)).
 
 ## Contact
 The repository is maintained by [Hanno Sandvik](mailto:hanno.sandvik@nina.no).
