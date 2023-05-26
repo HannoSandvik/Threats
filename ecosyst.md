@@ -124,13 +124,13 @@ by
 based on the product of scope and severity (if TRUE) or on severity
 alone (if FALSE).
 
-    useIUCNthreats <- FALSE
+    useScope <- FALSE
 
 IUCN now
 [states](https://www.iucnredlist.org/resources/threat-classification-scheme)
 that severities should describe the decline *within the scope* of a
 particular threat. If this definition has been followed,
-`useIUCNthreats` should be `TRUE`. Previously, however, the definition
+`useScope` should be `TRUE`. Previously, however, the definition
 of severity was ambiguous. In the Norwegian Red List analysed here,
 severity was used to describe the decline of the *entire area*. The
 default value (FALSE) assumes the latter situation, in which severity
@@ -261,7 +261,8 @@ contain all scope classes of threats used in the Red List analysed. Two
 versions of the data frame are provided, one for analysis of the
 Norwegian Red List data (the default) and one with the scope classes
 defined by IUCN
-([2023](https://www.iucnredlist.org/resources/threat-classification-scheme)):
+([2023](https://www.iucnredlist.org/resources/threat-classification-scheme)). 
+The default is to use the Norwegian scope classes.
 
     ScopeNorway <- data.frame(
       name  = c("neglarea", "minority", "majority", "wholarea", "unknownp"),
@@ -281,11 +282,7 @@ defined by IUCN
       stringsAsFactors = FALSE
     )
 
-    if (useIUCNthreats) {
-      Scope <- ScopeIUCN
-    } else {
-      Scope <- ScopeNorway
-    }
+    Scope <- ScopeNorway
 
 Values are the proportions of the total area affected by a threat
 ([Artsdatabanken 2018](https://artsdatabanken.no/Files/27210/); cf. 
@@ -310,7 +307,8 @@ contain all severity classes of threats used in the Red List analysed.
 Two versions of the data frame are provided, one for analysis of the
 Norwegian Red List data (the default) and one with the severity classes
 defined by IUCN
-([2023](https://www.iucnredlist.org/resources/threat-classification-scheme)):
+([2023](https://www.iucnredlist.org/resources/threat-classification-scheme)). 
+The default is to use the Norwegian severity classes.
 
     SeverityNorway <- data.frame(
       name  = c("negldecl", "slowdecl", "rapidecl", "unknownd"),
@@ -330,11 +328,7 @@ defined by IUCN
       stringsAsFactors = FALSE
     )
 
-    if(useIUCNthreats) {
-      Severity <- SeverityIUCN
-    } else {
-      Severity <- SeverityNorway
-    }
+    Severity <- SeverityNorway
 
 Values correspond to the declines in area of occupancy over 50 years
 caused by a threat ([Artsdatabanken
