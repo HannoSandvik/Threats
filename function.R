@@ -448,7 +448,7 @@ randomiseDist <- function(D, L, U, N) {
 }
 
 
-meanScope <- function(x, ignoreScope = !useIUCNthreats) {
+meanScope <- function(x, ignoreScope = !useScope) {
   # Returns the arithmetic mean of scope, given a scope class
   if (ignoreScope) {
     return(1)
@@ -472,7 +472,7 @@ meanScope <- function(x, ignoreScope = !useIUCNthreats) {
 }
 
 
-randomiseScope <- function(n, x, ignoreScope = !useIUCNthreats) {
+randomiseScope <- function(n, x, ignoreScope = !useScope) {
   # Returns n random numbers of scope, given a scope class
   if (ignoreScope) {
     return(1)
