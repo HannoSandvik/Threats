@@ -13,7 +13,7 @@ definition required scope to be ignored.
 
 Version 1.1 of this code now includes the possibility to choose between
 these two definitions. (This choice is handled by the variable
-`useIUCNthreats`, see [species.md](species.md).)
+`useScope`, see [species.md](species.md).)
 
 The multiplicative approach had earlier been applied by Garnett et al. 
 ([2018](http://dx.doi.org/10.1111/cobi.13220), appendix S3) and Mair et
