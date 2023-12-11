@@ -1,5 +1,5 @@
 # Threats
-Metrics for quantifying the contributions of different threats to Red Lists
+**Metrics for quantifying the contributions of different threats to Red Lists**
 
 ## Purpose
 Improved quantification and reporting of threats affecting red-listed species or ecosystems, using the Red List Index or the Expected Loss of Species. Data from one or more Red Lists are needed as input.
